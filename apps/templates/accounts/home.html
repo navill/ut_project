@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Test</h2>
+<p>
+	If you already have an account, go ahead and <a href="{% url 'login' %}">log in</a>. get started
+	by creating a <a href="{% url 'accounts:staff_signup' %}">staff account</a> or a <a href="{% url 'accounts:normal_signup' %}">user
+	account</a>.
+</p>
+<hr>
+<h3>test title</h3>
+<p>
+	test
+</p>
+{% endblock %}

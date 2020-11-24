@@ -1,6 +1,7 @@
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
+from django.urls import reverse_lazy, reverse
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
 
@@ -13,6 +14,8 @@ class StaffSignUpView(CreateView):
     model = BaseUser
     form_class = StaffSignUpForm
     template_name = 'registration/signup_form.html'
+
+    # success_url = reverse_lazy('accounts:staff:list')
 
     def get_context_data(self, **kwargs):
         kwargs['user_type'] = 'Staff'
@@ -28,6 +31,7 @@ class StaffSignUpView(CreateView):
 class StaffListView(ListView):
     model = StaffUser
     template_name = 'user_list.html'
+    success_url = reverse_lazy('accounts:normal:list')
 
     def get_context_data(self, **kwargs):
         kwargs['user_type'] = 'Staff User'
@@ -38,14 +42,25 @@ class StaffListView(ListView):
         return queryset
 
 
-# class StaffDetailView(DetailView):
-#     pass
+class StaffDetailView(DetailView):
+    model = StaffUser
+    template_name = 'user_detail.html'
 
-# class StaffUpdateView(UpdateView):
-#     pass
 
-# class StaffDeleteView(DeleteView):
-#     pass
+class StaffUpdateView(UpdateView):
+    model = StaffUser
+    template_name = 'user_update.html'
+
+    def get_success_url(self):
+        return reverse('accounts:staff:detail', kwargs={'pk': self.object.pk})
+
+
+class StaffDeleteView(DeleteView):
+    model = StaffUser
+    template_name = 'user_delete.html'
+
+    def get_success_url(self):
+        return reverse('accounts:staff:list')
 
 
 class NormalSignUpView(CreateView):
@@ -76,11 +91,23 @@ class NormalListView(ListView):
         queryset = super().get_queryset().ordered()
         return queryset
 
-# class NormalDetailView(DetailView):
-#     pass
-#
-# class NormalUpdateView(UpdateView):
-#     pass
-#
-# class NormalDeleteView(DeleteView):
-#     pass
+
+class NormalDetailView(DetailView):
+    model = NormalUser
+    template_name = 'user_detail.html'
+
+
+class NormalUpdateView(UpdateView):
+    model = NormalUser
+    template_name = 'user_update.html'
+
+    def get_success_url(self):
+        return reverse('accounts:normal:detail', kwargs={'pk': self.object.pk})
+
+
+class NormalDeleteView(DeleteView):
+    model = NormalUser
+    template_name = 'user_delete.html'
+
+    def get_success_url(self):
+        return reverse('accounts:normal:list')

@@ -1,12 +1,11 @@
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.forms import model_to_dict
 from django.shortcuts import redirect
 from django.urls import reverse_lazy, reverse
-from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
 
-from accounts.decorators import staff_required, normal_required
-from accounts.forms import StaffSignUpForm, NormalSignUpForm
+from accounts.forms import StaffSignUpForm, NormalSignUpForm, StaffUpdateForm, NormalUpdateForm
+from accounts.mixins.view_mixins import StaffRequiredMixin, NormalRequiredMixin
 from accounts.models import BaseUser, NormalUser, StaffUser
 
 
@@ -27,8 +26,7 @@ class StaffSignUpView(CreateView):
         return redirect('accounts:staff:list')
 
 
-@method_decorator([login_required, staff_required], name='dispatch')
-class StaffListView(ListView):
+class StaffListView(StaffRequiredMixin, ListView):
     model = StaffUser
     template_name = 'user_list.html'
     success_url = reverse_lazy('accounts:normal:list')
@@ -42,20 +40,21 @@ class StaffListView(ListView):
         return queryset
 
 
-class StaffDetailView(DetailView):
+class StaffDetailView(StaffRequiredMixin, DetailView):
     model = StaffUser
     template_name = 'user_detail.html'
 
 
-class StaffUpdateView(UpdateView):
+class StaffUpdateView(StaffRequiredMixin, UpdateView):
     model = StaffUser
+    form_class = StaffUpdateForm
     template_name = 'user_update.html'
 
     def get_success_url(self):
         return reverse('accounts:staff:detail', kwargs={'pk': self.object.pk})
 
 
-class StaffDeleteView(DeleteView):
+class StaffDeleteView(StaffRequiredMixin, DeleteView):
     model = StaffUser
     template_name = 'user_delete.html'
 
@@ -78,8 +77,7 @@ class NormalSignUpView(CreateView):
         return redirect('accounts:normal:list')
 
 
-@method_decorator([login_required, normal_required], name='dispatch')
-class NormalListView(ListView):
+class NormalListView(NormalRequiredMixin, ListView):
     model = NormalUser
     template_name = 'user_list.html'
 
@@ -92,13 +90,23 @@ class NormalListView(ListView):
         return queryset
 
 
-class NormalDetailView(DetailView):
+class NormalDetailView(NormalRequiredMixin, DetailView):
     model = NormalUser
     template_name = 'user_detail.html'
 
+    def get_object(self, queryset=None):
+        obj = super().get_object()
+        if self.request.user.username == obj.user.username:
+            return obj
 
-class NormalUpdateView(UpdateView):
+    def get_context_data(self, **kwargs):
+        kwargs['user_fields'] = model_to_dict(self.object)
+        return super().get_context_data(**kwargs)
+
+
+class NormalUpdateView(NormalRequiredMixin,UpdateView):
     model = NormalUser
+    form_class = NormalUpdateForm
     template_name = 'user_update.html'
 
     def get_success_url(self):

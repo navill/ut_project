@@ -7,8 +7,9 @@
 <div class='col-sm-6 col-sm-offset-3'>
 	<h1>{{ title }}</h1>
 	<h2>{{ user_type }}</h2>
-	<h3>{{ user }}</h3>
+	<a href="{{ user.normaluser.get_absolute_url }}">{{ user.username }}</a>
 
+	<p><br></p>
 	{% for obj in object_list %}
 	<div class="row">
 		<div class="col-sm-12">

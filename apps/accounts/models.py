@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.urls import reverse
 
-from accounts.mixins import CommonUserQuerySetMixin
+from accounts.mixins.form_mixins import CommonUserQuerySetMixin
 
 
 class BaseQuerySet(models.QuerySet):

@@ -53,6 +53,15 @@ class UserSaveForm:
         user.groups.add(group)
 
 
+class Grouping:
+    """
+    create_group
+    link_group_permissions
+
+    """
+    pass
+
+
 class CommonUserQuerySetMixin:
     def active(self):
         return self.filter(user__is_active=True)
@@ -65,3 +74,6 @@ class CommonUserQuerySetMixin:
 
     def ordered(self):
         return self.order_by('-user__date_joined')
+
+
+

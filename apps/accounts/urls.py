@@ -11,13 +11,13 @@ urlpatterns = [
 
     path('staff/', include(([
                                 path('list/', views.StaffListView.as_view(), name='list'),
-                                # path('update/', ),
-                                # path('detail/', ),
+                                path('update/<int:pk>', views.StaffUpdateView.as_view(), name='update'),
+                                path('detail/<int:pk>', views.StaffDetailView.as_view(), name='detail'),
                             ], 'views'), namespace='staff')),
 
     path('normal/', include(([
                                  path('list/', views.NormalListView.as_view(), name='list'),
-                                 # path('update/', ),
-                                 # path('detail/', ),
+                                 path('update/<int:pk>', views.NormalUpdateView.as_view(), name='update'),
+                                 path('detail/<int:pk>', views.NormalDetailView.as_view(), name='detail'),
                              ], 'views'), namespace='normal')),
 ]

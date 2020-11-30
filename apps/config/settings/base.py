@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'accounts',
     # third party
     'crispy_forms',
+
 ]
 
 MIDDLEWARE = [
@@ -92,7 +93,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
@@ -109,3 +110,5 @@ LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'accounts:home'
 
 LOGOUT_REDIRECT_URL = 'accounts:home'
+
+

@@ -35,7 +35,7 @@ class UserSaveForm:
 
     def _create_user_with_groups(self, user: 'BaseUser' = None, role: str = None):
         user_class = self._get_user_class(role)
-        cleaned_data = self._extract_valid_fields()
+        cleaned_data = self._get_fields_without_baseuser()
         self._add_user_to_group(user=user, groupname=role)
 
         # create staff or normal user
@@ -45,7 +45,7 @@ class UserSaveForm:
         class_name = ''.join([role, 'User'])
         return apps.get_model('accounts', class_name)
 
-    def _extract_valid_fields(self) -> Dict[str, str]:
+    def _get_fields_without_baseuser(self) -> Dict[str, str]:
         return dict(itertools.islice(self.cleaned_data.items(), 3, sys.maxsize))
 
     def _add_user_to_group(self, user: 'BaseUser' = None, groupname=None):

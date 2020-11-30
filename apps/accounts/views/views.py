@@ -104,7 +104,7 @@ class NormalDetailView(NormalRequiredMixin, DetailView):
         return super().get_context_data(**kwargs)
 
 
-class NormalUpdateView(NormalRequiredMixin,UpdateView):
+class NormalUpdateView(NormalRequiredMixin, UpdateView):
     model = NormalUser
     form_class = NormalUpdateForm
     template_name = 'user_update.html'

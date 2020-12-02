@@ -93,7 +93,7 @@ REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1,
 
 -   redis는 docker를 이용해 설정됨(6001:6000)
 
-![image-20201202114752572](/Users/jh/Desktop/ut_django/docs/image-20201202114752572.png)
+![image-20201202114752572](images/image-20201202114752572.png)
 
 ```python
 # external terminal(mac)

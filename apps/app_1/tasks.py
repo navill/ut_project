@@ -1,3 +1,4 @@
+import json
 import random
 from celery import shared_task
 
@@ -28,6 +29,7 @@ def test_task(self, x):
     result = {
         'excuted': 'app_1.tasks.py',
         'task_result': x + x,
+        'host': self.request.hostname,
         'temp': {
             'inner_temp': 1
         }

@@ -1,5 +1,3 @@
-import json
-
 from django.contrib.auth import login
 from django.forms import model_to_dict
 from django.http import HttpResponse
@@ -7,7 +5,6 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
 from django.views.generic.base import View
-from rest_framework.views import APIView
 
 from accounts.forms import StaffSignUpForm, NormalSignUpForm, StaffUpdateForm, NormalUpdateForm
 from accounts.mixins.view_mixins import StaffRequiredMixin, NormalRequiredMixin
@@ -129,7 +126,9 @@ class NormalDeleteView(DeleteView):
 
 class CeleryTestView(View):
     def get(self, request, *args, **kwargs):
-        result = test_task.delay(100)
-        response = result.get(propagate=False)
-        json_response = json.dumps(response, indent=4)
-        return HttpResponse(json_response)
+        user_id = self.request.user.id
+
+        # start task
+        test_task.delay(value=100, user_id=user_id)
+
+        return HttpResponse('done')

@@ -186,13 +186,9 @@ class CeleryTestView(View):
 
 ![image-20201202143933336](images/image-20201202143933336.png)
 
+<br>
 
-
-
-
-
-
-###django_celery_results: 데이터베이스 설정 관련 주의
+### django_celery_results: 데이터베이스 설정 관련 주의
 
 ```python
 app.conf.broker_url = BASE_REDIS_URL
@@ -203,7 +199,7 @@ app.conf.beat_scheduler = 'django_celery_beat.schedulers.DatabaseScheduler'
 app.conf.beat_schedule = {
 ```
 
-**\# 1**: taskmeta 테이블을 포함한 sqlite 데이터베이스를 새로 생성한다.
+**\# 1**: celery_taskmeta 테이블을 포함한 sqlite 데이터베이스를 새로 생성한다.
 
 -   **SQLAlachemy**를 이용해 테이블을 생성(**추측**)
 

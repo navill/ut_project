@@ -16,7 +16,8 @@ app.autodiscover_tasks()
 # celery - config
 app.conf.broker_url = BASE_REDIS_URL
 # app.conf.accept_content = ['json']
-app.conf.result_backend = 'db+sqlite:///config/celery_settings/results/results.sqlite'
+# app.conf.result_backend = 'db+sqlite:///config/celery_settings/results/results.sqlite'
+app.conf.result_backend = 'django-db'
 app.conf.result_extended = True
 app.conf.beat_scheduler = 'django_celery_beat.schedulers.DatabaseScheduler'
 app.conf.beat_schedule = {

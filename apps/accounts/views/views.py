@@ -129,6 +129,6 @@ class CeleryTestView(View):
         user_id = self.request.user.id
 
         # start task
-        test_task.delay(value=100, user_id=user_id)
+        test_task.delay(value=10000, user_id=user_id)
 
         return HttpResponse('done')

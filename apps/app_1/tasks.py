@@ -3,6 +3,7 @@ from celery import shared_task
 
 # beat
 from django.contrib.auth import get_user_model
+from django_celery_results.models import TaskResult
 
 from app_1.models import CeleryTestModel
 from config.celery_settings.celery import app
@@ -38,9 +39,10 @@ def test_task(self, value=None, user_id=None):
         if value > 10000:
             result = value
             break
-    self.update_state(state="PROGRESS", meta={'result': result})
+    # self.update_state(state="PROGRESS", meta={'result': result})
 
     obj.result = result
     obj.is_done = True
     obj.save()
     return result
+

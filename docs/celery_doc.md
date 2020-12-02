@@ -26,6 +26,7 @@ app.conf.result_backend = 'db+sqlite:///config/celery_settings/results/results.s
 app.conf.result_extended = True
 app.conf.beat_scheduler = 'django_celery_beat.schedulers.DatabaseScheduler'
 
+# set schedules
 app.conf.beat_schedule = {
     'add-every-minute-crontab': {
         'task': 'multiply_two_numbers',

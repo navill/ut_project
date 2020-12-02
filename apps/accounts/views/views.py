@@ -1,12 +1,18 @@
+import json
+
 from django.contrib.auth import login
 from django.forms import model_to_dict
+from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, ListView, DetailView, DeleteView, UpdateView
+from django.views.generic.base import View
+from rest_framework.views import APIView
 
 from accounts.forms import StaffSignUpForm, NormalSignUpForm, StaffUpdateForm, NormalUpdateForm
 from accounts.mixins.view_mixins import StaffRequiredMixin, NormalRequiredMixin
 from accounts.models import BaseUser, NormalUser, StaffUser
+from app_1.tasks import test_task
 
 
 class StaffSignUpView(CreateView):
@@ -119,3 +125,11 @@ class NormalDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse('accounts:normal:list')
+
+
+class CeleryTestView(View):
+    def get(self, request, *args, **kwargs):
+        result = test_task.delay(100)
+        response = result.get(propagate=False)
+        json_response = json.dumps(response, indent=4)
+        return HttpResponse(json_response)

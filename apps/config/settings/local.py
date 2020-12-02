@@ -1,4 +1,5 @@
 import redis
+import djcelery
 
 from .base import *
 
@@ -8,6 +9,7 @@ ALLOWED_HOSTS = ['*']
 # debug toolbar
 INSTALLED_APPS += [
     'debug_toolbar',
+    'djcelery',
     'django_celery_beat',
     'django_celery_results',
 ]
@@ -25,11 +27,12 @@ DATABASES = {
     }
 }
 
-# celery
+# celery for local setting
+djcelery.setup_loader()
 
-
-# redis
+# redis for local setting
 REDIS_HOST = 'localhost'
 REDIS_PORT = 6001
 REDIS_DB = 1
 REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1, decode_responses=True)
+

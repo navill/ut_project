@@ -10,11 +10,13 @@ class StaffSignUpAPIView(CreateAPIView):
 
 
 class StaffListAPIView(ListAPIView):
+    queryset = None
     serializer_class = StaffSignUpSerializer
     permission_classes = [AllowAny]
 
 
 class NormalSignUpView(CreateAPIView):
+    queryset = None
     serializer_class = StaffSignUpSerializer
     permission_classes = [AllowAny]
 

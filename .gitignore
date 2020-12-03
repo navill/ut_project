@@ -168,3 +168,4 @@ logs/
 logfile
 secrets.json
 handle_groups.py
+results.sqlite

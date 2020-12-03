@@ -22,4 +22,5 @@ urlpatterns = [
                                  path('detail/<int:pk>', views.NormalDetailView.as_view(), name='detail'),
                              ], 'views'), namespace='normal')),
     path('celery/test/', CeleryTestView.as_view()),
+    # path('api', include('api.urls'), namespace='api')
 ]

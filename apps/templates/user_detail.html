@@ -3,12 +3,23 @@
 
 <div>
 	<a href="{% url 'logout' %}">logout</a>
+	{% if user_type == 'Normal' %}
+	<a href="{% url 'accounts:normal:list' %}">list</a>
+	{% else %}
+	<a href="{% url 'accounts:staff:list' %}">list</a>
+	{% endif %}
 </div>
 <div class='col-sm-6 col-sm-offset-3'>
 
 	<h3>username: {{ user }}</h3>
-	<h3>description: {{ user_fields.description }}</h3>
-	<p>{{ user.is_authenticated }}</p>
+
+	{% for key, value in user_fields.items %}
+	<h3>{{ key }}: {{ value }}</h3>
+
+	{% endfor %}
+
+	<!--	<h3>description: {{ user_fields.description }}</h3>-->
+	<!--	<h3>{{ user_fields }}</h3>-->
 </div>
 
 {% endblock content %}

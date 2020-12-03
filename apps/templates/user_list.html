@@ -3,18 +3,26 @@
 
 <div>
 	<a href="{% url 'logout' %}">logout</a>
+
+	{% if user_type == 'Normal' %}
+	<a href="{% url 'accounts:normal:list' %}">list</a>
+	{% else %}
+	<a href="{% url 'accounts:staff:list' %}">list</a>
+	{% endif %}
+
 </div>
 <div class='col-sm-6 col-sm-offset-3'>
 	<h1>{{ title }}</h1>
 	<h2>{{ user_type }}</h2>
-	<a href="{{ user.normaluser.get_absolute_url }}">{{ user.username }}</a>
-
+	<p>Login user:
+		<a href="{{ url }}">{{ user.username }}</a>
+	</p>
 	<p><br></p>
 	{% for obj in object_list %}
 	<div class="row">
 		<div class="col-sm-12">
 			<div>
-				<p>{{obj.user.username}} | {{obj.email}}</p>
+				<p>{{obj.user.username}} | </p>
 			</div>
 		</div>
 		<hr/>

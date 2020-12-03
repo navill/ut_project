@@ -7,17 +7,15 @@ from django.views.generic import CreateView, ListView, DetailView, DeleteView, U
 from django.views.generic.base import View
 
 from accounts.forms import StaffSignUpForm, NormalSignUpForm, StaffUpdateForm, NormalUpdateForm
-from accounts.mixins.view_mixins import StaffRequiredMixin, NormalRequiredMixin
+from accounts.mixins.view_mixins import StaffRequiredMixin, NormalRequiredMixin, OwnerRequiredMixin
 from accounts.models import BaseUser, NormalUser, StaffUser
 from app_1.tasks import test_task
 
 
 class StaffSignUpView(CreateView):
-    model = BaseUser
     form_class = StaffSignUpForm
     template_name = 'registration/signup_form.html'
-
-    # success_url = reverse_lazy('accounts:staff:list')
+    success_url = reverse_lazy('accounts:staff:list')
 
     def get_context_data(self, **kwargs):
         kwargs['user_type'] = 'Staff'
@@ -32,10 +30,12 @@ class StaffSignUpView(CreateView):
 class StaffListView(StaffRequiredMixin, ListView):
     model = StaffUser
     template_name = 'user_list.html'
-    success_url = reverse_lazy('accounts:normal:list')
+    user_type = 'staff'
 
     def get_context_data(self, **kwargs):
-        kwargs['user_type'] = 'Staff User'
+        staff_user = self.request.user.staffuser
+        kwargs['user_type'] = self.user_type
+        kwargs['url'] = staff_user.get_absolute_url()
         return super().get_context_data(**kwargs)
 
     def get_queryset(self):
@@ -43,12 +43,16 @@ class StaffListView(StaffRequiredMixin, ListView):
         return queryset
 
 
-class StaffDetailView(StaffRequiredMixin, DetailView):
+class StaffDetailView(StaffRequiredMixin, OwnerRequiredMixin, DetailView):
     model = StaffUser
     template_name = 'user_detail.html'
 
+    def get_context_data(self, **kwargs):
+        kwargs['user_fields'] = model_to_dict(self.object)
+        return super().get_context_data(**kwargs)
 
-class StaffUpdateView(StaffRequiredMixin, UpdateView):
+
+class StaffUpdateView(StaffRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = StaffUser
     form_class = StaffUpdateForm
     template_name = 'user_update.html'
@@ -66,7 +70,6 @@ class StaffDeleteView(StaffRequiredMixin, DeleteView):
 
 
 class NormalSignUpView(CreateView):
-    model = NormalUser
     form_class = NormalSignUpForm
     template_name = 'registration/signup_form.html'
 
@@ -83,31 +86,34 @@ class NormalSignUpView(CreateView):
 class NormalListView(NormalRequiredMixin, ListView):
     model = NormalUser
     template_name = 'user_list.html'
+    user_type = 'normal'
 
     def get_context_data(self, **kwargs):
-        kwargs['user_type'] = 'Normal User'
+        normal_user = self.request.user.normaluser
+        kwargs['user_type'] = self.user_type
+        kwargs['url'] = normal_user.get_absolute_url()
         return super().get_context_data(**kwargs)
 
     def get_queryset(self):
         queryset = super().get_queryset().ordered()
         return queryset
 
+    def dispatch(self, request, *args, **kwargs):
+        kwargs['user_type'] = self.user_type
+        return super().dispatch(request, *args, **kwargs)
 
-class NormalDetailView(NormalRequiredMixin, DetailView):
+
+class NormalDetailView(NormalRequiredMixin, OwnerRequiredMixin, DetailView):
     model = NormalUser
     template_name = 'user_detail.html'
 
-    def get_object(self, queryset=None):
-        obj = super().get_object()
-        if self.request.user.username == obj.user.username:
-            return obj
-
     def get_context_data(self, **kwargs):
+        kwargs['user_type'] = 'Normal'
         kwargs['user_fields'] = model_to_dict(self.object)
         return super().get_context_data(**kwargs)
 
 
-class NormalUpdateView(NormalRequiredMixin, UpdateView):
+class NormalUpdateView(NormalRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = NormalUser
     form_class = NormalUpdateForm
     template_name = 'user_update.html'
@@ -124,6 +130,7 @@ class NormalDeleteView(DeleteView):
         return reverse('accounts:normal:list')
 
 
+# celery view for test
 class CeleryTestView(View):
     def get(self, request, *args, **kwargs):
         user_id = self.request.user.id

@@ -23,9 +23,6 @@ class BaseManager(BaseUserManager):
 
 
 class BaseUser(AbstractUser):
-    is_staff = models.BooleanField(default=False)
-    is_normal = models.BooleanField(default=False)
-
     address = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=14, default='')
 
@@ -41,18 +38,23 @@ class StaffManager(models.Manager):
         return StaffQuerySet(self.model, using=self._db).select_related('user')
 
     def all(self):
-        active_staff_user = super().all().active().staff()
+        active_staff_user = super().all().active()
         return active_staff_user
 
 
 class StaffUser(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     department = models.CharField(max_length=255, default='')
+    type = models.CharField(max_length=10, default='staff')
 
     objects = StaffManager()
 
     def get_absolute_url(self):
         return reverse('accounts:staff:detail', kwargs={'pk': self.pk})
+
+    @property
+    def is_staff(self):
+        return True
 
 
 class NormalQuerySet(CommonUserQuerySetMixin, models.QuerySet):
@@ -64,15 +66,20 @@ class NormalManager(models.Manager):
         return NormalQuerySet(self.model, using=self._db).select_related('user')
 
     def all(self):
-        active_normal_user = super().all().active().normal()
+        active_normal_user = super().all().active()
         return active_normal_user
 
 
 class NormalUser(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     description = models.TextField(default='')
+    type = models.CharField(max_length=10, default='normal')
 
     objects = NormalManager()
 
     def get_absolute_url(self):
         return reverse('accounts:normal:detail', kwargs={'pk': self.pk})
+
+    @property
+    def is_normal(self):
+        return True

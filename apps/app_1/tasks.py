@@ -3,7 +3,6 @@ from celery import shared_task
 
 # beat
 from django.contrib.auth import get_user_model
-from django_celery_results.models import TaskResult
 
 from app_1.models import CeleryTestModel
 from config.celery_settings.celery import app

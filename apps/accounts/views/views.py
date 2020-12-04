@@ -22,9 +22,9 @@ class StaffSignUpView(CreateView):
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
-        saved_user = form.save()
-        login(self.request, saved_user)
-        return redirect('accounts:staff:list')
+        obj = form.save()
+        login(self.request, obj)
+        return redirect(self.success_url)
 
 
 class StaffListView(StaffRequiredMixin, ListView):
@@ -72,15 +72,16 @@ class StaffDeleteView(StaffRequiredMixin, DeleteView):
 class NormalSignUpView(CreateView):
     form_class = NormalSignUpForm
     template_name = 'registration/signup_form.html'
+    success_url = reverse_lazy('accounts:normal:list')
 
     def get_context_data(self, **kwargs):
         kwargs['user_type'] = 'Normal'
         return super().get_context_data(**kwargs)
 
     def form_valid(self, form):
-        saved_user = form.save()
-        login(self.request, saved_user)
-        return redirect('accounts:normal:list')
+        obj = form.save()
+        login(self.request, obj)
+        return redirect(self.success_url)
 
 
 class NormalListView(NormalRequiredMixin, ListView):
@@ -97,10 +98,6 @@ class NormalListView(NormalRequiredMixin, ListView):
     def get_queryset(self):
         queryset = super().get_queryset().ordered()
         return queryset
-
-    def dispatch(self, request, *args, **kwargs):
-        kwargs['user_type'] = self.user_type
-        return super().dispatch(request, *args, **kwargs)
 
 
 class NormalDetailView(NormalRequiredMixin, OwnerRequiredMixin, DetailView):
@@ -125,9 +122,7 @@ class NormalUpdateView(NormalRequiredMixin, OwnerRequiredMixin, UpdateView):
 class NormalDeleteView(DeleteView):
     model = NormalUser
     template_name = 'user_delete.html'
-
-    def get_success_url(self):
-        return reverse('accounts:normal:list')
+    success_url = reverse_lazy('accounts:normal:list')
 
 
 # celery view for test

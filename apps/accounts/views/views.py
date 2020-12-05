@@ -7,8 +7,8 @@ from django.views.generic import CreateView, ListView, DetailView, DeleteView, U
 from django.views.generic.base import View
 
 from accounts.forms import StaffSignUpForm, NormalSignUpForm, StaffUpdateForm, NormalUpdateForm
-from accounts.mixins.view_mixins import StaffRequiredMixin, NormalRequiredMixin, OwnerRequiredMixin
-from accounts.models import BaseUser, NormalUser, StaffUser
+from accounts.mixins.view_mixins import OwnerRequiredMixin, UserRequiredMixin
+from accounts.models import NormalUser, StaffUser
 from app_1.tasks import test_task
 
 
@@ -27,7 +27,7 @@ class StaffSignUpView(CreateView):
         return redirect(self.success_url)
 
 
-class StaffListView(StaffRequiredMixin, ListView):
+class StaffListView(UserRequiredMixin, ListView):
     model = StaffUser
     template_name = 'user_list.html'
     user_type = 'staff'
@@ -43,7 +43,7 @@ class StaffListView(StaffRequiredMixin, ListView):
         return queryset
 
 
-class StaffDetailView(StaffRequiredMixin, OwnerRequiredMixin, DetailView):
+class StaffDetailView(UserRequiredMixin, OwnerRequiredMixin, DetailView):
     model = StaffUser
     template_name = 'user_detail.html'
 
@@ -52,7 +52,7 @@ class StaffDetailView(StaffRequiredMixin, OwnerRequiredMixin, DetailView):
         return super().get_context_data(**kwargs)
 
 
-class StaffUpdateView(StaffRequiredMixin, OwnerRequiredMixin, UpdateView):
+class StaffUpdateView(UserRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = StaffUser
     form_class = StaffUpdateForm
     template_name = 'user_update.html'
@@ -61,7 +61,7 @@ class StaffUpdateView(StaffRequiredMixin, OwnerRequiredMixin, UpdateView):
         return reverse('accounts:staff:detail', kwargs={'pk': self.object.pk})
 
 
-class StaffDeleteView(StaffRequiredMixin, DeleteView):
+class StaffDeleteView(UserRequiredMixin, DeleteView):
     model = StaffUser
     template_name = 'user_delete.html'
 
@@ -84,7 +84,7 @@ class NormalSignUpView(CreateView):
         return redirect(self.success_url)
 
 
-class NormalListView(NormalRequiredMixin, ListView):
+class NormalListView(UserRequiredMixin, ListView):
     model = NormalUser
     template_name = 'user_list.html'
     user_type = 'normal'
@@ -100,7 +100,7 @@ class NormalListView(NormalRequiredMixin, ListView):
         return queryset
 
 
-class NormalDetailView(NormalRequiredMixin, OwnerRequiredMixin, DetailView):
+class NormalDetailView(UserRequiredMixin, OwnerRequiredMixin, DetailView):
     model = NormalUser
     template_name = 'user_detail.html'
 
@@ -110,7 +110,7 @@ class NormalDetailView(NormalRequiredMixin, OwnerRequiredMixin, DetailView):
         return super().get_context_data(**kwargs)
 
 
-class NormalUpdateView(NormalRequiredMixin, OwnerRequiredMixin, UpdateView):
+class NormalUpdateView(UserRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = NormalUser
     form_class = NormalUpdateForm
     template_name = 'user_update.html'

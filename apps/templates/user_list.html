@@ -4,7 +4,7 @@
 <div>
 	<a href="{% url 'logout' %}">logout</a>
 
-	{% if user_type == 'Normal' %}
+	{% if user_type == 'normal' %}
 	<a href="{% url 'accounts:normal:list' %}">list</a>
 	{% else %}
 	<a href="{% url 'accounts:staff:list' %}">list</a>

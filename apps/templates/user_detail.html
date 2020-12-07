@@ -15,11 +15,13 @@
 
 	{% for key, value in user_fields.items %}
 	<h3>{{ key }}: {{ value }}</h3>
-
 	{% endfor %}
 
-	<!--	<h3>description: {{ user_fields.description }}</h3>-->
-	<!--	<h3>{{ user_fields }}</h3>-->
 </div>
+<div>
+	<br>
+	<a href="{% url 'accounts:staff:update' pk=object.pk %}">update</a>
+<!--	<a href="{% url 'accounts:staff:update' pk=object.pk %}">delete</a>-->
 
+</div>
 {% endblock content %}

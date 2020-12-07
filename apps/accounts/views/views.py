@@ -7,7 +7,8 @@ from django.views.generic import CreateView, ListView, DetailView, DeleteView, U
 from django.views.generic.base import View
 
 from accounts.forms import StaffSignUpForm, NormalSignUpForm, StaffUpdateForm, NormalUpdateForm
-from accounts.mixins.view_mixins import OwnerRequiredMixin, UserRequiredMixin
+from accounts.mixins.view_mixins import OwnerRequiredMixin, UserRequiredMixin, StaffRequiredMixin
+
 from accounts.models import NormalUser, StaffUser
 from app_1.tasks import test_task
 
@@ -27,14 +28,13 @@ class StaffSignUpView(CreateView):
         return redirect(self.success_url)
 
 
-class StaffListView(UserRequiredMixin, ListView):
+class StaffListView(StaffRequiredMixin, ListView):
     model = StaffUser
     template_name = 'user_list.html'
     user_type = 'staff'
 
     def get_context_data(self, **kwargs):
         staff_user = self.request.user.staffuser
-        kwargs['user_type'] = self.user_type
         kwargs['url'] = staff_user.get_absolute_url()
         return super().get_context_data(**kwargs)
 
@@ -43,7 +43,7 @@ class StaffListView(UserRequiredMixin, ListView):
         return queryset
 
 
-class StaffDetailView(UserRequiredMixin, OwnerRequiredMixin, DetailView):
+class StaffDetailView(StaffRequiredMixin, OwnerRequiredMixin, DetailView):
     model = StaffUser
     template_name = 'user_detail.html'
 
@@ -52,7 +52,7 @@ class StaffDetailView(UserRequiredMixin, OwnerRequiredMixin, DetailView):
         return super().get_context_data(**kwargs)
 
 
-class StaffUpdateView(UserRequiredMixin, OwnerRequiredMixin, UpdateView):
+class StaffUpdateView(StaffRequiredMixin, OwnerRequiredMixin, UpdateView):
     model = StaffUser
     form_class = StaffUpdateForm
     template_name = 'user_update.html'
@@ -61,7 +61,7 @@ class StaffUpdateView(UserRequiredMixin, OwnerRequiredMixin, UpdateView):
         return reverse('accounts:staff:detail', kwargs={'pk': self.object.pk})
 
 
-class StaffDeleteView(UserRequiredMixin, DeleteView):
+class StaffDeleteView(StaffRequiredMixin, OwnerRequiredMixin, DeleteView):
     model = StaffUser
     template_name = 'user_delete.html'
 
@@ -91,7 +91,6 @@ class NormalListView(UserRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         normal_user = self.request.user.normaluser
-        kwargs['user_type'] = self.user_type
         kwargs['url'] = normal_user.get_absolute_url()
         return super().get_context_data(**kwargs)
 
@@ -105,7 +104,6 @@ class NormalDetailView(UserRequiredMixin, OwnerRequiredMixin, DetailView):
     template_name = 'user_detail.html'
 
     def get_context_data(self, **kwargs):
-        kwargs['user_type'] = 'Normal'
         kwargs['user_fields'] = model_to_dict(self.object)
         return super().get_context_data(**kwargs)
 
@@ -119,7 +117,7 @@ class NormalUpdateView(UserRequiredMixin, OwnerRequiredMixin, UpdateView):
         return reverse('accounts:normal:detail', kwargs={'pk': self.object.pk})
 
 
-class NormalDeleteView(DeleteView):
+class NormalDeleteView(UserRequiredMixin, OwnerRequiredMixin, DeleteView):
     model = NormalUser
     template_name = 'user_delete.html'
     success_url = reverse_lazy('accounts:normal:list')

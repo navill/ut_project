@@ -28,6 +28,16 @@ class BaseUser(AbstractUser):
 
     objects = BaseManager()
 
+    def has_child_user(self, child_user_name: str = None) -> bool:
+        child_user = child_user_name
+        try:
+            return hasattr(self, child_user)
+        except Exception:
+            raise AttributeError(f"{self.username} has no '{child_user_name}' attribute")
+
+    def get_full_name(self):
+        return str(self.last_name + self.first_name)
+
 
 class StaffQuerySet(CommonUserQuerySetMixin, models.QuerySet):
     pass

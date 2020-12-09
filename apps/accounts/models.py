@@ -21,6 +21,20 @@ class BaseManager(BaseUserManager):
     def all(self):
         return super().all().active().order_by('-date_joined')
 
+    def create_user(self, **kwargs):
+        password = self._validate_password(kwargs)
+        obj = BaseUser(**kwargs)
+        obj.set_password(password)
+        obj.save()
+        return obj
+
+    def _validate_password(self, validated_data):
+        password = validated_data.pop('password')
+        password2 = validated_data.pop('password2')
+        if password == password2:
+            return password
+        return False
+
 
 class BaseUser(AbstractUser):
     address = models.CharField(max_length=255, default='')
@@ -64,6 +78,9 @@ class Doctor(models.Model):
     def get_absolute_url(self):
         return reverse('accounts:doctor:detail', kwargs={'pk': self.pk})
 
+    def __str__(self):
+        return f'{self.major}: {self.user.username}'
+
 
 class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
     pass
@@ -80,9 +97,9 @@ class PatientManager(models.Manager):
 
 class Patient(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    age = models.IntegerField(default=0)
-    emergency_call = models.CharField(max_length=14, default='0')
-    prescription = models.TextField(default='')
+    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True)  # m2m??
+    age = models.PositiveIntegerField(default=0, blank=True)
+    emergency_call = models.CharField(max_length=14, unique=True, blank=True, null=True)
 
     objects = PatientManager()
 

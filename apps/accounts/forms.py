@@ -19,7 +19,7 @@ class DoctorUpdateForm(forms.ModelForm):
 
 
 class PatientSignUpForm(UserSaveMixin, UserCreationForm):
-    description = forms.CharField(max_length=100)
+    emergency_call = forms.CharField(max_length=100, required=False)
 
     class Meta(UserCreationForm.Meta):
         model = BaseUser
@@ -28,4 +28,4 @@ class PatientSignUpForm(UserSaveMixin, UserCreationForm):
 class PatientUpdateForm(forms.ModelForm):
     class Meta:
         model = Patient
-        fields = ['prescription']
+        fields = '__all__'

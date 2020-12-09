@@ -33,11 +33,6 @@ class DoctorListView(DoctorRequiredMixin, ListView):
     template_name = 'user_list.html'
     user_type = 'doctor'
 
-    def get_context_data(self, **kwargs):
-        doctor = self.request.user.doctor
-        kwargs['url'] = doctor.get_absolute_url()
-        return super().get_context_data(**kwargs)
-
     def get_queryset(self):
         queryset = super().get_queryset().ordered()
         return queryset
@@ -49,7 +44,8 @@ class DoctorDetailView(DoctorRequiredMixin, OwnerRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         kwargs['user_fields'] = model_to_dict(self.object)
-        print(kwargs)
+        print(self.object)
+        # kwargs['patient_list'] = self.object.filter()
         return super().get_context_data(**kwargs)
 
 
@@ -90,11 +86,6 @@ class PatientListView(UserRequiredMixin, ListView):
     template_name = 'user_list.html'
     user_type = 'patient'
 
-    def get_context_data(self, **kwargs):
-        normal_user = self.request.user.normaluser
-        kwargs['url'] = normal_user.get_absolute_url()
-        return super().get_context_data(**kwargs)
-
     def get_queryset(self):
         queryset = super().get_queryset().ordered()
         return queryset
@@ -119,7 +110,6 @@ class PatientUpdateView(UserRequiredMixin, OwnerRequiredMixin, UpdateView):
 
 
 class PatientDeleteView(UserRequiredMixin, OwnerRequiredMixin, DeleteView):
-
     template_name = 'user_delete.html'
     success_url = reverse_lazy('accounts:patient:list')
 

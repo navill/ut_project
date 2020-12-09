@@ -10,10 +10,10 @@ class UserRequiredMixin(AccessMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class StaffRequiredMixin(UserRequiredMixin):
+class DoctorRequiredMixin(UserRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         request_handler = super().dispatch(request, *args, **kwargs)
-        if self.request.user.has_child_user('staffuser'):
+        if self.request.user.is_doctor:
             return request_handler
         else:
             return self.handle_no_permission()

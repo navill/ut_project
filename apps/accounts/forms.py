@@ -2,30 +2,30 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
 from accounts.mixins.form_mixins import UserSaveMixin
-from .models import BaseUser, StaffUser, NormalUser
+from .models import BaseUser, Doctor, Patient
 
 
-class StaffSignUpForm(UserSaveMixin, UserCreationForm):
+class DoctorSignUpForm(UserSaveMixin, UserCreationForm):
     department = forms.CharField(max_length=100)
 
     class Meta(UserCreationForm.Meta):
         model = BaseUser
 
 
-class StaffUpdateForm(forms.ModelForm):
+class DoctorUpdateForm(forms.ModelForm):
     class Meta:
-        model = StaffUser
+        model = Doctor
         fields = ['department']
 
 
-class NormalSignUpForm(UserSaveMixin, UserCreationForm):
+class PatientSignUpForm(UserSaveMixin, UserCreationForm):
     description = forms.CharField(max_length=100)
 
     class Meta(UserCreationForm.Meta):
         model = BaseUser
 
 
-class NormalUpdateForm(forms.ModelForm):
+class PatientUpdateForm(forms.ModelForm):
     class Meta:
-        model = NormalUser
-        fields = ['description']
+        model = Patient
+        fields = ['prescription']

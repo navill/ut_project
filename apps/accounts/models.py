@@ -25,71 +25,66 @@ class BaseManager(BaseUserManager):
 class BaseUser(AbstractUser):
     address = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=14, default='')
+    date_updated = models.DateTimeField(auto_now=True)
 
     objects = BaseManager()
-
-    def has_child_user(self, child_user_name: str = None) -> bool:
-        child_user = child_user_name
-        try:
-            return hasattr(self, child_user)
-        except Exception:
-            raise AttributeError(f"{self.username} has no '{child_user_name}' attribute")
 
     def get_full_name(self):
         return str(self.last_name + self.first_name)
 
+    @property
+    def is_doctor(self):
+        return hasattr(self, 'doctor')
 
-class StaffQuerySet(CommonUserQuerySetMixin, models.QuerySet):
+    @property
+    def is_patient(self):
+        return hasattr(self, 'patient')
+
+
+class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
     pass
 
 
-class StaffManager(models.Manager):
+class DoctorManager(models.Manager):
     def get_queryset(self):
-        return StaffQuerySet(self.model, using=self._db).select_related('user')
+        return DoctorQuerySet(self.model, using=self._db).select_related('user')
 
     def all(self):
-        active_staff_user = super().all().active()
-        return active_staff_user
+        active_doctor = super().all().active()
+        return active_doctor
 
 
-class StaffUser(models.Model):
+class Doctor(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     department = models.CharField(max_length=255, default='')
-    type = models.CharField(max_length=10, default='staff')
+    major = models.CharField(max_length=20, default='Psychiatrist')
 
-    objects = StaffManager()
+    objects = DoctorManager()
 
     def get_absolute_url(self):
-        return reverse('accounts:staff:detail', kwargs={'pk': self.pk})
-
-    @property
-    def is_staff(self):
-        return True
+        return reverse('accounts:doctor:detail', kwargs={'pk': self.pk})
 
 
-class NormalQuerySet(CommonUserQuerySetMixin, models.QuerySet):
+class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
     pass
 
 
-class NormalManager(models.Manager):
+class PatientManager(models.Manager):
     def get_queryset(self):
-        return NormalQuerySet(self.model, using=self._db).select_related('user')
+        return PatientQuerySet(self.model, using=self._db).select_related('user')
 
     def all(self):
-        active_normal_user = super().all().active()
-        return active_normal_user
+        active_patient = super().all().active()
+        return active_patient
 
 
-class NormalUser(models.Model):
+class Patient(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    description = models.TextField(default='')
-    type = models.CharField(max_length=10, default='normal')
+    age = models.IntegerField(default=0)
+    emergency_call = models.CharField(max_length=14, default='0')
+    prescription = models.TextField(default='')
 
-    objects = NormalManager()
+    objects = PatientManager()
 
     def get_absolute_url(self):
-        return reverse('accounts:normal:detail', kwargs={'pk': self.pk})
-
-    @property
-    def is_normal(self):
-        return True
+        return reverse('accounts:patient:detail', kwargs={'pk': self.pk})

@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import Q
 
 if TYPE_CHECKING:
-    from accounts.models import BaseUser, NormalUser, StaffUser
+    from accounts.models import BaseUser, Doctor, Patient
 
 # staff_group_permissions = [
 #     'accounts.add_normaluser',
@@ -45,9 +45,9 @@ class UserSaveMixin:
     def _get_type(self) -> str:
         return self.__class__.__name__.split('SignUpForm')[0]
 
-    def _get_user_class(self, user_type=None) -> Union['StaffUser', 'NormalUser']:
-        class_name = ''.join([user_type, 'User'])
-        return apps.get_model('accounts', class_name)
+    def _get_user_class(self, user_type=None) -> Union['Doctor', 'Patient']:
+        # class_name = ''.join([user_type])
+        return apps.get_model('accounts', user_type)
 
     def _get_fields_excluding_baseuser(self) -> Dict[str, str]:
         # todo: 자르는 방식이 아닌 StaffUser.fields - BaseUser.fields 형태로 변경해야함
@@ -73,11 +73,11 @@ class CommonUserQuerySetMixin:
     def active(self):
         return self.filter(user__is_active=True)
 
-    def staff(self):
-        return self.filter(Q(is_staff=True) & Q(is_normal=False))
+    def filt_doctor(self):
+        return self.filter(Q(is_doctor=True) & Q(is_patient=False))
 
-    def normal(self):
-        return self.filter(Q(is_staff=False) & Q(is_normal=True))
+    def filt_patient(self):
+        return self.filter(Q(is_doctor=False) & Q(is_patient=True))
 
     def ordered(self):
         return self.order_by('-user__date_joined')

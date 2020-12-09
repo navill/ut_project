@@ -8,8 +8,8 @@ class SignUpView(TemplateView):
 
 def home(request):
     if request.user.is_authenticated:
-        if hasattr(request.user, 'staffuser'):
-            return redirect('accounts:staff:list')
+        if hasattr(request.user, 'doctor'):
+            return redirect('accounts:doctor:list')
         else:
-            return redirect('accounts:normal:list')
+            return redirect('accounts:patient:list')
     return render(request, 'accounts/home.html')

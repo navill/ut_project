@@ -8,11 +8,11 @@ urlpatterns = [
     # path('', home_views.home, name='home'),
     path('signup/doctor', DoctorSignUpAPIView.as_view(), name='api-signup'),
     path('signup/patient', PatientSignUpAPIView.as_view(), name='api-signup'),
-    # path('doctor/', include(([
-    #                              path('list', views.DoctorListView.as_view(), name='list'),
+    path('doctor/', include(([
+                                 path('list', views.DoctorListAPIView.as_view(), name='list'),
     #                              path('update/<int:pk>', views.DoctorUpdateView.as_view(), name='update'),
     #                              path('detail/<int:pk>', views.DoctorDetailView.as_view(), name='detail'),
-    #                          ], 'views'), namespace='doctor')),
+                             ], 'views'), namespace='doctor')),
     #
     # path('patient/', include(([
     #                               path('list', views.PatientListView.as_view(), name='list'),

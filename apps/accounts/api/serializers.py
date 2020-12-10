@@ -21,19 +21,12 @@ class BaseUserSignUpSerializer(UserCreateMixin, serializers.ModelSerializer):
     class Meta:
         model = BaseUser
         fields = ['username', 'password', 'password2']
-        read_only_fields = ('is_staff', 'is_superuser', 'is_active', 'date_joined',)
 
 
-class DoctorSerializer(UserCreateMixin, serializers.ModelSerializer):
-    class Meta:
-        model = Doctor
-        fields = ['department', 'major']
-
-
-class DoctorSignUpSerializer(DoctorSerializer, BaseUserSignUpSerializer):
+class DoctorSignUpSerializer(BaseUserSignUpSerializer):
     user = BaseUserSignUpSerializer()
 
-    class Meta(DoctorSerializer.Meta):
+    class Meta:
         model = Doctor
         fields = ['user', 'department', 'major']
 

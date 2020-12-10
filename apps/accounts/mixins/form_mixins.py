@@ -60,15 +60,6 @@ class UserSaveMixin:
         user.groups.add(group)
 
 
-class Grouping:
-    """
-    create_group
-    link_group_permissions
-
-    """
-    pass
-
-
 class CommonUserQuerySetMixin:
     def active(self):
         return self.filter(user__is_active=True)

@@ -75,6 +75,14 @@ class Doctor(models.Model):
 
     objects = DoctorManager()
 
+    class Meta:
+        permissions = (
+            ("can_add_prescription", "can write prescriptions"),
+            ("can_change_prescription", "can change prescriptions "),
+            ("can_view_prescription", "can view prescriptions "),
+            # ("can_delete_prescription", "can delete prescriptions "),
+        )
+
     def get_absolute_url(self):
         return reverse('accounts:doctor:detail', kwargs={'pk': self.pk})
 

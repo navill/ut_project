@@ -14,7 +14,7 @@ class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSignUpSerializer
     permission_classes = [IsAuthenticated]
-
+    
 
 class PatientSignUpAPIView(CreateAPIView):
     serializer_class = PatientSignUpSerializer

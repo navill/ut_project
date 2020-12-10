@@ -29,14 +29,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
 
     # apps
     'accounts',
+    'hospitals',
+    'prescriptions',
     'app_1',
     # third party
     'crispy_forms',
-
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -48,7 +49,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+# AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -113,5 +114,3 @@ LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'accounts:home'
 
 LOGOUT_REDIRECT_URL = 'accounts:home'
-
-

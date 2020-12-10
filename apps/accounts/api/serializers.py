@@ -17,10 +17,21 @@ class BaseUserSignUpSerializer(UserCreateMixin, serializers.ModelSerializer):
         required=True,
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
+    date_joined = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
+    date_updated = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
+    last_login = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
         model = BaseUser
-        fields = ['username', 'password', 'password2']
+        fields = ['username', 'password', 'password2', 'date_joined', 'date_updated', 'last_login']
+
+
+class DoctorSerializer(serializers.ModelSerializer):
+    user = BaseUserSignUpSerializer()
+
+    class Meta:
+        model = Doctor
+        fields = '__all__'
 
 
 class DoctorSignUpSerializer(BaseUserSignUpSerializer):
@@ -29,12 +40,6 @@ class DoctorSignUpSerializer(BaseUserSignUpSerializer):
     class Meta:
         model = Doctor
         fields = ['user', 'department', 'major']
-
-
-class DoctorListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Doctor
-        fields = '__all__'
 
 
 class PatientSignUpSerializer(BaseUserSignUpSerializer):
@@ -47,7 +52,16 @@ class PatientSignUpSerializer(BaseUserSignUpSerializer):
         fields = ['doctor', 'user', 'age', 'emergency_call']
 
 
-class PatientListSerializer(serializers.ModelSerializer):
+class PatientSerializer(serializers.ModelSerializer):
+    created = serializers.SerializerMethodField()
+    updated = serializers.SerializerMethodField()
+
     class Meta:
         model = Patient
         fields = '__all__'
+
+    def get_created(self, obj):
+        return obj.user.date_joined
+
+    def get_updated(self, obj):
+        return obj.user.date_updated

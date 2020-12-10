@@ -10,13 +10,13 @@ urlpatterns = [
     path('signup/patient', PatientSignUpAPIView.as_view(), name='api-signup'),
     path('doctor/', include(([
                                  path('list', views.DoctorListAPIView.as_view(), name='list'),
-    #                              path('update/<int:pk>', views.DoctorUpdateView.as_view(), name='update'),
-    #                              path('detail/<int:pk>', views.DoctorDetailView.as_view(), name='detail'),
+                                 path('update/<int:pk>', views.DoctorUpdateAPIView.as_view(), name='update'),
+                                 path('detail/<int:pk>', views.DoctorDetailAPIView.as_view(), name='detail'),
                              ], 'views'), namespace='doctor')),
     #
-    # path('patient/', include(([
-    #                               path('list', views.PatientListView.as_view(), name='list'),
-    #                               path('update/<int:pk>', views.PatientUpdateView.as_view(), name='update'),
-    #                               path('detail/<int:pk>', views.PatientDetailView.as_view(), name='detail'),
-    #                           ], 'views'), namespace='patient')),
+    path('patient/', include(([
+                                  path('list', views.PatientListAPIView.as_view(), name='list'),
+                                  path('update/<int:pk>', views.PatientUpdateAPIView.as_view(), name='update'),
+                                  path('detail/<int:pk>', views.PatientDetailAPIView.as_view(), name='detail'),
+                              ], 'views'), namespace='patient')),
 ]

@@ -44,12 +44,12 @@ class DoctorSignUpSerializer(BaseUserSignUpSerializer):
 
 class PatientSignUpSerializer(BaseUserSignUpSerializer):
     user = BaseUserSignUpSerializer()
-    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
+    family_doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
     emergency_call = serializers.CharField(max_length=14)
 
     class Meta:
         model = Patient
-        fields = ['doctor', 'user', 'age', 'emergency_call']
+        fields = ['family_doctor', 'user', 'age', 'emergency_call']
 
 
 class PatientSerializer(serializers.ModelSerializer):

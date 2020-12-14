@@ -5,8 +5,9 @@ from django.urls import path, include
 
 urlpatterns = [
     path('accounts/', include('accounts.urls', namespace='accounts')),
-    path('', include('django.contrib.auth.urls')),
+    path('prescriptions/', include('prescriptions.api.urls', namespace='prescriptions')),
     path('admin/', admin.site.urls),
+    path('', include('django.contrib.auth.urls')),
 
 ]
 if settings.DEBUG:

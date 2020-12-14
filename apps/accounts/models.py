@@ -12,28 +12,28 @@ class BaseQuerySet(models.QuerySet):
 
 
 class BaseManager(BaseUserManager):
-    def get_by_natural_key(self, username):
-        return self.get(username=username)
-
     def get_queryset(self):
         return BaseQuerySet(self.model, using=self._db)
 
     def all(self):
         return super().all().active().order_by('-date_joined')
 
-    def create_user(self, **kwargs):
-        password = self._validate_password(kwargs)
-        obj = BaseUser(**kwargs)
-        obj.set_password(password)
-        obj.save()
-        return obj
+    def create_user(self, username, password, **extra_fields):
+        user = self.model(username=username, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
 
-    def _validate_password(self, validated_data):
-        password = validated_data.pop('password')
-        password2 = validated_data.pop('password2')
-        if password == password2:
-            return password
-        return False
+    def create_superuser(self, username, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+        return self.create_user(username=username, password=password, **extra_fields)
 
 
 class BaseUser(AbstractUser):
@@ -44,7 +44,7 @@ class BaseUser(AbstractUser):
     objects = BaseManager()
 
     def get_full_name(self):
-        return str(self.last_name + self.first_name)
+        return f'{self.first_name} {self.last_name}'
 
     @property
     def is_doctor(self):
@@ -53,6 +53,9 @@ class BaseUser(AbstractUser):
     @property
     def is_patient(self):
         return hasattr(self, 'patient')
+
+    def __str__(self):
+        return self.username
 
 
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
@@ -69,7 +72,7 @@ class DoctorManager(models.Manager):
 
 
 class Doctor(models.Model):
-    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
+    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True, related_name='doctor')
     department = models.CharField(max_length=255, default='')
     major = models.CharField(max_length=20, default='Psychiatrist')
 
@@ -77,9 +80,9 @@ class Doctor(models.Model):
 
     class Meta:
         permissions = (
-            ("can_add_prescription", "can write prescriptions"),
-            ("can_change_prescription", "can change prescriptions "),
-            ("can_view_prescription", "can view prescriptions "),
+            ("can_add_prescription", "Can write prescriptions"),
+            ("can_change_prescription", "Can change prescriptions "),
+            ("can_view_prescription", "Can view prescriptions "),
             # ("can_delete_prescription", "can delete prescriptions "),
         )
 
@@ -105,11 +108,15 @@ class PatientManager(models.Manager):
 
 class Patient(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True)  # m2m??
+    family_doctor = models.ForeignKey(BaseUser, on_delete=models.SET_NULL, null=True,
+                                      related_name='family_doctor')  # m2m??
     age = models.PositiveIntegerField(default=0, blank=True)
     emergency_call = models.CharField(max_length=14, unique=True, blank=True, null=True)
 
     objects = PatientManager()
+
+    def __str__(self):
+        return self.user.get_full_name()
 
     def get_absolute_url(self):
         return reverse('accounts:patient:detail', kwargs={'pk': self.pk})

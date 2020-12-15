@@ -15,10 +15,10 @@ class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 class BasePrescriptionSerializer(serializers.ModelSerializer):
     writer = serializers.PrimaryKeyRelatedField(read_only=True)
-    patient = UserFilteredPrimaryKeyRelatedField(queryset=Patient.objects.all())
+    user_patient = UserFilteredPrimaryKeyRelatedField(queryset=Patient.objects.all())
     created = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     updated = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
         model = Prescription
-        fields = ['writer', 'patient', 'description', 'created', 'updated']
+        fields = ['writer', 'user_patient', 'description', 'created', 'updated']

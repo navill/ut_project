@@ -10,7 +10,7 @@ class PrescriptionManager(models.Manager):
 
 class Prescription(models.Model):
     writer = models.ForeignKey(BaseUser, on_delete=models.SET_NULL, null=True, related_name='prescription_by')
-    patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, related_name='prescription_to')
+    user_patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, related_name='prescription_to')
     description = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

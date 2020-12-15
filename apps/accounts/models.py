@@ -111,8 +111,7 @@ class PatientManager(models.Manager):
 
 class Patient(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    user_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True,
-                                      related_name='family_doctor')  # m2m??
+    user_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, related_name='patients')  # m2m??
     age = models.PositiveIntegerField(default=0, blank=True)
     emergency_call = models.CharField(max_length=14, blank=True, null=True)
 

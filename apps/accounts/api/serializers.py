@@ -5,11 +5,8 @@ from accounts.api.mixins import UserCreateMixin
 from accounts.models import BaseUser, Doctor, Patient
 
 
-class IdRelatedSerializer(serializers.Serializer):
-    user = serializers.IntegerField()
-
-
 class BaseUserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
     date_joined = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     date_updated = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     last_login = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
@@ -19,8 +16,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
         fields = ['username', 'date_joined', 'date_updated', 'last_login']
 
 
-class UserSignUpSerializer(BaseUserSerializer):
-    username = serializers.CharField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
+class BaseUserSignUpSerializer(BaseUserSerializer):
     password = serializers.CharField(
         write_only=True,
         required=True,
@@ -44,21 +40,24 @@ class DoctorSerializer(serializers.ModelSerializer):
         fields = ['user', 'department', 'major']
 
 
-class SimpleRelatedDoctorSerializer(DoctorSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
-
-
-class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
-    pass
-
-
 class PatientSerailizer(serializers.ModelSerializer):
     user = BaseUserSerializer()
-    user_doctor = SimpleRelatedDoctorSerializer()
 
     class Meta:
         model = Patient
-        fields = ['user', 'user_doctor', 'age', 'emergency_call']
+        fields = ['user_doctor', 'user', 'age', 'emergency_call']
+
+
+class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
+    user = BaseUserSignUpSerializer()
+
+
+class PatientSignUpSerializer(UserCreateMixin, PatientSerailizer):
+    user = BaseUserSignUpSerializer()
+
+
+class SimpleRelatedDoctorSerializer(DoctorSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
 
 
 class SimpleRelatedPatientSerializer(PatientSerailizer):
@@ -66,5 +65,10 @@ class SimpleRelatedPatientSerializer(PatientSerailizer):
     user_doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
 
 
-class PatientSignUpSerializer(UserCreateMixin, PatientSerailizer):
-    pass
+class RelatedDoctorSerializer(DoctorSerializer):
+    user = BaseUserSerializer()
+
+
+class RelatedPatientSerializer(PatientSerailizer):
+    user = BaseUserSerializer()
+    user_doctor = DoctorSerializer()

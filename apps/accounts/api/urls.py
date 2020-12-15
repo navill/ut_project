@@ -11,7 +11,7 @@ urlpatterns = [
     path('doctors', include(([
                                  path('', views.DoctorListAPIView.as_view(), name='list'),
                                  path('<int:pk>', views.DoctorDetailUpdateAPIView.as_view(), name='detail-update'),
-                                 # path('detail/<int:pk>', views.DoctorDetailAPIView.as_view(), name='detail'),
+                                 # path('detail/<int:pk>', views.DoctorDetailUpdateAPIView.as_view(), name='detail'),
                                  # path('<int:pk>', views.DoctorDetailUpdateAPIView.as_view(), name='get-put-doctor'),
                              ], 'views'), namespace='doctor')),
     #

@@ -6,7 +6,7 @@ from accounts.models import BaseUser, Doctor, Patient
 
 
 class BaseUserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
+    username = serializers.CharField(read_only=True)
     date_joined = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     date_updated = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     last_login = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
@@ -17,6 +17,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
 
 class BaseUserSignUpSerializer(BaseUserSerializer):
+    username = serializers.CharField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
     password = serializers.CharField(
         write_only=True,
         required=True,

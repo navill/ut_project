@@ -33,19 +33,29 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
 
 
 class DoctorSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='accounts:doctor-detail-update',
+        lookup_field='pk',
+        read_only=True
+    )
     user = BaseUserSerializer()
 
     class Meta:
         model = Doctor
-        fields = ['user', 'department', 'major']
+        fields = ['url', 'user', 'department', 'major']
 
 
 class PatientSerailizer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='accounts:patient-detail-update',
+        lookup_field='pk',
+        read_only=True
+    )
     user = BaseUserSerializer()
 
     class Meta:
         model = Patient
-        fields = ['user_doctor', 'user', 'age', 'emergency_call']
+        fields = ['url', 'user_doctor', 'user', 'age', 'emergency_call']
 
 
 class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
@@ -66,9 +76,8 @@ class SimpleRelatedPatientSerializer(PatientSerailizer):
 
 
 class RelatedDoctorSerializer(DoctorSerializer):
-    user = BaseUserSerializer()
+    pass
 
 
 class RelatedPatientSerializer(PatientSerailizer):
-    user = BaseUserSerializer()
     user_doctor = DoctorSerializer()

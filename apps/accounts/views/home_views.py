@@ -9,7 +9,7 @@ class SignUpView(TemplateView):
 def home(request):
     if request.user.is_authenticated:
         if hasattr(request.user, 'doctor'):
-            return redirect('accounts:doctor:list')
+            return redirect('accounts:doctor-list')
         else:
-            return redirect('accounts:patient:list')
+            return redirect('accounts:patient-list')
     return render(request, 'accounts/home.html')

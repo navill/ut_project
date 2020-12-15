@@ -16,6 +16,10 @@ class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 
 class PrescriptionSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='prescriptions:detail-update',
+        lookup_field='pk'
+    )
     writer = serializers.PrimaryKeyRelatedField(read_only=True)
     user_patient = UserFilteredPrimaryKeyRelatedField(queryset=Patient.objects.all())
     # user_patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
@@ -25,4 +29,4 @@ class PrescriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Prescription
-        fields = ['writer', 'user_patient', 'description', 'created', 'updated']
+        fields = ['url', 'writer', 'user_patient', 'description', 'created', 'updated']

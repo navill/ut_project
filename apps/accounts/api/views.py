@@ -2,8 +2,8 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAP
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from accounts.api.permissions import OnlyDoctor
-from accounts.api.serializers import DoctorSignUpSerializer, PatientSignUpSerializer, DoctorSerializer, \
-    PatientSerializer
+from accounts.api.serializers import DoctorSignUpSerializer, PatientSignUpSerializer, BaseDoctorSerializer, \
+    BasePatientSerailizer
 from accounts.models import Doctor, Patient
 
 
@@ -16,14 +16,14 @@ class DoctorSignUpAPIView(CreateAPIView):
 # [GET] /doctors
 class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.all().order_by('-user__date_joined')
-    serializer_class = DoctorSerializer
+    serializer_class = BaseDoctorSerializer
     permission_classes = [OnlyDoctor]
 
 
 # [GET, PUT] /doctors/<slug>
 class DoctorDetailUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Doctor.objects.all()
-    serializer_class = DoctorSerializer
+    serializer_class = BaseDoctorSerializer
     permission_classes = [OnlyDoctor]  # +owner
 
 
@@ -36,12 +36,12 @@ class PatientSignUpAPIView(CreateAPIView):
 # [GET] /patients
 class PatientListAPIView(ListAPIView):
     queryset = Patient.objects.all().order_by('-user__date_joined')
-    serializer_class = PatientSerializer
+    serializer_class = BasePatientSerailizer
     permission_classes = [IsAuthenticated]
 
 
 # [GET, PUT] /patients/<slug>
 class PatientDetailUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Patient.objects.all()
-    serializer_class = PatientSerializer
+    serializer_class = BasePatientSerailizer
     permission_classes = [IsAuthenticated]  # +owner

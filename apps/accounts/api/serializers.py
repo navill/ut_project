@@ -5,7 +5,7 @@ from accounts.api.mixins import UserCreateMixin
 from accounts.models import BaseUser, Doctor, Patient
 
 
-class BaseUserSignUpSerializer(UserCreateMixin, serializers.ModelSerializer):
+class BaseUserSignUpSerializer(serializers.ModelSerializer):
     username = serializers.CharField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
     password = serializers.CharField(
         write_only=True,
@@ -26,15 +26,7 @@ class BaseUserSignUpSerializer(UserCreateMixin, serializers.ModelSerializer):
         fields = ['username', 'password', 'password2', 'date_joined', 'date_updated', 'last_login']
 
 
-class DoctorSerializer(serializers.ModelSerializer):
-    user = BaseUserSignUpSerializer()
-
-    class Meta:
-        model = Doctor
-        fields = '__all__'
-
-
-class DoctorSignUpSerializer(BaseUserSignUpSerializer):
+class BaseDoctorSerializer(serializers.ModelSerializer):
     user = BaseUserSignUpSerializer()
 
     class Meta:
@@ -42,26 +34,18 @@ class DoctorSignUpSerializer(BaseUserSignUpSerializer):
         fields = ['user', 'department', 'major']
 
 
-class PatientSignUpSerializer(BaseUserSignUpSerializer):
+class DoctorSignUpSerializer(UserCreateMixin, BaseDoctorSerializer):
+    pass
+
+
+class BasePatientSerailizer(serializers.ModelSerializer):
     user = BaseUserSignUpSerializer()
     family_doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
-    emergency_call = serializers.CharField(max_length=14)
 
     class Meta:
         model = Patient
         fields = ['family_doctor', 'user', 'age', 'emergency_call']
 
 
-class PatientSerializer(serializers.ModelSerializer):
-    created = serializers.SerializerMethodField()
-    updated = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Patient
-        fields = '__all__'
-
-    def get_created(self, obj):
-        return obj.user.date_joined
-
-    def get_updated(self, obj):
-        return obj.user.date_updated
+class PatientSignUpSerializer(UserCreateMixin, BasePatientSerailizer):
+    pass

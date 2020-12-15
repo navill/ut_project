@@ -105,13 +105,16 @@ class PatientManager(models.Manager):
         active_patient = super().all().active()
         return active_patient
 
+    # def with_baseuser(self):
+    #     return self.get_queryset().select_related('user')
+
 
 class Patient(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    family_doctor = models.ForeignKey(BaseUser, on_delete=models.SET_NULL, null=True,
+    family_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True,
                                       related_name='family_doctor')  # m2m??
     age = models.PositiveIntegerField(default=0, blank=True)
-    emergency_call = models.CharField(max_length=14, unique=True, blank=True, null=True)
+    emergency_call = models.CharField(max_length=14, blank=True, null=True)
 
     objects = PatientManager()
 

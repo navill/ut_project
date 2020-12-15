@@ -11,7 +11,9 @@ class UserCreateMixin:
         user_data = validated_data.pop('user')
         if self.validate_passwords(user_data):
             baseuser = BaseUser.objects.create_user(**user_data)
+        print(self.Meta.model, validated_data)
         user = self.Meta.model.objects.create(user=baseuser, **validated_data)
+        print(user)
         user_authentication_handler = UserAuthenticationHandler(user=user, baseuser=baseuser)
         user_authentication_handler.set_group_and_permission()
         return user

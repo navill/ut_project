@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, permissions
 from rest_framework.validators import UniqueValidator
 
 from accounts.api.mixins import UserCreateMixin
@@ -30,7 +30,14 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
     )
 
     class Meta(BaseUserSerializer.Meta):
-        fields = BaseUserSerializer.Meta.fields + ['password', 'password2', ]
+        fields = BaseUserSerializer.Meta.fields + ['password', 'password2']
+
+    def validate(self, data):
+        if not data.get('password') or not data.get('password2'):
+            raise serializers.ValidationError("Please enter passwords.")
+        if data.get('password') != data.get('password2'):
+            raise serializers.ValidationError("Those passwords do not match.")
+        return data
 
 
 class DoctorSerializer(serializers.ModelSerializer):
@@ -39,7 +46,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         lookup_field='pk',
         read_only=True
     )
-    user = BaseUserSerializer()
+    user = BaseUserSerializer(read_only=True)
 
     class Meta:
         model = Doctor
@@ -52,11 +59,12 @@ class PatientSerailizer(serializers.ModelSerializer):
         lookup_field='pk',
         read_only=True
     )
-    user = BaseUserSerializer()
+    user = BaseUserSerializer(read_only=True)
 
     class Meta:
         model = Patient
         fields = ['url', 'user_doctor', 'user', 'age', 'emergency_call']
+        read_only_fields = ['user_doctor', 'user']  # 의사를 수정할 일이 있는가?
 
 
 class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):

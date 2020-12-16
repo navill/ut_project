@@ -7,12 +7,20 @@ from prescriptions.models import Prescription
 # for browser
 class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        request = self.context.get('request', None)
+        """
+        request 유저가 의사일 경우: Patient.objects.filter(user_doctor=request.user.doctor)
+        -> 의사가 담당하는 환자 리스트
+        request 유저가 사용자(환자)일 경우: Patient.objects.filter(user=request.user)
+        -> 사용자(환자) 자신
+        """
+        request_user = self.context.get('request', None).user
         queryset = super(UserFilteredPrimaryKeyRelatedField, self).get_queryset()
-        user_doctor = request.user.doctor
-        if not user_doctor or not queryset:
-            return None
-        return queryset.filter(user_doctor=user_doctor)
+        query = {}
+        if hasattr(request_user, 'doctor'):
+            query = {'user_doctor': request_user.doctor}
+        elif hasattr(request_user, 'patient'):
+            query = {'user': request_user}
+        return queryset.filter(**query)
 
 
 class PrescriptionSerializer(serializers.ModelSerializer):

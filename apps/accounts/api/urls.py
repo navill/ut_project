@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 
 from accounts.api import views
 from accounts.api.views import DoctorSignUpAPIView, PatientSignUpAPIView

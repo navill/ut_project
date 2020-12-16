@@ -12,4 +12,4 @@ def home(request):
             return redirect('accounts:doctor-list')
         else:
             return redirect('accounts:patient-list')
-    return render(request, 'accounts/home.html')
+    # return render(request, 'accounts/home.html')

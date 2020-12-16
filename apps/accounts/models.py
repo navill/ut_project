@@ -87,7 +87,7 @@ class Doctor(models.Model):
         )
 
     def get_absolute_url(self):
-        return reverse('accounts:doctor:detail', kwargs={'pk': self.pk})
+        return reverse('accounts:doctor-detail-update', kwargs={'pk': self.pk})
 
     def __str__(self):
         return f'{self.major}: {self.user.username}'
@@ -105,9 +105,6 @@ class PatientManager(models.Manager):
         active_patient = super().all().active()
         return active_patient
 
-    # def with_baseuser(self):
-    #     return self.get_queryset().select_related('user')
-
 
 class Patient(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
@@ -121,4 +118,4 @@ class Patient(models.Model):
         return self.user.get_full_name()
 
     def get_absolute_url(self):
-        return reverse('accounts:patient:detail', kwargs={'pk': self.pk})
+        return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})

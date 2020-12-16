@@ -1,6 +1,7 @@
+from django.db.models import QuerySet
 from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 
-from accounts.api.permissions import IsDoctor, OnlyOwner, OnlyHasPatient
+from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly
 from prescriptions.api import serializers
 from prescriptions.models import Prescription
 
@@ -15,16 +16,17 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(writer=self.request.user)
 
-    def get_queryset(self):
+    def get_queryset(self) -> "QuerySet":
         queryset = super().get_queryset()
-        return queryset.filter(writer=self.request.user)
+        doctor = self.request.user
+        return queryset.filter(writer=doctor)
 
 
 # [GET, PUT] /prescriptions/<slug>
 class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Prescription.objects.all()
     serializer_class = serializers.PrescriptionSerializer
-    permission_classes = [OnlyOwner]
+    permission_classes = [IsOwner | RelatedPatientReadOnly]  # obj.writer == request.user?
     lookup_field = 'pk'
 
     def perform_create(self, serializer):

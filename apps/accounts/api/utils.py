@@ -23,6 +23,7 @@ def is_owner(request, obj) -> bool:
     return bool(user == owner)
 
 
+# hasattr(request.user, 'doctor') vs request.user.groups.filter(name='doctor').exists()
 def has_group(request, group_name: str) -> bool:
     return request.user.groups.filter(name=group_name).exists()
 

@@ -1,17 +1,9 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import BasePermission
 
-from accounts.api.utils import is_authenticated, has_group, is_superuser, is_owner, is_safe_method, check_view
-
-
-class RootPermission(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return False
-
-    def has_permission(self, request, view):
-        return False
+from accounts.api.utils import is_authenticated, has_group, is_superuser, is_owner, is_safe_method
 
 
-class IsSuperUser(RootPermission):
+class IsSuperUser(BasePermission):
     def has_permission(self, request, view):
         return is_superuser(request)
 
@@ -19,45 +11,40 @@ class IsSuperUser(RootPermission):
         return is_superuser(request)
 
 
-class IsDoctor(RootPermission):
+class IsDoctor(BasePermission):
     def has_permission(self, request, view):
         is_auth = is_authenticated(request)
         is_doc = has_group(request, 'doctor')
         return is_auth and is_doc
 
 
-class IsPatient(RootPermission):
+class IsPatient(BasePermission):
     def has_permission(self, request, view):
         is_auth = is_authenticated(request)
         is_patient = has_group(request, 'patient')
         return is_auth and is_patient
 
 
-class IsOwner(RootPermission):
-    def has_permission(self, request, view):
-        return check_view(view, 'Retrieve')
-
+class IsOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         return is_owner(request, obj)
 
 
-class CareDoctorReadOnly(RootPermission):
-    def has_permission(self, request, view):
-        return check_view(view, 'Retrieve')
-
-    def has_object_permission(self, request, view, obj):
-        return self._check_method_and_group(request) and bool(obj.user_doctor == request.user.doctor)
+class CareDoctorReadOnly(BasePermission):
+    def has_object_permission(self, request, view, obj):  # retrieve, update
+        if self._check_method_and_group(request):
+            return bool(obj.user_doctor == request.user.doctor)
 
     def _check_method_and_group(self, request):
         return is_safe_method(request) and has_group(request, 'doctor')
 
 
-class PatientReadOnly(RootPermission):
+class PatientReadOnly(BasePermission):
     def has_permission(self, request, view):
         return is_safe_method(request) and has_group(request, 'patient')
 
 
-class RelatedPatientReadOnly(RootPermission):
+class RelatedPatientReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):
         if is_safe_method(request) and has_group(request, 'patient'):
             user_patient = request.user.patient

@@ -10,20 +10,6 @@ from django.db.models import Q
 if TYPE_CHECKING:
     from accounts.models import BaseUser, Doctor, Patient
 
-# staff_group_permissions = [
-#     'accounts.add_normaluser',
-#     'accounts.view_normaluser',
-#
-#     'accounts.add_staffuser',
-#     'accounts.view_staffuser',
-#     'accounts.change_staffuser'
-# ]
-# normal_group_permissions = [
-#     'accounts.add_normaluser',
-#     'accounts.view_normaluser',
-#     'accounts.change_normaluser'
-# ]
-
 
 class UserSaveMixin:
     @transaction.atomic
@@ -39,24 +25,19 @@ class UserSaveMixin:
         cleaned_data = self._get_fields_excluding_baseuser()  # StaffUser.department
         self._add_user_to_group(user=user, groupname=user_type)
 
-        # create staff or normal user
         user_class.objects.create(user=user, **cleaned_data)
 
     def _get_type(self) -> str:
         return self.__class__.__name__.split('SignUpForm')[0]
 
     def _get_user_class(self, user_type=None) -> Union['Doctor', 'Patient']:
-        # class_name = ''.join([user_type])
         return apps.get_model('accounts', user_type)
 
     def _get_fields_excluding_baseuser(self) -> Dict[str, str]:
-        # todo: 자르는 방식이 아닌 StaffUser.fields - BaseUser.fields 형태로 변경해야함
         return dict(itertools.islice(self.cleaned_data.items(), 3, sys.maxsize))
 
     def _add_user_to_group(self, user: 'BaseUser' = None, groupname: str = None):
         group, created = Group.objects.get_or_create(name=groupname.lower())
-        # if not created:  # permissions-보류
-        #     user.has_perm()
         user.groups.add(group)
 
 
@@ -70,5 +51,5 @@ class CommonUserQuerySetMixin:
     def filt_patient(self):
         return self.filter(Q(is_doctor=False) & Q(is_patient=True))
 
-    def ordered(self):
-        return self.order_by('-user__date_joined')
+    def ordered(self, value='-user__date_joined'):
+        return self.order_by(value)

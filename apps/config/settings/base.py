@@ -35,9 +35,13 @@ INSTALLED_APPS = [
     'hospitals',
     'prescriptions',
     'app_1',
+    'files',
     # third party
     'crispy_forms',
     'rest_framework',
+    'django_filters',
+    # 'rest_framework_filters',
+
 ]
 
 MIDDLEWARE = [
@@ -99,7 +103,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-DATETIME_FORMAT = '%d-%m-%YT%H:%M:%S'
+
+DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
@@ -112,8 +117,14 @@ AUTH_USER_MODEL = 'accounts.BaseUser'
 LOGIN_URL = 'login'
 
 LOGOUT_URL = 'logout'
+#
+# LOGIN_REDIRECT_URL = 'accounts:home'
+#
+# LOGOUT_REDIRECT_URL = 'accounts:home'
 
-LOGIN_REDIRECT_URL = 'accounts:home'
-
-LOGOUT_REDIRECT_URL = 'accounts:home'
-
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'accounts.api.permissions.IsSuperUser',
+    ]
+}

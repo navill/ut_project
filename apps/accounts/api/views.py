@@ -2,7 +2,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAP
 from rest_framework.permissions import AllowAny
 
 from accounts.api import serializers
-from accounts.api.permissions import IsDoctor, IsOwner, DoctorReadOnly
+from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly
 from accounts.models import Doctor, Patient
 
 
@@ -15,18 +15,17 @@ class DoctorSignUpAPIView(CreateAPIView):
 
 # [GET] /doctors
 class DoctorListAPIView(ListAPIView):
-    queryset = Doctor.objects.all().order_by('-user__date_joined')
+    queryset = Doctor.objects.all().ordered()
     serializer_class = serializers.DoctorSerializer
-    permission_classes = [IsDoctor]  # product에서는 IsDoctor -> IsSuperUser로 변경
-    # renderer_classes = [JSONRenderer]
+    permission_classes = [IsDoctor]
     lookup_field = 'pk'
 
 
 # [GET, PUT] /doctors/<pk>
-class DoctorDetailUpdateAPIView(RetrieveUpdateAPIView):
+class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Doctor.objects.all()
     serializer_class = serializers.DoctorSerializer
-    permission_classes = [IsOwner]  # +owner
+    permission_classes = [IsOwner]
     lookup_field = 'pk'
 
 
@@ -39,20 +38,22 @@ class PatientSignUpAPIView(CreateAPIView):
 
 # [GET] /patients
 class PatientListAPIView(ListAPIView):
-    queryset = Patient.objects.all().order_by('-user__date_joined')
-    serializer_class = serializers.SimpleRelatedPatientSerializer
-    permission_classes = [IsDoctor]  # product에서는 IsDoctor -> IsSuperUser로 변경
+    queryset = Patient.objects.all().ordered()
+    serializer_class = serializers.PatientSerailizer
+    permission_classes = [IsDoctor]
     lookup_field = ['pk']
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        doctor = self.request.user.doctor  # user.doctor는 permissions_class에서 확정되므로 에러 구문 없이 진행
+        doctor = self.request.user.doctor  # user.doctor는 permissions_class에서 확정되므로 에러검사 하지 않음
         return queryset.filter(user_doctor=doctor)
 
 
 # [GET, PUT] /patients/<pk>
-class PatientDetailUpdateAPIView(RetrieveUpdateAPIView):
+class PatientRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Patient.objects.all()
     serializer_class = serializers.PatientSerailizer
-    permission_classes = [DoctorReadOnly | IsOwner]
+    permission_classes = [CareDoctorReadOnly | IsOwner]
     lookup_field = 'pk'
+
+

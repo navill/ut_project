@@ -13,7 +13,7 @@ def is_authenticated(request) -> bool:
     return request.user.is_authenticated
 
 
-def check_owner(request, obj) -> bool:
+def is_owner(request, obj) -> bool:
     user = request.user
     owner = None
     if hasattr(obj, 'user'):
@@ -25,3 +25,10 @@ def check_owner(request, obj) -> bool:
 
 def has_group(request, group_name: str) -> bool:
     return request.user.groups.filter(name=group_name).exists()
+
+
+def check_view(view, target):
+    view_name = view.__class__.__name__
+    if target in view_name:
+        return True
+    return False

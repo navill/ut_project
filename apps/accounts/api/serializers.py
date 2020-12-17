@@ -1,4 +1,4 @@
-from rest_framework import serializers, permissions
+from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from accounts.api.mixins import UserCreateMixin
@@ -30,13 +30,14 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
     )
 
     class Meta(BaseUserSerializer.Meta):
-        fields = BaseUserSerializer.Meta.fields + ['password', 'password2']
+        fields = BaseUserSerializer.Meta.fields + ['first_name', 'last_name', 'password', 'password2']
 
     def validate(self, data):
         if not data.get('password') or not data.get('password2'):
             raise serializers.ValidationError("Please enter passwords.")
         if data.get('password') != data.get('password2'):
             raise serializers.ValidationError("Those passwords do not match.")
+        data.pop('password2')
         return data
 
 
@@ -73,8 +74,10 @@ class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
 
 class PatientSignUpSerializer(UserCreateMixin, PatientSerailizer):
     user = BaseUserSignUpSerializer()
+    user_doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
 
 
+# serializer relation은 core app에서 처리할 예정
 class SimpleRelatedDoctorSerializer(DoctorSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
 

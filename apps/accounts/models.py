@@ -16,7 +16,7 @@ class BaseManager(BaseUserManager):
         return BaseQuerySet(self.model, using=self._db)
 
     def all(self):
-        return super().all().active().order_by('-date_joined')
+        return super().all().active()
 
     def create_user(self, username, password, **extra_fields):
         user = self.model(username=username, **extra_fields)
@@ -72,19 +72,11 @@ class DoctorManager(models.Manager):
 
 
 class Doctor(models.Model):
-    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True, related_name='doctor')
+    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     department = models.CharField(max_length=255, default='')
     major = models.CharField(max_length=20, default='Psychiatrist')
 
     objects = DoctorManager()
-
-    class Meta:
-        permissions = (
-            ("can_add_prescription", "Can write prescriptions"),
-            ("can_change_prescription", "Can change prescriptions "),
-            ("can_view_prescription", "Can view prescriptions "),
-            # ("can_delete_prescription", "can delete prescriptions "),
-        )
 
     def get_absolute_url(self):
         return reverse('accounts:doctor-detail-update', kwargs={'pk': self.pk})

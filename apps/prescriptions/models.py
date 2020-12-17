@@ -15,6 +15,7 @@ class Prescription(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     # slug = models.SlugField(unique=True)
+    deleted = models.BooleanField(default=False)
 
     objects = PrescriptionManager()
 #

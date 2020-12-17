@@ -16,9 +16,9 @@ class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         request_user = self.context.get('request', None).user
         queryset = super(UserFilteredPrimaryKeyRelatedField, self).get_queryset()
         query = {}
-        if hasattr(request_user, 'doctor'):
+        if request_user.is_doctor:
             query = {'user_doctor': request_user.doctor}
-        elif hasattr(request_user, 'patient'):
+        elif request_user.is_patient:
             query = {'user': request_user}
         return queryset.filter(**query)
 

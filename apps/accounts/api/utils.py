@@ -25,11 +25,13 @@ def is_owner(request, obj) -> bool:
 
 # hasattr(request.user, 'doctor') vs request.user.groups.filter(name='doctor').exists()
 def has_group(request, group_name: str) -> bool:
-    return request.user.groups.filter(name=group_name).exists()
+    return hasattr(request.user, group_name)
+
+
+# def get_type_user(request, group_name) -> Any[User, None]:
+#     return getattr(request.user, group_name, None)
 
 
 def check_view(view, target):
     view_name = view.__class__.__name__
-    if target in view_name:
-        return True
-    return False
+    return True if target in view_name else False

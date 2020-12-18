@@ -1,6 +1,11 @@
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.settings import api_settings
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from accounts.api.authentications import CustomRefreshToken
 from accounts.api.mixins import UserCreateMixin
 from accounts.models import BaseUser, Doctor, Patient
 
@@ -13,7 +18,7 @@ class BaseUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseUser
-        fields = ['username', 'date_joined', 'date_updated', 'last_login']
+        fields = ['username', 'first_name', 'last_name', 'date_joined', 'date_updated', 'last_login']
 
 
 class BaseUserSignUpSerializer(BaseUserSerializer):
@@ -26,15 +31,15 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
     password2 = serializers.CharField(
         write_only=True,
         required=True,
-        style={'input_type': 'password', 'placeholder': 'Password'}
+        style={'input_type': 'password', 'placeholder': 'Confirm Password'}
     )
 
     class Meta(BaseUserSerializer.Meta):
-        fields = BaseUserSerializer.Meta.fields + ['first_name', 'last_name', 'password', 'password2']
+        fields = BaseUserSerializer.Meta.fields + ['password', 'password2']
 
     def validate(self, data):
-        if not data.get('password') or not data.get('password2'):
-            raise serializers.ValidationError("Please enter passwords.")
+        # if not data.get('password') or not data.get('password2'):
+        #     raise serializers.ValidationError("Please enter passwords.")
         if data.get('password') != data.get('password2'):
             raise serializers.ValidationError("Those passwords do not match.")
         data.pop('password2')
@@ -93,3 +98,41 @@ class RelatedDoctorSerializer(DoctorSerializer):
 
 class RelatedPatientSerializer(PatientSerailizer):
     user_doctor = DoctorSerializer()
+
+
+class AccountsTokenSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = CustomRefreshToken.for_user(user)
+        return token
+
+
+class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
+    def validate(self, attrs):
+        refresh = RefreshToken(attrs['refresh'])
+        data = {'access': str(refresh.access_token)}
+
+        self._reset_user_expired(refresh)
+
+        if api_settings.ROTATE_REFRESH_TOKENS:
+            if api_settings.BLACKLIST_AFTER_ROTATION:
+                try:
+                    # Attempt to blacklist the given refresh token
+                    refresh.blacklist()
+                except AttributeError:
+                    # If blacklist app not installed, `blacklist` method will
+                    # not be present
+                    pass
+
+            refresh.set_jti()
+            refresh.set_exp(from_time=timezone.now())
+
+            data['refresh'] = str(refresh)
+
+        return data
+
+    def _reset_user_expired(self, refresh):
+        user = self.context['request'].user
+        payload = refresh.access_token.payload
+        exp = payload['exp']
+        user.set_token_expired(exp)

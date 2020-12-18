@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     # third party
     'crispy_forms',
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
     'django_filters',
     # 'rest_framework_filters',
 
@@ -53,7 +54,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-# AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -89,12 +89,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ko'
 
 TIME_ZONE = 'Asia/Seoul'
 
@@ -102,7 +101,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
 
@@ -117,14 +116,14 @@ AUTH_USER_MODEL = 'accounts.BaseUser'
 LOGIN_URL = 'login'
 
 LOGOUT_URL = 'logout'
-#
-# LOGIN_REDIRECT_URL = 'accounts:home'
-#
-# LOGOUT_REDIRECT_URL = 'accounts:home'
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PERMISSION_CLASSES': [
         'accounts.api.permissions.IsSuperUser',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'accounts.api.authentications.CustomJWTTokenUserAuthentication'
     ]
 }

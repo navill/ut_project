@@ -40,6 +40,7 @@ class BaseUser(AbstractUser):
     address = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=14, default='')
     date_updated = models.DateTimeField(auto_now=True)
+    token_expired = models.IntegerField(default=0)
 
     objects = BaseManager()
 
@@ -56,6 +57,10 @@ class BaseUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    def set_token_expired(self, time):
+        self.token_expired = time
+        self.save()
 
 
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):

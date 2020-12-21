@@ -106,33 +106,33 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
         token = CustomRefreshToken.for_user(user)
         return token
 
+    def validate(self, attrs):
+        return super().validate(attrs)
+
 
 class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
     def validate(self, attrs):
         refresh = RefreshToken(attrs['refresh'])
         data = {'access': str(refresh.access_token)}
 
-        self._reset_user_expired(refresh)
-
         if api_settings.ROTATE_REFRESH_TOKENS:
             if api_settings.BLACKLIST_AFTER_ROTATION:
                 try:
-                    # Attempt to blacklist the given refresh token
                     refresh.blacklist()
                 except AttributeError:
-                    # If blacklist app not installed, `blacklist` method will
-                    # not be present
                     pass
 
+            current_time = timezone.now()
             refresh.set_jti()
-            refresh.set_exp(from_time=timezone.now())
+            refresh.set_exp(from_time=current_time)
+            self._reset_user_token_expired(refresh)
 
             data['refresh'] = str(refresh)
 
         return data
 
-    def _reset_user_expired(self, refresh):
+    def _reset_user_token_expired(self, refresh):
         user = self.context['request'].user
-        payload = refresh.access_token.payload
+        payload = refresh.access_token.payload  # access token
         exp = payload['exp']
         user.set_token_expired(exp)

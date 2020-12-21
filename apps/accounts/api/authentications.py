@@ -1,19 +1,13 @@
-from datetime import datetime
+from django.utils import timezone
 
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
 from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, Token
 from rest_framework_simplejwt.utils import datetime_to_epoch
 
 User = get_user_model()
-
-
-# def update_last_logout(user):
-#     user.last_logout = timezone.now()
-#     user.is_logged_out = True
-#     user.save()
 
 
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
@@ -25,9 +19,6 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
         return user, validated_token
 
     def get_user(self, validated_token):
-        """
-        Attempts to find and return a user using the given validated token.
-        """
         try:
             user_id = validated_token[api_settings.USER_ID_CLAIM]
         except KeyError:
@@ -46,15 +37,16 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
 
 class CustomRefreshToken(RefreshToken):
     @classmethod
-    def for_user(cls, user):
+    def for_user(cls, user) -> Token:
         token = super().for_user(user)
         expired = int(token.access_token.payload['exp'])
         user.set_token_expired(expired)
         return token
 
-    def set_exp(self, claim='exp', from_time=None, lifetime=None):
-        # current_time = local time
-        self.current_time = from_time = datetime.now()
+    # token 생성 시 local time을 적용하기 위한 overriding
+    # overriding하지 않을 경우 datetime.now() -> make_utc(datetime.utcnow()) 실행
+    def set_exp(self, claim='exp', from_time: timezone = None, lifetime: timezone = None):
+        self.current_time = from_time = timezone.now()
 
         if lifetime is None:
             lifetime = self.lifetime

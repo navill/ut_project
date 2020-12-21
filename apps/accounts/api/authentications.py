@@ -1,11 +1,10 @@
-from django.utils import timezone
-
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.utils import timezone
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
 from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.tokens import RefreshToken, Token
-from rest_framework_simplejwt.utils import datetime_to_epoch
+from rest_framework_simplejwt.tokens import Token, BlacklistMixin, AccessToken
 
 User = get_user_model()
 
@@ -35,20 +34,42 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
         return user
 
 
-class CustomRefreshToken(RefreshToken):
+class CustomToken(Token):
+    token_type = None
+    lifetime = None
+
+    def __init__(self, token=None, verify=True):
+        super().__init__(token, verify)
+        self.current_time = timezone.now()  # local time 적용
+
+
+class CustomRefreshToken(BlacklistMixin, CustomToken):
+    token_type = 'refresh'
+    lifetime = api_settings.REFRESH_TOKEN_LIFETIME
+    no_copy_claims = (
+        api_settings.TOKEN_TYPE_CLAIM,
+        'exp',
+        api_settings.JTI_CLAIM,
+        'jti',
+    )
+
     @classmethod
+    @transaction.atomic
     def for_user(cls, user) -> Token:
         token = super().for_user(user)
-        expired = int(token.access_token.payload['exp'])
-        user.set_token_expired(expired)
+        expired_time = int(token.access_token.payload['exp'])
+        user.set_token_expired(expired_time)  # login 시 user.token_expired 갱신
         return token
 
-    # token 생성 시 local time을 적용하기 위한 overriding
-    # overriding하지 않을 경우 datetime.now() -> make_utc(datetime.utcnow()) 실행
-    def set_exp(self, claim='exp', from_time: timezone = None, lifetime: timezone = None):
-        self.current_time = from_time = timezone.now()
+    @property
+    def access_token(self):
+        access = AccessToken()
+        access.set_exp(from_time=self.current_time)
 
-        if lifetime is None:
-            lifetime = self.lifetime
+        no_copy = self.no_copy_claims
+        for claim, value in self.payload.items():
+            if claim in no_copy:
+                continue
+            access[claim] = value
 
-        self.payload[claim] = datetime_to_epoch(from_time + lifetime)
+        return access

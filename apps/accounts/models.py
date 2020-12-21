@@ -58,7 +58,7 @@ class BaseUser(AbstractUser):
     def __str__(self):
         return self.username
 
-    def set_token_expired(self, time):
+    def set_token_expired(self, time: int):
         self.token_expired = time
         self.save()
 

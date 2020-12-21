@@ -1,9 +1,8 @@
-from django.utils import timezone
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.settings import api_settings
-from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.api.authentications import CustomRefreshToken
 from accounts.api.mixins import UserCreateMixin
@@ -106,33 +105,31 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
         token = CustomRefreshToken.for_user(user)
         return token
 
-    def validate(self, attrs):
-        return super().validate(attrs)
-
 
 class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
+    @transaction.atomic
     def validate(self, attrs):
-        refresh = RefreshToken(attrs['refresh'])
+        refresh = CustomRefreshToken(attrs['refresh'])
         data = {'access': str(refresh.access_token)}
+        exp = refresh.access_token.payload['exp']
 
         if api_settings.ROTATE_REFRESH_TOKENS:
             if api_settings.BLACKLIST_AFTER_ROTATION:
                 try:
+                    # create() Blacklist
                     refresh.blacklist()
+
                 except AttributeError:
                     pass
 
-            current_time = timezone.now()
+            # save() user.token_expired()
+            self._set_user_expired_to(exp=exp)
             refresh.set_jti()
-            refresh.set_exp(from_time=current_time)
-            self._reset_user_token_expired(refresh)
-
+            refresh.set_exp()  # from_time = self.current
             data['refresh'] = str(refresh)
 
         return data
 
-    def _reset_user_token_expired(self, refresh):
+    def _set_user_expired_to(self, exp: int = None):  # exp: epoch time
         user = self.context['request'].user
-        payload = refresh.access_token.payload  # access token
-        exp = payload['exp']
         user.set_token_expired(exp)

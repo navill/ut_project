@@ -6,7 +6,7 @@ from accounts.views.views import CeleryTestView
 app_name = 'accounts'
 urlpatterns = [
     path('home', home_views.home, name='home'),
-    path('api/', include('accounts.api.urls')),
+    path('api/', include('accounts.api.urls', namespace='api')),
     path('signup', home_views.SignUpView.as_view(), name='signup'),
     path('signup/patient', views.PatientSignUpView.as_view(), name='patient_signup'),
     path('signup/doctor', views.DoctorSignUpView.as_view(), name='doctor_signup'),

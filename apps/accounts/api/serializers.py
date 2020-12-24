@@ -133,3 +133,4 @@ class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
     def _set_user_expired_to(self, exp: int = None):  # exp: epoch time
         user = self.context['request'].user
         user.set_token_expired(exp)
+

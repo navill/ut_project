@@ -44,7 +44,8 @@ class BaseUser(AbstractUser):
 
     objects = BaseManager()
 
-    def get_full_name(self):
+    @property
+    def full_name(self):
         return f'{self.first_name} {self.last_name}'
 
     @property
@@ -106,13 +107,13 @@ class PatientManager(models.Manager):
 class Patient(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     user_doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, related_name='patients')  # m2m??
-    age = models.PositiveIntegerField(default=0, blank=True)
-    emergency_call = models.CharField(max_length=14, blank=True, null=True)
+    age = models.PositiveIntegerField(default=0)
+    emergency_call = models.CharField(max_length=14, default='010')
 
     objects = PatientManager()
 
     def __str__(self):
-        return self.user.get_full_name()
+        return self.user.full_name()
 
     def get_absolute_url(self):
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})

@@ -11,6 +11,12 @@ User = get_user_model()
 
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
     def authenticate(self, request):
+
+        if super().authenticate(request) is None:
+            # authentication 실패 시 None 반환되기 때문에 이 구문이 없을 경우
+            # TypeError: cannot unpack...
+            return None
+
         user, validated_token = super().authenticate(request)
         if user.token_expired != validated_token.payload['exp']:
             raise AuthenticationFailed('User do not have valid token', code='user_without_token')
@@ -41,6 +47,15 @@ class CustomToken(Token):
     def __init__(self, token=None, verify=True):
         super().__init__(token, verify)
         self.current_time = timezone.now()  # local time 적용
+        self.token = token
+
+        if token is None:
+            """
+            Token.__init__() 시 set_exp가 실행되면서 CutstomToken.current_time이
+            적용되지 않기 때문에 아래에서 강제로 실행(아래와 같이 할 경우 같은 메서드(set_exp)가 두번 실행되어야 하는 문제가 있음)
+            """
+            self.set_exp(from_time=self.current_time)
+            self.set_jti()
 
 
 class CustomRefreshToken(BlacklistMixin, CustomToken):

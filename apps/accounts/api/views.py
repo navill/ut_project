@@ -7,13 +7,14 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.api import serializers
+from accounts.api.authentications import CustomJWTTokenUserAuthentication
 from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer
 from accounts.models import Doctor, Patient
 
 
 class AccountsTokenPairView(TokenObtainPairView):
-    permission_classes = (AllowAny,)
+    permission_classes = [AllowAny]
     serializer_class = AccountsTokenSerializer
 
 
@@ -54,7 +55,7 @@ class DoctorSignUpAPIView(CreateAPIView):
 class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.all().ordered()
     serializer_class = serializers.DoctorSerializer
-    # authentication_classes = [CustomJWTTokenUserAuthentication]
+    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsDoctor]
     lookup_field = 'pk'
 
@@ -63,7 +64,7 @@ class DoctorListAPIView(ListAPIView):
 class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Doctor.objects.all()
     serializer_class = serializers.DoctorSerializer
-    # authentication_classes = [CustomJWTTokenUserAuthentication]
+    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsOwner]
     lookup_field = 'pk'
 
@@ -80,7 +81,7 @@ class PatientSignUpAPIView(CreateAPIView):
 class PatientListAPIView(ListAPIView):
     queryset = Patient.objects.all().ordered()
     serializer_class = serializers.PatientSerailizer
-    # authentication_classes = [CustomJWTTokenUserAuthentication]
+    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsDoctor]
     lookup_field = 'pk'
 
@@ -94,5 +95,6 @@ class PatientListAPIView(ListAPIView):
 class PatientRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Patient.objects.all()
     serializer_class = serializers.PatientSerailizer
+    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [CareDoctorReadOnly | IsOwner]
     lookup_field = 'pk'

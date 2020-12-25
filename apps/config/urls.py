@@ -11,7 +11,7 @@ urlpatterns = [
     path('prescriptions/', include('prescriptions.api.urls', namespace='prescriptions')),
     path('admin/', admin.site.urls),
     path('', include('django.contrib.auth.urls')),
-    path('token', AccountsTokenPairView.as_view(), name='token'),
+    path('token', AccountsTokenPairView.as_view(), name='token-login'),
     path('token/refresh', AccountsTokenRefreshView.as_view(), name='token-refresh'),
     path('token/logout', TokenLogoutView.as_view(), name='token-logout')
 ]

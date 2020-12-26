@@ -8,7 +8,7 @@ def test_compare_user_token_expired_with_accesstoken_expired(create_doctor_with_
     user, doctor = create_doctor_with_group
     token = CustomRefreshToken.for_user(user)
 
-    # check token type
+    # 토큰 타입 검사
     assert token['token_type'] == 'refresh'
     assert token.access_token['token_type'] == 'access'
 

@@ -11,7 +11,6 @@ User = get_user_model()
 
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
     def authenticate(self, request):
-
         if super().authenticate(request) is None:
             # authentication 실패 시 None 반환되기 때문에 이 구문이 없을 경우
             # TypeError: cannot unpack...

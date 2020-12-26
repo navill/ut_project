@@ -5,6 +5,28 @@ from django.contrib.auth.models import Group
 from accounts.api.authentications import CustomRefreshToken
 from accounts.models import Doctor, Patient
 
+
+class Skip:
+    def __init__(self):
+        self._is_skip = False
+
+    @property
+    def is_skip(self):
+        return self._is_skip
+
+    @is_skip.setter
+    def is_skip(self, bool_value):
+        self._is_skip = bool_value
+
+
+class ParameterizeTestCondition(Skip):
+    pass
+
+
+class APITestCondition(Skip):
+    pass
+
+
 # User = get_user_model()
 USER_DOCTOR = {
     'username': 'doctortest',

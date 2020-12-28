@@ -1,16 +1,72 @@
 import pytest
+from rest_framework.reverse import reverse
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.utils import datetime_from_epoch
 
-from accounts.api.authentications import CustomRefreshToken
+from accounts.api.authentications import CustomJWTTokenUserAuthentication, CustomRefreshToken
+from accounts.models import BaseUser
 
 
 @pytest.mark.django_db
-def test_compare_user_token_expired_with_accesstoken_expired(user_doctor_with_group):
+def test_custom_refresh_token(user_doctor_with_group):
     user, doctor = user_doctor_with_group
     token = CustomRefreshToken.for_user(user)
 
+    assert user.token_expired == token['exp']
+    assert BlacklistedToken.objects.all().exists() is False
+
+    outstanding_token = OutstandingToken.objects.first()
+    assert outstanding_token.token == str(token)
+    assert outstanding_token.jti == token['jti']
+    assert outstanding_token.expires_at == datetime_from_epoch(token['exp'])
+
+
+@pytest.mark.django_db
+def test_token_for_user_with_error(user_doctor_with_group):
+    """
+    @classmethod
+    @transaction.atomic
+    def for_user(cls, user, raise_error=False) -> Token:
+        token = super().for_user(user)
+        expired_time = int(token.access_token.payload['exp'])
+        if raise_error:
+            raise Exception
+        user.set_token_expired(expired_time)
+
+        return token
+    """
+    user, doctor = user_doctor_with_group
+    with pytest.raises(Exception):
+        CustomRefreshToken.for_user(user, raise_error=True)
+
+    # CustomRefreshToken.for_user() 중간에 에러가 발생할 경우 user.token_expired=<epoch_time> 및 OutstandingToken은 생성되면 안됨
+    assert user.token_expired == 0
+    assert OutstandingToken.objects.all().exists() is False
+
+
+@pytest.mark.django_db
+def test_authenticate_jwt_token_user(rf, get_token_from_doctor):
+    url = reverse('token-login')
+    token = get_token_from_doctor
+    access_token = token.access_token
+    user = BaseUser.objects.first()
+    request = rf.post(url, HTTP_AUTHORIZATION=f'Bearer {str(access_token)}')
+    authentication = CustomJWTTokenUserAuthentication()
+    auth_user, validated_token = authentication.authenticate(request)
+
+    assert auth_user == user
+    assert token['token_type'] == 'refresh'
+    assert access_token['token_type'] == 'access'
+    assert access_token['jti'] == validated_token['jti']
+
+
+@pytest.mark.django_db
+def test_compare_user_token_expired_with_accesstoken_expired(get_token_from_doctor):
+    token = get_token_from_doctor
+    access_token = token.access_token
+    user = BaseUser.objects.first()
     # 토큰 타입 검사
     assert token['token_type'] == 'refresh'
-    assert token.access_token['token_type'] == 'access'
-
+    assert access_token['token_type'] == 'access'
     # user 모델에 등록된 토큰 만료 시간과 발급된 토큰(access_token)의 만료 시간이 동일한지 확인
-    assert token.access_token['exp'] == user.token_expired
+    assert access_token['exp'] == user.token_expired

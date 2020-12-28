@@ -122,15 +122,14 @@ class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
                 except AttributeError:
                     pass
 
-            # save() user.token_expired()
-            self._set_user_expired_to(exp=exp)
             refresh.set_jti()
             refresh.set_exp()  # from_time = self.current
             data['refresh'] = str(refresh)
 
+            # save() user.token_expired()
+            self._set_user_expired_to(exp=exp)
         return data
 
     def _set_user_expired_to(self, exp: int = None):  # exp: epoch time
         user = self.context['request'].user
         user.set_token_expired(exp)
-

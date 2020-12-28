@@ -190,6 +190,12 @@ def get_access_and_refresh_token_from_doctor(user_doctor_with_group):
 
 
 @pytest.fixture
+def get_token_from_doctor(user_doctor_with_group):
+    user, _ = user_doctor_with_group
+    return CustomRefreshToken.for_user(user)
+
+
+@pytest.fixture
 def user_doctor_with_group(db):
     user = User.objects.create_user(**USER_DOCTOR)
     doctor = Doctor.objects.create(user=user, **DOCTOR_ACCOUNT)

@@ -4,8 +4,8 @@ from accounts.api.authentications import CustomRefreshToken
 
 
 @pytest.mark.django_db
-def test_compare_user_token_expired_with_accesstoken_expired(create_doctor_with_group):
-    user, doctor = create_doctor_with_group
+def test_compare_user_token_expired_with_accesstoken_expired(user_doctor_with_group):
+    user, doctor = user_doctor_with_group
     token = CustomRefreshToken.for_user(user)
 
     # 토큰 타입 검사

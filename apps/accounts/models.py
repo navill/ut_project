@@ -16,7 +16,7 @@ class BaseManager(BaseUserManager):
         return BaseQuerySet(self.model, using=self._db)
 
     def all(self):
-        return super().all().active()
+        return super().all()
 
     def create_user(self, username, password, **extra_fields):
         user = self.model(username=username, **extra_fields)

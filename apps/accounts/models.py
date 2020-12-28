@@ -4,6 +4,7 @@ from django.db import models
 from django.urls import reverse
 
 from accounts.mixins.form_mixins import CommonUserQuerySetMixin
+from hospitals.models import Department, Major
 
 
 class BaseQuerySet(models.QuerySet):
@@ -73,14 +74,18 @@ class DoctorManager(models.Manager):
         return DoctorQuerySet(self.model, using=self._db).select_related('user')
 
     def all(self):
-        active_doctor = super().all().active()
+        active_doctor = super().all().filter(user__is_active=True)
         return active_doctor
+
+    def patients(self):
+        return self.all().prefetch_related('patients')
 
 
 class Doctor(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    department = models.CharField(max_length=255, default='')
-    major = models.CharField(max_length=20, default='Psychiatrist')
+    # department = models.CharField(max_length=255, default='')
+    major = models.OneToOneField(Major, on_delete=models.CASCADE)
+    # major = models.CharField(max_length=20, default='Psychiatrist')
 
     objects = DoctorManager()
 

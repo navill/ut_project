@@ -133,3 +133,39 @@ class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
     def _set_user_expired_to(self, exp: int = None):  # exp: epoch time
         user = self.context['request'].user
         user.set_token_expired(exp)
+
+
+class DefaultBaseUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseUser
+        fields = '__all__'
+
+
+class DefaultBaseUserSignUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BaseUser
+        fields = '__all__'
+
+
+class DefaultDoctorSignUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Doctor
+        fields = '__all__'
+
+
+class DefaultPatientSignUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        fields = '__all__'
+
+
+class DefaultDoctorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Doctor
+        fields = '__all__'
+
+
+class DefaultPatientSerailizer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        fiedls = '__all__'

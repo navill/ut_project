@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.reverse import reverse
 
-from accounts.tests.conftest import DOCTOR_PARAMETER, PATIENT_PARAMETER
+from tests.conftest import DOCTOR_PARAMETER, PATIENT_PARAMETER
 
 api_accounts_parameter_test_condition = False
 api_test_condition = False
@@ -10,11 +10,11 @@ api_test_condition = False
 @pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
 @pytest.mark.django_db
 @pytest.mark.parametrize(*DOCTOR_PARAMETER)
-def test_api_signup_doctor_with_parameters(api_client, user, department, major, status_code):
+def test_api_signup_doctor_with_parameters(api_client, create_major, user, description, status_code):
     data = {
         'user': user,
-        'department': department,
-        'major': major
+        'description': description,
+        'major': create_major.id
     }
     url = reverse('accounts:api-signup-doctor')
     response = api_client.post(url, data=data, format='json')
@@ -89,15 +89,15 @@ def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refre
     refresh, access = get_access_and_refresh_token_from_doctor
     url = reverse('accounts:doctor-list')
     # authenticate token
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access)
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
     response = api_client.get(url, format='json')
 
     # list - success
     assert response.status_code == 200
     assert url in response.data[0]['url']
     assert response.data[0]['user']['username'] == 'doctortest'
-    assert response.data[0]['department'] == 'chosun'
-    assert response.data[0]['major'] == 'Psychiatrist'
+    # assert response.data[0]['department'] == 'chosun'
+    # assert response.data[0]['major'] == 'Psychiatrist'
 
     # fail - 유효하지 않은 인증 정보
     api_client.credentials()
@@ -115,7 +115,7 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
     refresh, access = get_access_and_refresh_token_from_doctor
     url = reverse('accounts:patient-list')
     # authenticate token
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access)
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
     response = api_client.get(url, format='json')
 
     # success
@@ -136,7 +136,7 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
 def test_api_view_doctor_detail(api_client, get_access_and_refresh_token_from_doctor):
     refresh, access = get_access_and_refresh_token_from_doctor
     # authenticate token
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access)
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
 
     # detail - success
     url = reverse('accounts:doctor-detail-update', kwargs={'pk': 1})
@@ -154,25 +154,14 @@ def test_api_view_doctor_detail(api_client, get_access_and_refresh_token_from_do
 @pytest.mark.django_db
 def test_api_update_doctor(api_client, get_access_and_refresh_token_from_doctor):
     refresh, access = get_access_and_refresh_token_from_doctor
-    # authenticate token
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + access)
+
+    # 토큰 인증
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
     url = reverse('accounts:doctor-detail-update', kwargs={'pk': 1})
-
-    # update - success(입력 없음 - 변경 x)
-    response = api_client.put(url, format='json')
-    assert response.data['department'] == 'chosun'
-    assert response.data['major'] == 'Psychiatrist'
-
-    # update - success(데이터 변경)
-    data = {
-        'department': 'changed department',
-    }
-    response = api_client.put(url, data=data, format='json')
-    assert response.status_code == 200
-    assert response.data['department'] == 'changed department'
-    assert response.data['major'] != 'changed major'
-
-    # fail - 인증 x
-    api_client.credentials()
     response = api_client.get(url, format='json')
-    assert response.status_code == 401
+    assert response.status_code == 200
+
+    # 데이터 변경(PATCH)
+    data = {'description': 'changed description'}
+    response = api_client.patch(url, data=data, format='json')
+    assert response.status_code == 200

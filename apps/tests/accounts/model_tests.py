@@ -1,7 +1,7 @@
 import pytest
 
 from accounts.models import BaseUser, BaseQuerySet
-from accounts.tests.conftest import USER_BASEUSER
+from tests.conftest import USER_BASEUSER
 
 doctor_test_condition = False
 patient_test_condition = False

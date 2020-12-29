@@ -1,27 +1,6 @@
 from django.db import models
 from django.urls import reverse
 
-COUNTRY = (
-    ('KOREA', '한국'),
-    ('USA', '미국'),
-)
-
-CITY = (
-    ('SEOUL', '서울'),
-    ('GWANGJU', '광주')
-)
-
-DEPARTMENT = (
-    ('정신의학과', '정신의학과'),
-    ('심리학과', '심리학과')
-)
-
-MAJOR = (
-    ('PSYCHIATRIST', 'psychiatrist'),
-    ('정신의학', '정신의학'),
-    ('심리학', '심리학'),
-)
-
 
 class MedicalCenterManager(models.Manager):
     def get_queryset(self):
@@ -67,8 +46,8 @@ class Department(models.Model):
 
 class MajorManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related(
-            'department')  # .prefetch_related(Prefetch('department__medical_center', queryset=MedicalCenter.objects.all()))
+        return super().get_queryset().select_related('department')
+        # .prefetch_related(Prefetch('department__medical_center', queryset=MedicalCenter.objects.all()))
 
 
 class Major(models.Model):
@@ -79,7 +58,6 @@ class Major(models.Model):
     objects = MajorManager()
 
     def __str__(self):
-        # return f'{self.department}-{self.name}'
         return self.name
 
     def get_absoulte_url(self):

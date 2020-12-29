@@ -37,8 +37,6 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
         fields = BaseUserSerializer.Meta.fields + ['password', 'password2']
 
     def validate(self, data):
-        # if not data.get('password') or not data.get('password2'):
-        #     raise serializers.ValidationError("Please enter passwords.")
         if data.get('password') != data.get('password2'):
             raise serializers.ValidationError("Those passwords do not match.")
         data.pop('password2')
@@ -55,7 +53,7 @@ class DoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ['url', 'user', 'department', 'major']
+        fields = ['url', 'user', 'major', 'description']
 
 
 class PatientSerailizer(serializers.ModelSerializer):

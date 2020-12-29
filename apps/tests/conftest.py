@@ -5,67 +5,44 @@ from django.contrib.auth.models import Group
 from accounts.api.authentications import CustomRefreshToken
 from accounts.models import Doctor, Patient
 
+from hospitals.models import Major, Department, MedicalCenter
 
-class Skip:
-    check = False
-    skip = True
-
-
-class ParameterizeTestCondition(Skip):
-    pass
-
-
-class APITestCondition(Skip):
-    pass
-
-
-class ModelTestCondition(Skip):
-    pass
-
-
-DOCTOR_PARAMETER = 'user, department, major, status_code', [
+DOCTOR_PARAMETER = 'user, description, status_code', [
     ({
          'username': 'doctortest',  # 201
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test12345',
-     }, 'chosun', 'Psychiatrist', 201),
+     }, 'test description', 201),
     ({
          'username': 'doctortest',  # not match password
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test54321',
-     }, 'chosun', 'Psychiatrist', 400),
+     }, 'test description', 400),
     ({
          'username': 'doctortest',  # no password2
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': '',
-     }, 'chosun', 'Psychiatrist', 400),
+     }, 'test description', 400),
     ({
          'username': 'doctortest',  # no password
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': '',
          'password2': 'test12345',
-     }, 'chosun', 'Psychiatrist', 400),
-    ({
-         'username': 'doctortest',  # no department
-         'first_name': 'doctor',
-         'last_name': 'lastname',
-         'password': 'test12345',
-         'password2': 'test12345',
-     }, '', 'Psychiatrist', 400),
+     }, 'test description', 400),
     ({
          'username': 'doctortest',  # no major
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test12345',
-     }, 'chosun', '', 400),
+     }, '', 201),
 ]
 PATIENT_PARAMETER = 'user, age, emergency_call, status_code', [
     ({
@@ -111,7 +88,6 @@ PATIENT_PARAMETER = 'user, age, emergency_call, status_code', [
          'password2': 'test12345',
      }, 30, '', 400),
 ]
-# User = get_user_model()
 
 USER_BASEUSER = {
     'username': 'baseuser',
@@ -134,11 +110,6 @@ USER_PATIENT = {
     'password': 'test12345'
 }
 
-DOCTOR_ACCOUNT = {
-    'department': 'chosun',
-    'major': 'Psychiatrist'
-}
-
 PATIENT_ACCOUNT = {
     'age': 30,
     'emergency_call': '062-119'
@@ -154,13 +125,50 @@ def api_client():
 
 
 @pytest.fixture
+def create_medicalcenter():
+    data = {
+        'country': '한국',
+        'city': '서울특별시',
+        'name': '한국병원',
+        'address': '강남구...',
+        'postal_code': '123-123',
+        'main_call': '02-111-2222',
+        'sub_call': '02-222-3333'
+    }
+    mc = MedicalCenter.objects.create(**data)
+    return mc
+
+
+@pytest.fixture
+def create_department(create_medicalcenter):
+    data = {
+        'medical_center': create_medicalcenter,
+        'name': '정신의학과',
+        'call': '02-333-4444'
+    }
+    department = Department.objects.create(**data)
+    return department
+
+
+@pytest.fixture
+def create_major(create_department):
+    data = {
+        'department': create_department,
+        'name': '정신의학',
+        'call': '02-444-5555'
+    }
+    major = Major.objects.create(**data)
+    return major
+
+
+@pytest.fixture
 def create_super_user():
     super_user = User.objects.create_superuser(**USER_BASEUSER)
     return super_user
 
 
 @pytest.fixture
-def create_bundle_users_with_some_inactive():
+def create_bundle_user_with_some_inactive():
     user_values = []
     for i in range(10):
         value = {
@@ -196,9 +204,9 @@ def get_token_from_doctor(user_doctor_with_group):
 
 
 @pytest.fixture
-def user_doctor_with_group(db):
+def user_doctor_with_group(db, create_major):
     user = User.objects.create_user(**USER_DOCTOR)
-    doctor = Doctor.objects.create(user=user, **DOCTOR_ACCOUNT)
+    doctor = Doctor.objects.create(user=user, major=create_major, description='test description')
     group = Group.objects.create(name='doctor')
     user.groups.add(group)
     return user, doctor
@@ -212,3 +220,40 @@ def user_patient_with_group(db, user_doctor_with_group):
     group = Group.objects.create(name='patient')
     user.groups.add(group)
     return user, patient
+
+
+@pytest.fixture
+def hospital(db):
+    data = {
+        'country': '대한민국',
+        'city': '광주',
+        'name': '한국병원',
+        'address': '광주 광역시 ...',
+        'postal_code': '12345',
+        'main_call': '062-111-1111',
+        'sub_call': '062-222-2222'
+    }
+    medical_object = MedicalCenter.objects.create(**data)
+    return medical_object
+
+
+@pytest.fixture
+def department(hospital):
+    data = {
+        'medical_center': hospital,
+        'name': '정신의학과',
+        'call': '062-333-3333'
+    }
+    department_object = Department.objects.create(**data)
+    return department_object
+
+
+@pytest.fixture
+def major(department):
+    data = {
+        'department': department,
+        'name': '정신의학',
+        'call': '062-444-4444'
+    }
+    major_object = Major.objects.create(**data)
+    return major_object

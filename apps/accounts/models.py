@@ -84,9 +84,9 @@ class DoctorManager(models.Manager):
 class Doctor(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     # department = models.CharField(max_length=255, default='')
-    major = models.OneToOneField(Major, on_delete=models.CASCADE)
+    major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='doctor_major')
     # major = models.CharField(max_length=20, default='Psychiatrist')
-
+    description = models.CharField(max_length=255, default='', blank=True, null=True)
     objects = DoctorManager()
 
     def get_absolute_url(self):

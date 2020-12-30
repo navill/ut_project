@@ -46,7 +46,7 @@ class Department(models.Model):
 
 class MajorManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related('department')
+        return super().get_queryset().select_related('department__medical_center')
         # .prefetch_related(Prefetch('department__medical_center', queryset=MedicalCenter.objects.all()))
 
 
@@ -58,7 +58,7 @@ class Major(models.Model):
     objects = MajorManager()
 
     def __str__(self):
-        return self.name
+        return f'{self.department}-{self.name}'
 
     def get_absoulte_url(self):
         return reverse('hospitals:major-retrieve', kwargs={'pk': self.pk})

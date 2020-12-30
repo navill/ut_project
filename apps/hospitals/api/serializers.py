@@ -16,7 +16,8 @@ class DefaultMedicalCenterSerializer(serializers.ModelSerializer):
 
 
 class MedicalCenterSerializer(DefaultMedicalCenterSerializer):
-    pass
+    class Meta(DefaultMedicalCenterSerializer):
+        fields = DefaultMedicalCenterSerializer.Meta.fields
 
 
 class MedicalCenterRetrieveSerializer(DefaultMedicalCenterSerializer):

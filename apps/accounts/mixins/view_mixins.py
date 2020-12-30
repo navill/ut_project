@@ -23,7 +23,7 @@ class OwnerRequiredMixin:
     def get_object(self, queryset=None):
         try:
             obj = super().get_object()
-            if self.request.user.username == obj.user.username:
+            if self.request.user.email == obj.user.email:
                 return obj
         except Exception:
             raise PermissionDenied('Forbidden')

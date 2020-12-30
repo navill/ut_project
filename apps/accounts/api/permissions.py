@@ -33,7 +33,7 @@ class IsOwner(BasePermission):
 class CareDoctorReadOnly(BasePermission):
     def has_object_permission(self, request, view, obj):  # retrieve, update
         if is_safe_method(request) and has_group(request, 'doctor'):
-            return bool(obj.user_doctor == request.user.doctor)
+            return bool(obj.doctor == request.user.doctor)
 
 
 class PatientReadOnly(BasePermission):

@@ -19,11 +19,12 @@ superuser_test_condition = False
 @pytest.mark.skipif(doctor_test_condition, reason='passed')
 def test_create_doctor(user_doctor_with_group):
     user, doctor = user_doctor_with_group
-    assert user.username == 'doctortest'
+    assert user.email == 'doctor@test.com'
     assert user.groups.filter(name='doctor').exists()
-    assert user.full_name == 'doctor lastname'
     assert user.pk == 1
+    assert doctor.get_full_name() == 'firstdoctor lastdoctor'
     assert doctor.pk == 1
+    assert doctor.major.name == '정신의학'
 
 
 @pytest.mark.skipif(doctor_test_condition, reason='passed')
@@ -45,10 +46,10 @@ def test_check_is_doctor(user_doctor_with_group):
 @pytest.mark.skipif(patient_test_condition, reason='passed')
 def test_create_patient(user_patient_with_group):
     user, patient = user_patient_with_group
-    assert user.username == 'patienttest'
+    assert user.email == 'patient@test.com'
     assert user.groups.filter(name='patient').exists()
     assert patient.pk == 2
-    assert patient.user_doctor.pk == 1
+    assert patient.doctor.pk == 1
 
 
 @pytest.mark.skipif(patient_test_condition, reason='passed')
@@ -69,21 +70,21 @@ def test_check_is_patient(user_patient_with_group):
 
 @pytest.mark.skipif(baseuser_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_create_baseuser(create_baseuser):
-    user = create_baseuser
-    assert user.username == 'baseuser'
+def test_create_baseuser(baseuser):
+    user = baseuser
+    assert user.email == 'test@test.com'
 
 
 @pytest.mark.skipif(baseuser_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_baseuser_method_str(create_baseuser):
-    user = create_baseuser
-    assert str(user) == user.username
+def test_baseuser_method_str(baseuser):
+    user = baseuser
+    assert str(user) == user.email
 
 
 @pytest.mark.skipif(baseuser_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_baseuser_queryset_active(create_bundle_users_with_some_inactive):
+def test_baseuser_queryset_active(create_bundle_user_with_some_inactive):
     users = BaseUser.objects.all()
     # with is_active == False
     for user in users:
@@ -97,15 +98,8 @@ def test_baseuser_queryset_active(create_bundle_users_with_some_inactive):
 
 @pytest.mark.skipif(baseuser_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_baseuser_method_get_full_name(create_baseuser):
-    user = create_baseuser
-    assert user.full_name == f'{user.first_name} {user.last_name}'
-
-
-@pytest.mark.skipif(baseuser_test_condition, reason='passed')
-@pytest.mark.django_db
-def test_baseuser_method_is_doctor_or_patient(create_baseuser):
-    user = create_baseuser
+def test_baseuser_method_is_doctor_or_patient(baseuser):
+    user = baseuser
     assert user.is_doctor is False
     assert user.is_patient is False
 
@@ -115,22 +109,22 @@ def test_baseuser_method_is_doctor_or_patient(create_baseuser):
 
 @pytest.mark.skipif(superuser_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_create_superuser(create_super_user):
-    super_user = create_super_user
+def test_create_superuser(super_user):
+    super_user = super_user
     assert super_user.is_superuser
     assert super_user.is_staff
     assert super_user.is_active
 
     with pytest.raises(ValueError):
-        USER_BASEUSER['username'] = 'no_staff_superuser'
+        USER_BASEUSER['email'] = 'no_staff_superuser'
         BaseUser.objects.create_superuser(**USER_BASEUSER, is_staff=False)
     with pytest.raises(ValueError):
-        USER_BASEUSER['username'] = 'no_supersuer_superuser'
+        USER_BASEUSER['email'] = 'no_supersuer_superuser'
         BaseUser.objects.create_superuser(**USER_BASEUSER, is_superuser=False)
 
 
 @pytest.mark.skipif(superuser_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_queryset(create_baseuser):
+def test_queryset(baseuser):
     users = BaseUser.objects.all()
     assert isinstance(users, BaseQuerySet)

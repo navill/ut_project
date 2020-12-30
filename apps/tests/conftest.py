@@ -7,112 +7,110 @@ from accounts.models import Doctor, Patient
 
 from hospitals.models import Major, Department, MedicalCenter
 
-DOCTOR_PARAMETER = 'user, description, status_code', [
+DOCTOR_PARAMETER = 'user, first_name, last_name, address, phone, description, status_code', [
     ({
-         'username': 'doctortest',  # 201
-         'first_name': 'doctor',
-         'last_name': 'lastname',
+         'email': 'doctor@test.com',  # 201
          'password': 'test12345',
          'password2': 'test12345',
-     }, 'test description', 201),
+     }, 'first_doctor', 'last_doctor', '광주어딘가..', '010-111-1111', '의사입니다.', 201),
     ({
-         'username': 'doctortest',  # not match password
+         'email': 'doctor@test.com',  # not match password
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test54321',
-     }, 'test description', 400),
+     }, 'first_doctor', 'last_doctor', '광주어딘가..', '010-111-1111', '의사입니다.', 400),
     ({
-         'username': 'doctortest',  # no password2
+         'email': 'doctor@test.com',  # no password2
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': '',
-     }, 'test description', 400),
+     }, 'first_doctor', 'last_doctor', '광주어딘가..', '010-111-1111', '의사입니다.', 400),
     ({
-         'username': 'doctortest',  # no password
+         'email': 'doctor@test.com',  # no password
          'first_name': 'doctor',
          'last_name': 'lastname',
          'password': '',
          'password2': 'test12345',
-     }, 'test description', 400),
-    ({
-         'username': 'doctortest',  # no major
-         'first_name': 'doctor',
-         'last_name': 'lastname',
-         'password': 'test12345',
-         'password2': 'test12345',
-     }, '', 201),
+     }, 'first_doctor', 'last_doctor', '광주어딘가..', '010-111-1111', '의사입니다.', 400),
+
 ]
-PATIENT_PARAMETER = 'user, age, emergency_call, status_code', [
+PATIENT_PARAMETER = 'user, first_name, last_name, address, phone, age, emergency_call, status_code', [
     ({
-         'username': 'patienttest',  # 201
-         'first_name': 'patient',
-         'last_name': 'lastname',
+         'email': 'patient@test.com',  # 201
          'password': 'test12345',
          'password2': 'test12345',
-     }, 30, '010-119', 201),
+     }, '길동', '홍', '광주 어딘가', '010-1111-1111', 30, '010-119', 201),
     ({
-         'username': 'patienttest',  # not match password
+         'email': 'patient@test.com',  # not match password
          'first_name': 'patient',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test54321',
-     }, 30, '010-119', 400),
+     }, '길동', '홍', '광주 어딘가', '010-1111-1111', 30, '010-119', 400),
     ({
-         'username': 'patienttest',  # no password2
+         'email': 'patient@test.com',  # no password2
          'first_name': 'patient',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': '',
-     }, 30, '010-119', 400),
+     }, '길동', '홍', '광주 어딘가', '010-1111-1111', 30, '010-119', 400),
     ({
-         'username': 'patienttest',  # no password
+         'email': 'patient@test.com',  # no password
          'first_name': 'patient',
          'last_name': 'lastname',
          'password': '',
          'password2': 'test12345',
-     }, 30, '010-119', 400),
+     }, '길동', '홍', '광주 어딘가', '010-1111-1111', 30, '010-119', 400),
     ({
-         'username': 'patienttest',  # no age
+         'email': 'patient@test.com',  # no age
          'first_name': 'patient',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test12345',
-     }, '', '010-119', 400),
+     }, '길동', '홍', '광주 어딘가','010-1111-1111', '', '010-119', 400),
     ({
-         'username': 'patienttest',  # no emergency_call
+         'email': 'patient@test.com',  # no emergency_call
          'first_name': 'patient',
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test12345',
-     }, 30, '', 400),
+     }, '길동', '홍', '광주 어딘가', '010-1111-1111', 30, '', 400),
 ]
 
 USER_BASEUSER = {
-    'username': 'baseuser',
-    'first_name': 'base',
-    'last_name': 'user',
+    'email': 'test@test.com',
+    'password': 'test12345'
+}
+USER_PATIENT = {
+    'email': 'patient@test.com',
     'password': 'test12345'
 }
 
 USER_DOCTOR = {
-    'username': 'doctortest',
-    'first_name': 'doctor',
-    'last_name': 'lastname',
+    'email': 'doctor@test.com',
     'password': 'test12345'
 }
-
-USER_PATIENT = {
-    'username': 'patienttest',
-    'first_name': 'patient',
-    'last_name': 'lastname',
-    'password': 'test12345'
+DOCTOR = {
+    'first_name': 'firstdoctor',
+    'last_name': 'lastdoctor',
+    'address': '광주광역시 어디어디..',
+    'phone': '010-111-1111',
+    'description': '의사입니다.'
 }
 
-PATIENT_ACCOUNT = {
+# USER_PATIENT = {
+#     'email': 'patient@test.com',
+#     'password': 'test1234'
+# }
+PATIENT = {
+    'first_name': 'firstpatient',
+    'last_name': 'lastpatient',
+    'address': '광주광역시 어디어디..',
+    'phone': '010-3333-3333',
     'age': 30,
-    'emergency_call': '062-119'
+    'emergency_call': '010-119'
 }
 
 User = get_user_model()
@@ -124,45 +122,35 @@ def api_client():
     return APIClient()
 
 
-@pytest.fixture
-def create_medicalcenter():
-    data = {
-        'country': '한국',
-        'city': '서울특별시',
-        'name': '한국병원',
-        'address': '강남구...',
-        'postal_code': '123-123',
-        'main_call': '02-111-2222',
-        'sub_call': '02-222-3333'
-    }
-    mc = MedicalCenter.objects.create(**data)
-    return mc
+#
+# @pytest.fixture
+# def create_medicalcenter():
+#     data = {
+#         'country': '한국',
+#         'city': '서울특별시',
+#         'name': '한국병원',
+#         'address': '강남구...',
+#         'postal_code': '123-123',
+#         'main_call': '02-111-2222',
+#         'sub_call': '02-222-3333'
+#     }
+#     mc = MedicalCenter.objects.create(**data)
+#     return mc
+#
+#
+# @pytest.fixture
+# def create_department(create_medicalcenter):
+#     data = {
+#         'medical_center': create_medicalcenter,
+#         'name': '정신의학과',
+#         'call': '02-333-4444'
+#     }
+#     department = Department.objects.create(**data)
+#     return department
 
 
 @pytest.fixture
-def create_department(create_medicalcenter):
-    data = {
-        'medical_center': create_medicalcenter,
-        'name': '정신의학과',
-        'call': '02-333-4444'
-    }
-    department = Department.objects.create(**data)
-    return department
-
-
-@pytest.fixture
-def create_major(create_department):
-    data = {
-        'department': create_department,
-        'name': '정신의학',
-        'call': '02-444-5555'
-    }
-    major = Major.objects.create(**data)
-    return major
-
-
-@pytest.fixture
-def create_super_user():
+def super_user():
     super_user = User.objects.create_superuser(**USER_BASEUSER)
     return super_user
 
@@ -172,9 +160,7 @@ def create_bundle_user_with_some_inactive():
     user_values = []
     for i in range(10):
         value = {
-            'username': f'baseuser{i}',
-            'first_name': f'base{i}',
-            'last_name': f'user{i}',
+            'email': f'test{i}@test.com',
             'password': 'test12345'
         }
         if i % 2 == 0:
@@ -185,7 +171,7 @@ def create_bundle_user_with_some_inactive():
 
 
 @pytest.fixture
-def create_baseuser():
+def baseuser():
     user = User.objects.create_user(**USER_BASEUSER)
     return user
 
@@ -204,9 +190,9 @@ def get_token_from_doctor(user_doctor_with_group):
 
 
 @pytest.fixture
-def user_doctor_with_group(db, create_major):
+def user_doctor_with_group(db, major):
     user = User.objects.create_user(**USER_DOCTOR)
-    doctor = Doctor.objects.create(user=user, major=create_major, description='test description')
+    doctor = Doctor.objects.create(user=user, major=major, **DOCTOR)
     group = Group.objects.create(name='doctor')
     user.groups.add(group)
     return user, doctor
@@ -216,7 +202,7 @@ def user_doctor_with_group(db, create_major):
 def user_patient_with_group(db, user_doctor_with_group):
     user_doctor, doctor = user_doctor_with_group
     user = User.objects.create_user(**USER_PATIENT)
-    patient = Patient.objects.create(user=user, user_doctor=doctor, **PATIENT_ACCOUNT)
+    patient = Patient.objects.create(user=user, doctor=doctor, **PATIENT)
     group = Group.objects.create(name='patient')
     user.groups.add(group)
     return user, patient

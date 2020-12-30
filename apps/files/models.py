@@ -54,6 +54,6 @@ class DataFile(models.Model):
         return str(self.file)
 
     def is_uploader(self, user):
-        if self.uploader.username == str(user.username):
+        if self.uploader.email == str(user.email):
             return True
         return False

@@ -8,8 +8,8 @@ from accounts.models import BaseUser, Doctor, Patient
 
 
 class BaseUserAdmin(admin.ModelAdmin):
-    fields = ['username', 'email', 'is_active', 'groups']
-    list_display = ['username', 'get_groups', 'email', 'last_login', 'date_joined']
+    fields = ['email', 'is_active', 'groups']
+    list_display = ['get_groups', 'email', 'last_login', 'date_created']
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
@@ -44,9 +44,9 @@ class DoctorAdmin(admin.ModelAdmin):
 
 
 class PatientAdmin(admin.ModelAdmin):
-    fields = ['user', 'user_doctor', 'age', 'emergency_call']
+    fields = ['user', 'doctor', 'age', 'emergency_call']
     readonly_fields = ('user', full_name,)
-    list_display = ['user', 'user_doctor', full_name]
+    list_display = ['user', 'doctor', full_name]
 
 
 admin.site.register(BaseUser, BaseUserAdmin)

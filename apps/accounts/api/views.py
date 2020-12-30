@@ -88,7 +88,7 @@ class PatientListAPIView(ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
         doctor = self.request.user.doctor  # user.doctor는 permissions_class에서 확정되므로 에러검사 하지 않음
-        return queryset.filter(user_doctor=doctor)
+        return queryset.filter(doctor=doctor)
 
 
 # [GET, PUT] /patients/<pk>

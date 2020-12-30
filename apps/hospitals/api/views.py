@@ -1,14 +1,14 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView, ListAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from hospitals.api.serializers import DepartmentSerializer, MedicalCenterSerializer, MajorSerializer, \
     MedicalCenterNestedDepartmentMajor, MedicalCenterRetrieveSerializer, DepartmentRetreiveSerializer, \
-    MajorRetrieveSerializer
+    MajorRetrieveSerializer, DefaultMedicalCenterSerializer
 from hospitals.models import MedicalCenter, Department, Major
 
 
-class HospitalAPIView(ListCreateAPIView):
+class HospitalAPIView(ListAPIView):
     queryset = MedicalCenter.objects.all()
     serializer_class = MedicalCenterNestedDepartmentMajor
     permission_classes = [AllowAny]
@@ -16,7 +16,7 @@ class HospitalAPIView(ListCreateAPIView):
 
 class MedicalCenterAPIView(ListCreateAPIView):
     queryset = MedicalCenter.objects.all()
-    serializer_class = MedicalCenterSerializer
+    serializer_class = DefaultMedicalCenterSerializer
     permission_classes = [AllowAny]
 
 

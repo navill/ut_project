@@ -4,8 +4,6 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.db import models
 
-from accounts.models import Patient, Doctor
-
 User = get_user_model()
 """
 hospital/
@@ -21,38 +19,34 @@ hospital/
 """
 
 
-def user_directory_path(instance: 'DataFile', filename: str) -> str:
+def directory_path(instance: 'DataFile', filename: str) -> str:
     day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
     name, ext = filename.split('.')
-    # + MEDIA_ROOT
-    return f'{instance.user.username}-{instance.user.id}/{instance.related_user}/{day}/{name}_{time}.{ext}'
+    return f'{day}/{ext}/{instance.uploader}_{instance.patient}_{name}_{time}.{ext}'
 
 
-class DataFileQueryManager(models.QuerySet):
-    pass
+class DataFileQuerySet(models.QuerySet):
+    def owner_queryset(self, user):
+        if user.is_superuser:
+            return self
+        return self.filter(uploader=user.id)
 
 
 class DataFileManager(models.Manager):
     def get_queryset(self):
-        return DataFileQueryManager(self.model, using=self._db)
-
-    def owner(self, user):
-        queryset = self.get_queryset()
-        if user.is_superuser:
-            return queryset
-        return queryset.filter(uploader=user.id)
+        return DataFileQuerySet(self.model, using=self._db).select_related('patient').select_related(
+            'doctor').prefetch_related('uploader')
 
 
 class DataFile(models.Model):
+    """
+    의사는 환자를 거쳐서만 데이터에 접근할 예정이므로 doctor와 관계를 맺을 필요없음
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files')
-    # patient_name = models.CharField(max_length=255)
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='files_by_doctor')
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='files_by_patient')
-    file = models.FileField(upload_to=user_directory_path)
-    # file_name = models.CharField(max_length=255, blank=True, null=True)
+    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files', null=True)
+    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files_by_patient', null=True)
+    file = models.FileField(upload_to=directory_path)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    # updated_at = models.DateTimeField(auto_now=True)
 
     objects = DataFileManager()
 
@@ -60,6 +54,6 @@ class DataFile(models.Model):
         return str(self.file)
 
     def is_uploader(self, user):
-        if self.user.username == str(user.username):
+        if self.uploader.username == str(user.username):
             return True
         return False

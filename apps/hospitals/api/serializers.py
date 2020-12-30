@@ -3,7 +3,7 @@ from rest_framework import serializers
 from hospitals.models import MedicalCenter, Department, Major
 
 
-class MedicalCenterSerializer(serializers.ModelSerializer):
+class DefaultMedicalCenterSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='hospitals:medicalcenter-retrieve',
         lookup_field='pk',
@@ -15,19 +15,15 @@ class MedicalCenterSerializer(serializers.ModelSerializer):
         fields = ['url', 'country', 'city', 'name', 'address', 'postal_code', 'main_call', 'sub_call']
 
 
-class MedicalCenterRetrieveSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='hospitals:medicalcenter-retrieve',
-        lookup_field='pk',
-        read_only=True
-    )
-
-    class Meta:
-        model = MedicalCenter
-        fields = ['url', 'country', 'city', 'name', 'address', 'postal_code', 'main_call', 'sub_call']
+class MedicalCenterSerializer(DefaultMedicalCenterSerializer):
+    pass
 
 
-class DepartmentSerializer(serializers.ModelSerializer):
+class MedicalCenterRetrieveSerializer(DefaultMedicalCenterSerializer):
+    pass
+
+
+class DefaultDepartmentSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='hospitals:department-retrieve',
         lookup_field='pk',
@@ -39,19 +35,15 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ['url', 'medical_center', 'name', 'call']
 
 
-class DepartmentRetreiveSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='hospitals:department-retrieve',
-        lookup_field='pk',
-        read_only=True
-    )
-
-    class Meta:
-        model = Department
-        fields = ['url', 'medical_center', 'name', 'call']
+class DepartmentSerializer(DefaultDepartmentSerializer):
+    pass
 
 
-class MajorSerializer(serializers.ModelSerializer):
+class DepartmentRetreiveSerializer(DefaultDepartmentSerializer):
+    pass
+
+
+class DefaultMajorSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='hospitals:major-retrieve',
         lookup_field='pk',
@@ -63,40 +55,23 @@ class MajorSerializer(serializers.ModelSerializer):
         fields = ['url', 'department', 'name', 'call']
 
 
-class MajorRetrieveSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='hospitals:major-retrieve',
-        lookup_field='pk',
-        read_only=True
-    )
-
-    class Meta:
-        model = Major
-        fields = ['url', 'department', 'name', 'call']
+class MajorSerializer(DefaultMajorSerializer):
+    pass
 
 
-class DepartmentNestedMajor(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='hospitals:department-retrieve',
-        lookup_field='pk',
-        read_only=True
-    )
+class MajorRetrieveSerializer(DefaultMajorSerializer):
+    pass
+
+
+class DepartmentNestedMajor(DefaultDepartmentSerializer):
     major = MajorSerializer(many=True)
 
-    class Meta:
-        model = Department
-        fields = ['url', 'medical_center', 'name', 'call', 'major']
+    class Meta(DefaultDepartmentSerializer.Meta):
+        fields = DefaultDepartmentSerializer.Meta.fields + ['major']
 
 
-class MedicalCenterNestedDepartmentMajor(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='hospitals:medicalcenter-retrieve',
-        lookup_field='pk',
-        read_only=True
-    )
-
+class MedicalCenterNestedDepartmentMajor(DefaultMedicalCenterSerializer):
     department = DepartmentNestedMajor(many=True)
 
-    class Meta:
-        model = MedicalCenter
-        fields = ['url', 'country', 'city', 'name', 'address', 'postal_code', 'main_call', 'sub_call', 'department']
+    class Meta(DefaultMedicalCenterSerializer.Meta):
+        fields = DefaultMedicalCenterSerializer.Meta.fields + ['department']

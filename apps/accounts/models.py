@@ -4,7 +4,7 @@ from django.db import models
 from django.urls import reverse
 
 from accounts.mixins.form_mixins import CommonUserQuerySetMixin
-from hospitals.models import Department, Major
+from hospitals.models import Major
 
 
 class BaseQuerySet(models.QuerySet):
@@ -83,9 +83,7 @@ class DoctorManager(models.Manager):
 
 class Doctor(models.Model):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    # department = models.CharField(max_length=255, default='')
     major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='doctor_major')
-    # major = models.CharField(max_length=20, default='Psychiatrist')
     description = models.CharField(max_length=255, default='', blank=True, null=True)
     objects = DoctorManager()
 
@@ -94,6 +92,10 @@ class Doctor(models.Model):
 
     def __str__(self):
         return f'{self.major}: {self.user.username}'
+
+    @property
+    def full_name(self):
+        return self.major
 
 
 class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
@@ -117,8 +119,12 @@ class Patient(models.Model):
 
     objects = PatientManager()
 
-    def __str__(self):
-        return self.user.full_name()
+    # def __str__(self):
+    #     return self.full_name
 
     def get_absolute_url(self):
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})
+
+    @property
+    def full_name(self):
+        return self.user.full_name

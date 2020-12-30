@@ -10,7 +10,7 @@ urlpatterns = [
     path('accounts/', include('accounts.api.urls', namespace='accounts')),
     path('prescriptions/', include('prescriptions.api.urls', namespace='prescriptions')),
     path('hospitals/', include('hospitals.api.urls', namespace='hospitals')),
-    path('files/', include('files.api.urls', namespace='files')),
+    path('datafiles/', include('files.api.urls', namespace='files')),
     path('admin/', admin.site.urls),
 
     path('token', AccountsTokenPairView.as_view(), name='token-login'),

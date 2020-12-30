@@ -1,5 +1,6 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 from hospitals.api.serializers import DepartmentSerializer, MedicalCenterSerializer, MajorSerializer, \
     MedicalCenterNestedDepartmentMajor, MedicalCenterRetrieveSerializer, DepartmentRetreiveSerializer, \

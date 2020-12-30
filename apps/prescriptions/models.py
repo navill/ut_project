@@ -9,6 +9,7 @@ class PrescriptionManager(models.Manager):
 
 
 class Prescription(models.Model):
+    # 'writer 필요 없을듯'
     writer = models.ForeignKey(BaseUser, on_delete=models.SET_NULL, null=True, related_name='prescription_by')
     user_patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, related_name='prescription_to')
     description = models.TextField()

@@ -67,3 +67,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(days=1),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
+
+MEDIA_URL = '/storage/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "storage")

@@ -41,8 +41,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
-    # 'rest_framework_filters',
-
+    'djcelery',
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -114,7 +115,6 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 AUTH_USER_MODEL = 'accounts.BaseUser'
 
 LOGIN_URL = 'login'
-
 LOGOUT_URL = 'logout'
 
 REST_FRAMEWORK = {
@@ -123,9 +123,6 @@ REST_FRAMEWORK = {
         'accounts.api.permissions.IsSuperUser',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        # 'accounts.api.authentications.CustomJWTTokenUserAuthentication'
+        'accounts.api.authentications.CustomJWTTokenUserAuthentication',
     ]
 }

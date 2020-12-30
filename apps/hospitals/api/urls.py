@@ -1,7 +1,7 @@
 from django.urls import path
 
-from hospitals.api.views import DepartmentAPIView, MajorAPIView, MedicalCenterAPIView, HospitalAPIView, \
-    MedicalCenterRetrieveAPIView, DepartmentRetrieveAPIView, MajorRetrieveAPIView
+from hospitals.api.views import DepartmentAPIView, MajorAPIView, MedicalCenterAPIView, MedicalCenterRetrieveAPIView, \
+    DepartmentRetrieveAPIView, MajorRetrieveAPIView, HospitalAllDepthAPIView
 
 app_name = 'hospitals-api'
 urlpatterns = [
@@ -14,5 +14,5 @@ urlpatterns = [
     path('majors', MajorAPIView.as_view(), name='major-list-create'),
     path('majors/<int:pk>', MajorRetrieveAPIView.as_view(), name='major-retrieve'),
 
-    path('all-nested-elements', HospitalAPIView.as_view(), name='all-elements-in-hospital')
+    path('all-depth', HospitalAllDepthAPIView.as_view(), name='all-depth-in-hospital')
 ]

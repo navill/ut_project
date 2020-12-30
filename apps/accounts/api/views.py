@@ -3,11 +3,13 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAP
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
+
 from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer
 from accounts.models import Doctor, Patient
@@ -19,82 +21,73 @@ class AccountsTokenPairView(TokenObtainPairView):
 
 
 class AccountsTokenRefreshView(TokenRefreshView):
-    permission_classes = [IsAuthenticated]
     serializer_class = AccountsTokenRefreshSerializer
+    # TokenRefreshView 상속받을 때 반드시 authentication_classes 추가(default authentication 적용 안됨)
+    authentication_classes = [CustomJWTTokenUserAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 class TokenLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        user = request.user
-        refresh_token = request.data.get('refresh')
-        refresh = RefreshToken(refresh_token)
-        refresh.blacklist()
-        user.set_token_expired(0)
+        try:
+            self._logout_using_refresh_token(request)
+        except (ValueError, TokenError) as e:
+            raise e
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
+    def _logout_using_refresh_token(self, request):
+        user = request.user
+        refresh_token = request.data.get('refresh', None)
+        if refresh_token:
+            refresh = RefreshToken(refresh_token)
+            refresh.blacklist()
+        else:
+            raise ValueError("you don't have refresh token")
+        user.set_token_expired(0)
 
-# [POST] /doctors/create
+
 class DoctorSignUpAPIView(CreateAPIView):
     serializer_class = serializers.DoctorSignUpSerializer
-    authentication_classes = []
-
     permission_classes = [AllowAny]
-    lookup_field = 'pk'
-
-    def post(self, request, *args, **kwargs):
-        print(args)
-        print(kwargs)
-        print(request)
-        print(request.data)
-        return super().post(request, *args, **kwargs)
 
 
-# [GET] /doctors
 class DoctorListAPIView(ListAPIView):
-    queryset = Doctor.objects.all().ordered()
+    queryset = Doctor.objects.all().order_by('-date_created')
     serializer_class = serializers.DoctorSerializer
-    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsDoctor]
+    # permission_classes = [AllowAny]
     lookup_field = 'pk'
 
 
-# [GET, PUT] /doctors/<pk>
 class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Doctor.objects.all()
     serializer_class = serializers.DoctorSerializer
-    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsOwner]
     lookup_field = 'pk'
 
 
-# [POST] /patients/create
 class PatientSignUpAPIView(CreateAPIView):
     serializer_class = serializers.PatientSignUpSerializer
-    authentication_classes = []
     permission_classes = [AllowAny]
     lookup_field = 'pk'
 
 
-# [GET] /patients
 class PatientListAPIView(ListAPIView):
-    queryset = Patient.objects.all().ordered()
+    queryset = Patient.objects.all().order_by('-date_created')
     serializer_class = serializers.PatientSerailizer
-    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsDoctor]
     lookup_field = 'pk'
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        doctor = self.request.user.doctor  # user.doctor는 permissions_class에서 확정되므로 에러검사 하지 않음
+        doctor = self.request.user.doctor
         return queryset.filter(doctor=doctor)
 
 
-# [GET, PUT] /patients/<pk>
 class PatientRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Patient.objects.all()
     serializer_class = serializers.PatientSerailizer
-    authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [CareDoctorReadOnly | IsOwner]
     lookup_field = 'pk'

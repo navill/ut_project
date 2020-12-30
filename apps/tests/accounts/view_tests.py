@@ -175,4 +175,4 @@ def test_api_update_doctor(api_client, get_access_and_refresh_token_from_doctor)
     data = {'description': 'changed description'}
     response = api_client.patch(url, data=data, format='json')
     assert response.status_code == 200
-
+    assert response.data['description'] == 'changed description'

@@ -12,15 +12,12 @@ User = get_user_model()
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
     def authenticate(self, request):
         try:
-            user, validated_token = super().authenticate(request)
+            user, validated_token = super(CustomJWTTokenUserAuthentication, self).authenticate(request)
         except TypeError:
-            # authentication 실패 시 None 반환되기 때문에 이 구문이 없을 경우
-            # TypeError: cannot unpack...
             return None
 
         if user.token_expired != validated_token.payload['exp']:
-            raise AuthenticationFailed('User do not have valid token', code='user_without_token')
-
+            raise AuthenticationFailed("User don't have valid token", code='invalid_token')
         return user, validated_token
 
     def get_user(self, validated_token):
@@ -70,12 +67,10 @@ class CustomRefreshToken(BlacklistMixin, CustomToken):
 
     @classmethod
     @transaction.atomic
-    def for_user(cls, user, raise_error=False) -> Token:
+    def for_user(cls, user) -> Token:
         token = super().for_user(user)
-        expired_time = int(token.access_token.payload['exp'])
-        if raise_error:  # for test
-            raise Exception
-        user.set_token_expired(expired_time)
+        access_token_exp = int(token.access_token.payload['exp'])
+        user.set_token_expired(access_token_exp)
         return token
 
     @property

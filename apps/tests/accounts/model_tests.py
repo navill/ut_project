@@ -110,7 +110,6 @@ def test_baseuser_method_is_doctor_or_patient(baseuser):
 @pytest.mark.skipif(superuser_test_condition, reason='passed')
 @pytest.mark.django_db
 def test_create_superuser(super_user):
-    super_user = super_user
     assert super_user.is_superuser
     assert super_user.is_staff
     assert super_user.is_active

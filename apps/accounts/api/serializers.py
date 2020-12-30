@@ -23,11 +23,13 @@ class DefaultBaseUserSerializer(serializers.ModelSerializer):
 class BaseUserSignUpSerializer(DefaultBaseUserSerializer):
     email = serializers.EmailField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
     password = serializers.CharField(
+        min_length=8,
         write_only=True,
         required=True,
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
     password2 = serializers.CharField(
+        min_length=8,
         write_only=True,
         required=True,
         style={'input_type': 'password', 'placeholder': 'Confirm Password'}
@@ -37,10 +39,13 @@ class BaseUserSignUpSerializer(DefaultBaseUserSerializer):
         fields = DefaultBaseUserSerializer.Meta.fields + ['password', 'password2']
 
     def validate(self, data):
+        self._check_matched_password(data)
+        return data
+
+    def _check_matched_password(self, data):
         if data.get('password') != data.get('password2'):
             raise serializers.ValidationError("Those passwords do not match.")
         data.pop('password2')
-        return data
 
 
 class DefaultDoctorSerializer(serializers.ModelSerializer):
@@ -58,23 +63,26 @@ class DefaultDoctorSerializer(serializers.ModelSerializer):
         read_only_fields = ['date_created', 'date_updated']
 
 
-class DoctorSerializer(DefaultDoctorSerializer):
-    class Meta(DefaultDoctorSerializer.Meta):
-        fields = DefaultDoctorSerializer.Meta.fields
-
-
-class PatientSerailizer(serializers.ModelSerializer):
+class DefaultPatientSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='accounts:patient-detail-update',
         lookup_field='pk',
         read_only=True
     )
-    user = DefaultBaseUserSerializer(read_only=True)
+    email = serializers.CharField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
 
     class Meta:
         model = Patient
-        fields = ['url', 'doctor', 'user', 'age', 'emergency_call']
+        fields = ['url', 'doctor', 'user', 'first_name', 'last_name', 'address', 'phone', 'age', 'emergency_call']
         read_only_fields = ['doctor', 'user']  # 의사를 수정할 일이 있는가?
+
+
+class DoctorSerializer(DefaultDoctorSerializer):
+    user = DefaultBaseUserSerializer(read_only=True)
+
+
+class PatientSerailizer(DefaultPatientSerializer):
+    user = DefaultBaseUserSerializer(read_only=True)
 
 
 class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
@@ -114,30 +122,35 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
 class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
     @transaction.atomic
     def validate(self, attrs):
-        refresh = CustomRefreshToken(attrs['refresh'])
-        data = {'access': str(refresh.access_token)}
-        exp = refresh.access_token.payload['exp']
+        print(attrs)
+        refresh_obj = CustomRefreshToken(attrs['refresh'])
+        data = {'access': str(refresh_obj.access_token)}
+        access_token_exp = refresh_obj.access_token.payload['exp']
 
+        self._try_blacklist(refresh=refresh_obj)
+        self._set_refresh_payload(refresh=refresh_obj)
+        self._set_user_expired_to(epoch_time=access_token_exp)
+
+        refresh_token = str(refresh_obj)
+        data['refresh'] = refresh_token
+
+        return data
+
+    def _try_blacklist(self, refresh: CustomRefreshToken = None):
         if api_settings.ROTATE_REFRESH_TOKENS:
             if api_settings.BLACKLIST_AFTER_ROTATION:
                 try:
-                    # create() Blacklist
                     refresh.blacklist()
-
                 except AttributeError:
                     pass
 
-            refresh.set_jti()
-            refresh.set_exp()  # from_time = self.current
-            data['refresh'] = str(refresh)
+    def _set_refresh_payload(self, refresh=None):
+        refresh.set_jti()
+        refresh.set_exp()
 
-            # save() user.token_expired()
-            self._set_user_expired_to(exp=exp)
-        return data
-
-    def _set_user_expired_to(self, exp: int = None):  # exp: epoch time
+    def _set_user_expired_to(self, epoch_time: int = None):
         user = self.context['request'].user
-        user.set_token_expired(exp)
+        user.set_token_expired(epoch_time)
 
 # class DefaultBaseUserSerializer(serializers.ModelSerializer):
 #     class Meta:
@@ -161,10 +174,7 @@ class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
 #     class Meta:
 #         model = Patient
 #         fields = '__all__'
-#
-#
 
-#
 #
 # class DefaultPatientSerailizer(serializers.ModelSerializer):
 #     class Meta:

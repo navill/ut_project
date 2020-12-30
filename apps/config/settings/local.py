@@ -6,20 +6,19 @@ import djcelery
 from .base import *
 
 DEBUG = True
+
+if DEBUG:
+    # debug toolbar
+    INSTALLED_APPS += [
+        'debug_toolbar',
+    ]
+
+    MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
+    INTERNAL_IPS = [
+        '127.0.0.1',
+    ]
+
 ALLOWED_HOSTS = ['*']
-
-# debug toolbar
-INSTALLED_APPS += [
-    'debug_toolbar',
-    'djcelery',
-    'django_celery_beat',
-    'django_celery_results',
-]
-
-MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
-INTERNAL_IPS = [
-    '127.0.0.1',
-]
 
 # database
 DATABASES = {

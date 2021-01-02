@@ -7,6 +7,16 @@ from accounts.mixins.form_mixins import CommonUserQuerySetMixin
 from hospitals.models import Major
 
 
+class AccountsModel(models.Model):
+    first_name = models.CharField(max_length=20, default='')
+    last_name = models.CharField(max_length=20, default='')
+    address = models.CharField(max_length=255, default='')
+    phone = models.CharField(max_length=14, unique=True)
+
+    class Meta:
+        abstract = True
+
+
 class BaseQuerySet(models.QuerySet):
     def active(self):
         return self.filter(is_active=True)
@@ -76,15 +86,12 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.token_expired = time
         self.save()
 
-
-class AccountsModel(models.Model):
-    first_name = models.CharField(max_length=20, default='')
-    last_name = models.CharField(max_length=20, default='')
-    address = models.CharField(max_length=255, default='')
-    phone = models.CharField(max_length=14, unique=True)
-
-    class Meta:
-        abstract = True
+    def get_child_account(self):
+        for user_model in AccountsModel.__subclasses__():
+            child_attribute_name = user_model.__name__.lower()
+            if hasattr(self, child_attribute_name):
+                return getattr(self, child_attribute_name)
+        return None
 
 
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
@@ -96,7 +103,7 @@ class DoctorManager(models.Manager):
         return DoctorQuerySet(self.model, using=self._db).select_related('user')
 
     def all(self):
-        active_doctor = super().all().filter(user__is_active=True)
+        active_doctor = self.get_queryset().active()
         return active_doctor
 
     def with_patients(self):
@@ -131,7 +138,7 @@ class PatientManager(models.Manager):
         return PatientQuerySet(self.model, using=self._db).select_related('user')
 
     def all(self):
-        active_patient = super().all().active()
+        active_patient = self.get_queryset().active()
         return active_patient
 
 
@@ -146,8 +153,8 @@ class Patient(AccountsModel):
     date_updated = models.DateTimeField(auto_now=True)
     objects = PatientManager()
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})
 
-    def get_full_name(self):
+    def get_full_name(self) -> str:
         return f'{self.first_name} {self.last_name}'

@@ -23,14 +23,14 @@ class CreatedUser:
             raise ValueError('invalid user')
 
     @property
-    def model_name(self):
+    def model_name(self) -> str:
         return self._model_name
 
     @model_name.setter
     def model_name(self, user: Union['Patient', 'Doctor']):
         self._model_name = user.__class__.__name__.lower()
 
-    def validate_user(self):
+    def validate_user(self) -> bool:
         if not isinstance(self.user, AccountsModel) or not isinstance(self.baseuser, BaseUser):
             return False
         return True

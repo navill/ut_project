@@ -32,17 +32,18 @@ class DefaultFileSerializer(serializers.ModelSerializer):
 
 
 class FlieListSerializer(DefaultFileSerializer):
-    doctor = serializers.SerializerMethodField()
+    uploader = serializers.SerializerMethodField()
     patient = serializers.SerializerMethodField()
 
     class Meta(DefaultFileSerializer.Meta):
         fields = DefaultFileSerializer.Meta.fields
 
-    def get_doctor(self, instance):
-        return str(instance.doctor.full_name)
+    def get_uploader(self, instance):
+        user = instance.uploader.get_child_user()
+        return user.get_full_name()
 
     def get_patient(self, instance):
-        return str(instance.patient.full_name)
+        return instance.patient.get_full_name()
 
 
 class FlieRetrieveSerializer(DefaultFileSerializer):

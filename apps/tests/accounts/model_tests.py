@@ -104,6 +104,15 @@ def test_baseuser_method_is_doctor_or_patient(baseuser):
     assert user.is_patient is False
 
 
+@pytest.mark.django_db
+def test_get_child_account_from_baseuser(user_doctor_with_group, user_patient_with_group):
+    baseuser, doctor = user_doctor_with_group
+    assert baseuser.get_child_account() == doctor
+
+    baseuser, patient = user_patient_with_group
+    assert baseuser.get_child_account() == patient
+
+
 """SuperUser"""
 
 

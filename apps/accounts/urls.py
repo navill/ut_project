@@ -1,7 +1,6 @@
 from django.urls import path, include
 
-from accounts.views import home_views, views
-from accounts.views.views import CeleryTestView
+from accounts.views import home_views
 
 app_name = 'accounts'
 urlpatterns = [

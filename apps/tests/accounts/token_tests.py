@@ -21,27 +21,15 @@ def test_custom_refresh_token(user_doctor_with_group):
     assert outstanding_token.expires_at == datetime_from_epoch(token['exp'])
 
 
-@pytest.mark.django_db
-def test_token_for_user_with_error(user_doctor_with_group):
-    """
-    @classmethod
-    @transaction.atomic
-    def for_user(cls, user, raise_error=False) -> Token:
-        token = super().for_user(user)
-        expired_time = int(token.access_token.payload['exp'])
-        if raise_error:
-            raise Exception
-        user.set_token_expired(expired_time)
-
-        return token
-    """
-    user, doctor = user_doctor_with_group
-    with pytest.raises(Exception):
-        CustomRefreshToken.for_user(user, raise_error=True)
-
-    # CustomRefreshToken.for_user() 중간에 에러가 발생할 경우 user.token_expired=<epoch_time> 및 OutstandingToken은 생성되면 안됨
-    assert user.token_expired == 0
-    assert OutstandingToken.objects.all().exists() is False
+# @pytest.mark.django_db
+# def test_token_for_user_with_error(user_doctor_with_group):
+#     user, doctor = user_doctor_with_group
+#     with pytest.raises(Exception):
+#         CustomRefreshToken.for_user(user, raise_error=True)
+#
+#     # CustomRefreshToken.for_user() 중간에 에러가 발생할 경우 user.token_expired=<epoch_time> 및 OutstandingToken은 생성되면 안됨
+#     assert user.token_expired == 0
+#     assert OutstandingToken.objects.all().exists() is False
 
 
 @pytest.mark.django_db

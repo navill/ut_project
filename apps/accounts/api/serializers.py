@@ -2,10 +2,9 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
-from rest_framework_simplejwt.settings import api_settings
 
 from accounts.api.authentications import CustomRefreshToken
-from accounts.api.mixins import UserCreateMixin
+from accounts.api.mixins import UserCreateMixin, RefreshBlacklistMixin
 from accounts.models import BaseUser, Doctor, Patient
 
 
@@ -119,38 +118,21 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
         return token
 
 
-class AccountsTokenRefreshSerializer(TokenRefreshSerializer):
+class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializer):
     @transaction.atomic
     def validate(self, attrs):
-        print(attrs)
         refresh_obj = CustomRefreshToken(attrs['refresh'])
         data = {'access': str(refresh_obj.access_token)}
         access_token_exp = refresh_obj.access_token.payload['exp']
 
-        self._try_blacklist(refresh=refresh_obj)
-        self._set_refresh_payload(refresh=refresh_obj)
-        self._set_user_expired_to(epoch_time=access_token_exp)
+        self.try_blacklist(refresh=refresh_obj)
+        self.set_refresh_payload(refresh=refresh_obj)
+        self.set_user_expired_to(epoch_time=access_token_exp)
 
         refresh_token = str(refresh_obj)
         data['refresh'] = refresh_token
 
         return data
-
-    def _try_blacklist(self, refresh: CustomRefreshToken = None):
-        if api_settings.ROTATE_REFRESH_TOKENS:
-            if api_settings.BLACKLIST_AFTER_ROTATION:
-                try:
-                    refresh.blacklist()
-                except AttributeError:
-                    pass
-
-    def _set_refresh_payload(self, refresh=None):
-        refresh.set_jti()
-        refresh.set_exp()
-
-    def _set_user_expired_to(self, epoch_time: int = None):
-        user = self.context['request'].user
-        user.set_token_expired(epoch_time)
 
 # class DefaultBaseUserSerializer(serializers.ModelSerializer):
 #     class Meta:

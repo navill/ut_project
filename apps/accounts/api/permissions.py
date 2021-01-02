@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-from accounts.api.utils import PermissionMethodBundleMixin
+from accounts.api.mixins import PermissionMethodBundleMixin
 
 
 class RootPermission(PermissionMethodBundleMixin, BasePermission):
@@ -35,7 +35,7 @@ class IsOwner(RootPermission):
 
 
 class CareDoctorReadOnly(RootPermission):
-    def has_object_permission(self, request, view, obj):  # retrieve, update
+    def has_object_permission(self, request, view, obj):
         if self.is_safe_method(request) and self.has_group(request, 'doctor'):
             return bool(obj.doctor == request.user.doctor)
 

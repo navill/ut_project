@@ -1,8 +1,10 @@
+from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Union
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+
 from accounts.models import AccountsModel, BaseUser
 
 if TYPE_CHECKING:
@@ -34,7 +36,21 @@ class CreatedUser:
         return True
 
 
-class GroupPermissionBuilder:  # base builder pattern
+class GroupPermissionAbstractor(metaclass=ABCMeta):
+    @abstractmethod
+    def set_permissions_for_models(self):
+        raise NotImplementedError("This method must be implemented!")
+
+    @abstractmethod
+    def add_user_to_model_group(self):
+        raise NotImplementedError("This method must be implemented!")
+
+    @abstractmethod
+    def grant_permission_to_baseuser(self):
+        raise NotImplementedError("This method must be implemented!")
+
+
+class GroupPermissionBuilder(GroupPermissionAbstractor):  # base builder pattern
     def __init__(self):
         self.target_user = None
         self.permissions = None
@@ -73,13 +89,19 @@ class GroupPermissionBuilder:  # base builder pattern
         return query
 
 
-class PostProcessingDirector:
+class PostProcessingUserDirector:
     def __init__(self, created_user: 'CreatedUser'):
         self.created_user = created_user
         self.builder = GroupPermissionBuilder()
 
-    def construct_builder(self):
+    def build_user_group_and_permission(self):
         self.builder.target_user = self.created_user
         self.builder.set_permissions_for_models()
         self.builder.add_user_to_model_group()
         self.builder.grant_permission_to_baseuser()
+
+    # def construct_builder(self):
+    #     self.builder.target_user = self.created_user
+    #     self.builder.set_permissions_for_models()
+    #     self.builder.add_user_to_model_group()
+    #     self.builder.grant_permission_to_baseuser()

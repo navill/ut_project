@@ -5,7 +5,7 @@ from rest_framework import permissions
 from rest_framework_simplejwt.settings import api_settings
 
 from accounts.models import BaseUser
-from accounts.api.utils import CreatedUser, PostProcessingDirector
+from accounts.api.utils import CreatedUser, PostProcessingUserDirector
 
 if TYPE_CHECKING:
     from accounts.api.authentications import CustomRefreshToken
@@ -20,8 +20,8 @@ class UserCreateMixin:
                 user = self.Meta.model.objects.create(user=baseuser, **validated_data)
 
                 created_user = CreatedUser(user=user, baseuser=baseuser)
-                director_for_group_and_permission = PostProcessingDirector(created_user=created_user)
-                director_for_group_and_permission.construct_builder()
+                director = PostProcessingUserDirector(created_user=created_user)
+                director.build_user_group_and_permission()
 
         except Exception:
             raise

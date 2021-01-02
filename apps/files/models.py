@@ -39,9 +39,6 @@ class DataFileManager(models.Manager):
 
 
 class DataFile(models.Model):
-    """
-    의사는 환자를 거쳐서만 데이터에 접근할 예정이므로 doctor와 관계를 맺을 필요없음
-    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files', null=True)
     patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files_by_patient', null=True)

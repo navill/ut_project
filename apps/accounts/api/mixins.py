@@ -1,7 +1,7 @@
 from django.db import transaction
 
 from accounts.models import BaseUser
-from accounts.utils import UserPostProcessor
+from accounts.utils import CreatedUser, PostProcessingDirector
 
 
 class UserCreateMixin:
@@ -12,8 +12,10 @@ class UserCreateMixin:
                 baseuser = BaseUser.objects.create_user(**user_data)
                 user = self.Meta.model.objects.create(user=baseuser, **validated_data)
 
-                user_processor = UserPostProcessor(user=user, baseuser=baseuser)
-                user_processor.set_group_and_permission()
+                created_user = CreatedUser(user=user, baseuser=baseuser)
+                director = PostProcessingDirector(created_user=created_user)
+                director.construct_builder()
+
         except Exception:
             raise
         return user

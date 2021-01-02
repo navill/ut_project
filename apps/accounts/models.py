@@ -77,6 +77,16 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.save()
 
 
+class AccountsModel(models.Model):
+    first_name = models.CharField(max_length=20, default='')
+    last_name = models.CharField(max_length=20, default='')
+    address = models.CharField(max_length=255, default='')
+    phone = models.CharField(max_length=14, unique=True)
+
+    class Meta:
+        abstract = True
+
+
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
     pass
 
@@ -93,13 +103,8 @@ class DoctorManager(models.Manager):
         return self.all().prefetch_related('patients')
 
 
-class Doctor(models.Model):
+class Doctor(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    first_name = models.CharField(max_length=20, default='')
-    last_name = models.CharField(max_length=20, default='')
-    address = models.CharField(max_length=255, default='')
-    phone = models.CharField(max_length=14, unique=True)
-
     major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='doctor_major')
     description = models.CharField(max_length=255, default='', blank=True, null=True)
 
@@ -130,14 +135,9 @@ class PatientManager(models.Manager):
         return active_patient
 
 
-class Patient(models.Model):
+class Patient(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, related_name='patients')
-
-    first_name = models.CharField(max_length=20, default='')
-    last_name = models.CharField(max_length=20, default='')
-    address = models.CharField(max_length=255, default='')
-    phone = models.CharField(max_length=14, unique=True)
 
     age = models.PositiveIntegerField(default=0)
     emergency_call = models.CharField(max_length=14, default='010')

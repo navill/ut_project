@@ -29,19 +29,19 @@ class BaseManager(BaseUserManager):
     def all(self):
         return super().all()
 
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, email, password, **attributes):
         if not email:
             raise ValueError('Users must have an email address')
 
-        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user = self.model(email=self.normalize_email(email), **attributes)
         user.set_password(password)
         user.save()
         return user
 
-    def create_superuser(self, email, password, **extra_fields):
-        self._set_superuser_status(extra_fields)
-        self._validate_superuser_status(extra_fields)
-        return self.create_user(email=email, password=password, **extra_fields)
+    def create_superuser(self, email, password, **attributes):
+        self._set_superuser_status(attributes)
+        # self._validate_superuser_status(attributes)
+        return self.create_user(email=email, password=password, **attributes)
 
     def _set_superuser_status(self, attributes):
         attributes.setdefault('is_staff', True)
@@ -58,8 +58,8 @@ class BaseManager(BaseUserManager):
 # AbstractUser
 class BaseUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     token_expired = models.IntegerField(default=0)
 
     is_active = models.BooleanField(default=True)
@@ -115,8 +115,8 @@ class Doctor(AccountsModel):
     major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='doctor_major')
     description = models.CharField(max_length=255, default='', blank=True, null=True)
 
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     objects = DoctorManager()
 
     def get_absolute_url(self):
@@ -126,7 +126,7 @@ class Doctor(AccountsModel):
         return f'{self.major}: {self.user.email}'
 
     def get_full_name(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.first_name}_{self.last_name}'
 
 
 class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
@@ -149,12 +149,16 @@ class Patient(AccountsModel):
     age = models.PositiveIntegerField(default=0)
     emergency_call = models.CharField(max_length=14, default='010')
 
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_updated = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     objects = PatientManager()
+
+    def __str__(self):
+        return self.get_full_name()
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})
 
     def get_full_name(self) -> str:
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.first_name}_{self.last_name}'

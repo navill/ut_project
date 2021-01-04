@@ -10,13 +10,13 @@ from accounts.models import BaseUser, Doctor, Patient
 
 class DefaultBaseUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
-    date_created = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
-    date_updated = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
+    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     last_login = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
         model = BaseUser
-        fields = ['email', 'date_created', 'date_updated', 'last_login']
+        fields = ['email', 'created_at', 'updated_at', 'last_login']
 
 
 class BaseUserSignUpSerializer(DefaultBaseUserSerializer):
@@ -57,9 +57,9 @@ class DefaultDoctorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Doctor
-        fields = ['url', 'user', 'first_name', 'last_name', 'address', 'phone', 'major', 'description', 'date_created',
-                  'date_updated']
-        read_only_fields = ['date_created', 'date_updated']
+        fields = ['url', 'user', 'first_name', 'last_name', 'address', 'phone', 'major', 'description', 'created_at',
+                  'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
 
 
 class DefaultPatientSerializer(serializers.ModelSerializer):
@@ -73,7 +73,7 @@ class DefaultPatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = ['url', 'doctor', 'user', 'first_name', 'last_name', 'address', 'phone', 'age', 'emergency_call']
-        read_only_fields = ['doctor', 'user']  # 의사를 수정할 일이 있는가?
+        read_only_fields = ['doctor', 'user', 'created_at', 'updated_at']  # 의사를 수정할 일이 있는가?
 
 
 class DoctorSerializer(DefaultDoctorSerializer):

@@ -3,7 +3,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient, PatientReadOnly
 from prescriptions.api import serializers
 from prescriptions.models import Prescription
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -19,13 +19,15 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(writer=self.request.user)
 
-    def get_queryset(self) -> "QuerySet":
+    def get_queryset(self) -> Union["QuerySet", None]:
         queryset = super().get_queryset()
         user = self.request.user
-        filter_query = {"writer": user}
-        if user.is_patient:
-            filter_query = {"user_patient": user.patient}
-        return queryset.filter(**filter_query)
+        if user.is_doctor:
+            return queryset.filter_writer(writer=user)
+        elif user.is_patient:
+            return queryset.filter_patient(user_patient=user)
+        else:
+            return None
 
 
 # [GET, PUT] /prescriptions/<slug>

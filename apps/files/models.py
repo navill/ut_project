@@ -4,6 +4,9 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from accounts.models import Patient
+from prescriptions.models import Prescription
+
 User = get_user_model()
 """
 hospital/
@@ -22,28 +25,40 @@ hospital/
 def directory_path(instance: 'DataFile', filename: str) -> str:
     day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
     name, ext = filename.split('.')
-    return f'{day}/{ext}/{instance.uploader}_{instance.patient}_{name}_{time}.{ext}'
+    return f'{day}/{ext}/{instance.uploader}_{name}_{time}.{ext}'
 
 
 class DataFileQuerySet(models.QuerySet):
-    def owner_queryset(self, user):
-        if user.is_superuser:
-            return self
-        return self.filter(uploader=user.id)
+    pass
 
 
 class DataFileManager(models.Manager):
     def get_queryset(self):
-        return DataFileQuerySet(self.model, using=self._db).select_related('patient').select_related(
-            'doctor').prefetch_related('uploader')
+        return DataFileQuerySet(self.model, using=self._db).select_related('patient').prefetch_related('uploader')
+
+    def owner_queryset(self, user):
+        if user.is_superuser:
+            return self
+        return self.get_queryset().filter(uploader=user.id)
+
+
+class HealthStatus(models.TextChoices):
+    NORMAL = 'NORMAL', '정상'
+    ABNORMAL = 'ABNORMAL', '비정상'
+    UNKNOWN = 'UNKNOWN', '알 수 없음'
 
 
 class DataFile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    uploader = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files', null=True)
-    patient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='files_by_patient', null=True)
+    prescription = models.ForeignKey(Prescription, on_delete=models.SET_NULL, null=True)
+    uploader = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='files', null=True)
+    # patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, related_name='related_files', null=True)
     file = models.FileField(upload_to=directory_path)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    checked = models.BooleanField(default=False)
+    status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
+    # is_normal = models.BooleanField(default=True)
+    # file_info = models.TextField()
 
     objects = DataFileManager()
 

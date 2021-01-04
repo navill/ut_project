@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from accounts.models import Patient, Doctor
 
 
-class CreatedUser:
+class CreatedUserPair:
     def __init__(self, user: Union['Patient', 'Doctor'], baseuser: 'BaseUser'):
         self.user = user
         self.baseuser = baseuser
@@ -39,15 +39,15 @@ class CreatedUser:
 class GroupPermissionAbstractor(metaclass=ABCMeta):
     @abstractmethod
     def set_permissions_for_models(self):
-        raise NotImplementedError("This method must be implemented!")
+        raise NotImplementedError("This method must be implemented in subclass!")
 
     @abstractmethod
     def add_user_to_model_group(self):
-        raise NotImplementedError("This method must be implemented!")
+        raise NotImplementedError("This method must be implemented in subclass!")
 
     @abstractmethod
     def grant_permission_to_baseuser(self):
-        raise NotImplementedError("This method must be implemented!")
+        raise NotImplementedError("This method must be implemented in subclass!")
 
 
 class GroupPermissionBuilder(GroupPermissionAbstractor):  # base builder pattern
@@ -90,7 +90,7 @@ class GroupPermissionBuilder(GroupPermissionAbstractor):  # base builder pattern
 
 
 class PostProcessingUserDirector:
-    def __init__(self, created_user: 'CreatedUser'):
+    def __init__(self, created_user: 'CreatedUserPair'):
         self.created_user = created_user
         self.builder = GroupPermissionBuilder()
 

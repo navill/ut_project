@@ -22,7 +22,7 @@ def test_create_doctor(user_doctor_with_group):
     assert user.email == 'doctor@test.com'
     assert user.groups.filter(name='doctor').exists()
     assert user.pk == 1
-    assert doctor.get_full_name() == 'firstdoctor lastdoctor'
+    assert doctor.get_full_name() == 'firstdoctor_lastdoctor'
     assert doctor.pk == 1
     assert doctor.major.name == '정신의학'
 
@@ -104,8 +104,9 @@ def test_baseuser_method_is_doctor_or_patient(baseuser):
     assert user.is_patient is False
 
 
+@pytest.mark.skipif(baseuser_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_get_child_account_from_baseuser(user_doctor_with_group, user_patient_with_group):
+def test_child_account_from_baseuser(user_doctor_with_group, user_patient_with_group):
     baseuser, doctor = user_doctor_with_group
     assert baseuser.get_child_account() == doctor
 
@@ -116,19 +117,19 @@ def test_get_child_account_from_baseuser(user_doctor_with_group, user_patient_wi
 """SuperUser"""
 
 
-@pytest.mark.skipif(superuser_test_condition, reason='passed')
-@pytest.mark.django_db
-def test_create_superuser(super_user):
-    assert super_user.is_superuser
-    assert super_user.is_staff
-    assert super_user.is_active
-
-    with pytest.raises(ValueError):
-        USER_BASEUSER['email'] = 'no_staff_superuser'
-        BaseUser.objects.create_superuser(**USER_BASEUSER, is_staff=False)
-    with pytest.raises(ValueError):
-        USER_BASEUSER['email'] = 'no_supersuer_superuser'
-        BaseUser.objects.create_superuser(**USER_BASEUSER, is_superuser=False)
+# @pytest.mark.skipif(superuser_test_condition, reason='passed')
+# @pytest.mark.django_db
+# def test_created_superuser(super_user):
+#     assert super_user.is_superuser
+#     assert super_user.is_staff
+#     assert super_user.is_active
+#
+#     with pytest.raises(ValueError):
+#         USER_BASEUSER['email'] = 'no_staff_superuser@test.com'
+#         BaseUser.objects.create_superuser(**USER_BASEUSER, is_staff=False)
+#     with pytest.raises(ValueError):
+#         USER_BASEUSER['email'] = 'no_supersuer_superuser@test.com'
+#         BaseUser.objects.create_superuser(**USER_BASEUSER, is_superuser=False)
 
 
 @pytest.mark.skipif(superuser_test_condition, reason='passed')

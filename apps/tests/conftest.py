@@ -1,11 +1,16 @@
+import uuid
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 
 from accounts.api.authentications import CustomRefreshToken
 from accounts.models import Doctor, Patient
+from config.settings.local import MEDIA_ROOT
+from files.models import DataFile, HealthStatus
 
 from hospitals.models import Major, Department, MedicalCenter
+from prescriptions.models import Prescription
 
 DOCTOR_PARAMETER = 'user, first_name, last_name, address, phone, description, status_code', [
     ({
@@ -69,7 +74,7 @@ PATIENT_PARAMETER = 'user, first_name, last_name, address, phone, age, emergency
          'last_name': 'lastname',
          'password': 'test12345',
          'password2': 'test12345',
-     }, '길동', '홍', '광주 어딘가','010-1111-1111', '', '010-119', 400),
+     }, '길동', '홍', '광주 어딘가', '010-1111-1111', '', '010-119', 400),
     ({
          'email': 'patient@test.com',  # no emergency_call
          'first_name': 'patient',
@@ -151,8 +156,8 @@ def api_client():
 
 @pytest.fixture
 def super_user():
-    super_user = User.objects.create_superuser(**USER_BASEUSER)
-    return super_user
+    instance = User.objects.create_superuser(**USER_BASEUSER)
+    return instance
 
 
 @pytest.fixture
@@ -166,14 +171,14 @@ def create_bundle_user_with_some_inactive():
         if i % 2 == 0:
             value['is_active'] = False
         user_values.append(User(**value))
-    users = User.objects.bulk_create(user_values)
-    return users
+    instances = User.objects.bulk_create(user_values)
+    return instances
 
 
 @pytest.fixture
 def baseuser():
-    user = User.objects.create_user(**USER_BASEUSER)
-    return user
+    instance = User.objects.create_user(**USER_BASEUSER)
+    return instance
 
 
 @pytest.fixture
@@ -219,8 +224,8 @@ def hospital(db):
         'main_call': '062-111-1111',
         'sub_call': '062-222-2222'
     }
-    medical_object = MedicalCenter.objects.create(**data)
-    return medical_object
+    instance = MedicalCenter.objects.create(**data)
+    return instance
 
 
 @pytest.fixture
@@ -230,8 +235,8 @@ def department(hospital):
         'name': '정신의학과',
         'call': '062-333-3333'
     }
-    department_object = Department.objects.create(**data)
-    return department_object
+    instance = Department.objects.create(**data)
+    return instance
 
 
 @pytest.fixture
@@ -241,5 +246,37 @@ def major(department):
         'name': '정신의학',
         'call': '062-444-4444'
     }
-    major_object = Major.objects.create(**data)
-    return major_object
+    instance = Major.objects.create(**data)
+    return instance
+
+
+@pytest.fixture
+def prescription(db, user_doctor_with_group, user_patient_with_group):
+    doctor_baseuser, doctor = user_doctor_with_group
+    patient_baseuser, patient = user_patient_with_group
+    data = {
+        'writer': doctor,
+        'user_patient': patient,
+        'description': 'test 처방'
+    }
+    instance = Prescription.objects.create(**data)
+    return instance
+
+
+@pytest.fixture
+def generated_uuid4():
+    return uuid.uuid4()
+
+
+@pytest.fixture
+def data_file(db, generated_uuid4, prescription, user_doctor_with_group):
+    data = {
+        'id': generated_uuid4,
+        'prescription': prescription,
+        'uploader': user_doctor_with_group[0],
+        'file': MEDIA_ROOT + 'test_file.md',
+        'checked': True,
+        'status': HealthStatus.NORMAL
+    }
+    instance = DataFile.objects.create(**data)
+    return instance

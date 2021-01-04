@@ -51,5 +51,5 @@ class CommonUserQuerySetMixin:
     def filt_patient(self):
         return self.filter(Q(is_doctor=False) & Q(is_patient=True))
 
-    def ordered(self, value='-user__date_created'):
+    def ordered(self, value='-user__created_at'):
         return self.order_by(value)

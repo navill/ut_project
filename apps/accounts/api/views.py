@@ -54,10 +54,9 @@ class DoctorSignUpAPIView(CreateAPIView):
 
 
 class DoctorListAPIView(ListAPIView):
-    queryset = Doctor.objects.all().order_by('-date_created')
+    queryset = Doctor.objects.all().order_by('-created_at')
     serializer_class = serializers.DoctorSerializer
     permission_classes = [IsDoctor]
-    # permission_classes = [AllowAny]
     lookup_field = 'pk'
 
 
@@ -75,7 +74,7 @@ class PatientSignUpAPIView(CreateAPIView):
 
 
 class PatientListAPIView(ListAPIView):
-    queryset = Patient.objects.all().order_by('-date_created')
+    queryset = Patient.objects.all().order_by('-created_at')
     serializer_class = serializers.PatientSerailizer
     permission_classes = [IsDoctor]
     lookup_field = 'pk'

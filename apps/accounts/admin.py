@@ -9,7 +9,7 @@ from accounts.models import BaseUser, Doctor, Patient
 
 class BaseUserAdmin(admin.ModelAdmin):
     fields = ['email', 'is_active', 'groups']
-    list_display = ['get_groups', 'email', 'last_login', 'date_created']
+    list_display = ['get_groups', 'email', 'last_login', 'created_at']
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)

@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
-from accounts.models import Patient, BaseUser
+from accounts.models import BaseUser, Patient
 from files.models import DataFile
+from prescriptions.models import Prescription
 
 
 class DefaultFileSerializer(serializers.ModelSerializer):
@@ -19,27 +20,20 @@ class DefaultFileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DataFile
-        fields = ['download_url', 'url', 'uploader', 'doctor', 'patient', 'created_at']
-
-    #
-    # def get_download_url(self, instance):
-    #     url = reverse('files:file-download', kwargs={'id': instance.id}, request=self.context['request'])
-    #     return url
-    #
-    # def get_url(self, instance):
-    #     url = reverse('files:file-retrieve', kwargs={'id': instance.id}, request=self.context['request'])
-    #     return url
+        fields = ['download_url', 'url', 'uploader', 'patient', 'created_at']
 
 
 class FlieListSerializer(DefaultFileSerializer):
-    uploader = serializers.SerializerMethodField()
-    patient = serializers.SerializerMethodField()
+    # uploader = serializers.SerializerMethodField()
+    uploader = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
+    # patient = serializers.SerializerMethodField()
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
 
     class Meta(DefaultFileSerializer.Meta):
         fields = DefaultFileSerializer.Meta.fields
 
     def get_uploader(self, instance):
-        user = instance.uploader.get_child_user()
+        user = instance.uploader.get_child_account()
         return user.get_full_name()
 
     def get_patient(self, instance):
@@ -54,20 +48,21 @@ class FlieRetrieveSerializer(DefaultFileSerializer):
 class FileUploadSerializer(serializers.ModelSerializer):
     hidden_uploader = serializers.HiddenField(default=CurrentUserDefault())
     uploader = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
-    # doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
-    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    # patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    prescription = serializers.PrimaryKeyRelatedField(queryset=Prescription.objects.all())
     file = serializers.FileField(use_url=False)
     created_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = DataFile
-        fields = ['hidden_uploader', 'uploader', 'patient', 'file', 'created_at']
-        read_only_fields = ['id', 'uploader']
+        fields = ['hidden_uploader', 'uploader', 'prescription', 'file', 'created_at']
+        read_only_fields = ['hidden_uploader']
         write_only_fields = ['file']
 
     def create(self, validated_data: dict) -> DataFile:
         try:
             uploader = validated_data.pop('hidden_uploader')
+            # using celery
             file_object = DataFile.objects.create(uploader_id=uploader.id, **validated_data)
         except Exception:
             raise

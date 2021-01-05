@@ -8,7 +8,7 @@ from accounts.models import Doctor, Patient
 from files.models import DataFile
 from hospitals.models import Major, Department, MedicalCenter
 from prescriptions.models import Prescription
-from tests.constants import USER_BASEUSER, User, USER_DOCTOR, DOCTOR, USER_PATIENT, PATIENT, DATAFILE
+from tests.constants import *
 
 
 @pytest.fixture

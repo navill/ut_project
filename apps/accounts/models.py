@@ -1,6 +1,7 @@
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+from django.forms import model_to_dict
 from django.urls import reverse
 
 from accounts.mixins.form_mixins import CommonUserQuerySetMixin
@@ -24,7 +25,10 @@ class BaseQuerySet(models.QuerySet):
 
 class BaseManager(BaseUserManager):
     def get_queryset(self):
-        return BaseQuerySet(self.model, using=self._db)
+        return BaseQuerySet(self.model, using=self._db).select_related('doctor')
+
+    def get_child_model(self):
+        queryset = self.get_queryset().prefetch_related('doctor')
 
     def all(self):
         return super().all()

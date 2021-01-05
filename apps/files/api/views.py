@@ -3,7 +3,8 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.views import APIView
 
 from accounts.api.permissions import IsDoctor, IsPatient
-from files.api.serializers import FlieListSerializer, FileUploadSerializer, FlieRetrieveSerializer, UploadedFileListSerializer
+from files.api.serializers import FlieListSerializer, FileUploadSerializer, FlieRetrieveSerializer, \
+    UploadedFileListSerializer
 from files.models import DataFile
 
 
@@ -12,6 +13,11 @@ class DataFileListAPIVIew(ListAPIView):
     permission_classes = []
     # authentication_classes = []
     serializer_class = FlieListSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        return queryset.related_uploader(uploader=user)
 
 
 class DataFileRetrieveAPIVIew(RetrieveAPIView):

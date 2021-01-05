@@ -24,18 +24,18 @@ class DefaultFileSerializer(serializers.ModelSerializer):
 
 
 class FlieListSerializer(DefaultFileSerializer):
-    # uploader = serializers.SerializerMethodField()
-    uploader = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
-
-    # patient = serializers.SerializerMethodField()
-    # patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.all())
+    # uploader = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
+    uploader = serializers.SerializerMethodField()
 
     class Meta(DefaultFileSerializer.Meta):
         fields = DefaultFileSerializer.Meta.fields
 
     def get_uploader(self, instance):
-        user = instance.uploader.get_child_account()
-        return user.get_full_name()
+        if instance.uploader is None:
+            pass
+        else:
+            user = instance.uploader.doctor
+            return user.get_full_name()
 
     # def get_patient(self, instance):
     #     return instance.patient.get_full_name()

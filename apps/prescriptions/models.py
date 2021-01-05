@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F
 
 from accounts.models import Patient, Doctor
 
@@ -13,7 +14,7 @@ class PrescriptionQuerySet(models.QuerySet):
 
 class PrescriptionManager(models.Manager):
     def get_queryset(self):
-        return PrescriptionQuerySet(self.model, using=self._db)
+        return PrescriptionQuerySet(self.model, using=self._db).annotate(user=F('writer_id'))
 
     def all(self):
         return self.get_queryset().filter(deleted=False).order_by('-created_at')

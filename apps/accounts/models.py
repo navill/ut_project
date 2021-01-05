@@ -1,7 +1,6 @@
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.forms import model_to_dict
 from django.urls import reverse
 
 from accounts.mixins.form_mixins import CommonUserQuerySetMixin

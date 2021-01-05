@@ -3,6 +3,7 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import F
 
 from prescriptions.models import Prescription
 
@@ -16,16 +17,19 @@ def directory_path(instance: 'DataFile', filename: str) -> str:
 
 
 class DataFileQuerySet(models.QuerySet):
-    def get_unchecked_list(self):
+    def necessary_fields(self, *args: str):
+        return self.only('id', 'uploader_id', 'prescription_id', 'created_at', *args)
+
+    def unchecked_list(self):
         return self.filter(checked=False)
 
-    def get_normal_status_list(self):
+    def normal_status_list(self):
         return self.filter(status='NORMAL')
 
     def filter_current_user(self, uploader):
         return self.filter(uploader=uploader)
 
-    def related_uploader(self, uploader):
+    def related_uploader(self, uploader: User):
         queryset = None
         if uploader.is_doctor:
             queryset = self.select_related('uploader__doctor').order_by('-created_at')
@@ -33,12 +37,13 @@ class DataFileQuerySet(models.QuerySet):
             queryset = self.select_related('uploader__patient').order_by('-created_at')
         return queryset
 
-    # def get_queryset_related_doctor(self):
+    def related_prescription(self):
+        return self.select_related('prescription')
 
 
 class DataFileManager(models.Manager):
     def get_queryset(self):
-        return DataFileQuerySet(self.model, using=self._db)
+        return DataFileQuerySet(self.model, using=self._db).annotate(user=F('uploader_id'))
 
     def owner_queryset(self, user):
         if user.is_superuser:
@@ -53,11 +58,14 @@ class HealthStatus(models.TextChoices):
 
 
 class DataFile(models.Model):
+    # necessary fields
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    prescription = models.ForeignKey(Prescription, on_delete=models.SET_NULL, null=True)
+    prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, null=True)
     uploader = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='files', null=True)
-    file = models.FileField(upload_to=directory_path)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    # option fields
+    file = models.FileField(upload_to=directory_path)
     checked = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
 

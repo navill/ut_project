@@ -8,7 +8,7 @@ from files.api.serializers import FlieListSerializer, FileUploadSerializer, Flie
 from files.models import DataFile
 
 
-class DataFileListAPIVIew(ListAPIView):
+class DataFileListAPIView(ListAPIView):
     queryset = DataFile.objects.all()
     permission_classes = [IsDoctor | IsPatient]
     # authentication_classes = []
@@ -34,7 +34,7 @@ class PatientDataFileUploadAPIView(CreateAPIView):
     parser_classes = (MultiPartParser, FormParser)
 
 
-class DataFileRetrieveAPIVIew(RetrieveAPIView):
+class DataFileRetrieveAPIView(RetrieveAPIView):
     queryset = DataFile.objects.all()
     permission_classes = [IsOwner]
     # authentication_classes = []

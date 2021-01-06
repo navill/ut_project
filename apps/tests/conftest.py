@@ -17,33 +17,6 @@ def api_client():
     return APIClient()
 
 
-#
-# @pytest.fixture
-# def create_medicalcenter():
-#     data = {
-#         'country': '한국',
-#         'city': '서울특별시',
-#         'name': '한국병원',
-#         'address': '강남구...',
-#         'postal_code': '123-123',
-#         'main_call': '02-111-2222',
-#         'sub_call': '02-222-3333'
-#     }
-#     mc = MedicalCenter.objects.create(**data)
-#     return mc
-#
-#
-# @pytest.fixture
-# def create_department(create_medicalcenter):
-#     data = {
-#         'medical_center': create_medicalcenter,
-#         'name': '정신의학과',
-#         'call': '02-333-4444'
-#     }
-#     department = Department.objects.create(**data)
-#     return department
-
-
 @pytest.fixture
 def super_user():
     instance = User.objects.create_superuser(**USER_BASEUSER)
@@ -154,7 +127,21 @@ def prescription(db, user_doctor_with_group, user_patient_with_group):
 
 
 @pytest.fixture
+def bundle_prescriptions(db, user_doctor_with_group, user_patient_with_group):
+    doctor_baseuser, doctor = user_doctor_with_group
+    patient_baseuser, patient = user_patient_with_group
+    bulk_data = []
+    for i in range(5):
+        bulk_data.append(Prescription(writer=doctor, user_patient=patient, prescription='처방-' + str(i)))
+    Prescription.objects.bulk_create(bulk_data)
+
+
+@pytest.fixture
 def generated_uuid4():
+    return uuid.uuid4()
+
+
+def renew_generated_uuid():
     return uuid.uuid4()
 
 
@@ -165,6 +152,17 @@ def data_file_by_doctor(db, generated_uuid4, prescription, user_doctor_with_grou
     DATAFILE['uploader'] = user_doctor_with_group[0]
     instance = DataFile.objects.create(**DATAFILE)
     return instance
+
+
+@pytest.fixture
+def data_file_bundle_by_doctor(db, generated_uuid4, prescription, user_doctor_with_group):
+    bulk_data = []
+    for _ in range(5):
+        DATAFILE['id'] = renew_generated_uuid()
+        DATAFILE['prescription'] = prescription
+        DATAFILE['uploader'] = user_doctor_with_group[0]
+        bulk_data.append(DataFile(**DATAFILE))
+    DataFile.objects.bulk_create(bulk_data)
 
 
 @pytest.fixture

@@ -57,7 +57,7 @@ class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.all().order_by('-created_at')
     serializer_class = serializers.DoctorSerializer
     permission_classes = [IsDoctor]
-    lookup_field = 'pk'
+    # lookup_field = 'pk'
 
 
 class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):

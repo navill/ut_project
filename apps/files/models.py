@@ -65,7 +65,7 @@ class DataFile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     # option fields
-    file = models.FileField(upload_to=directory_path)
+    file = models.FileField(upload_to=directory_path, null=True)
     checked = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
 

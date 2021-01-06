@@ -10,8 +10,9 @@ api_test_condition = False
 @pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
 @pytest.mark.django_db
 @pytest.mark.parametrize(*DOCTOR_PARAMETER)
-def test_api_signup_doctor_with_parameters(api_client, major, user, first_name, last_name, address, phone, description,
-                                           status_code):
+def test_api_create_signup_doctor_with_parameters(api_client, major, user, first_name, last_name, address, phone,
+                                                  description,
+                                                  status_code):
     assert major.id
     data = {
         'user': user,
@@ -33,10 +34,8 @@ def test_api_signup_doctor_with_parameters(api_client, major, user, first_name, 
 @pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
 @pytest.mark.django_db
 @pytest.mark.parametrize(*PATIENT_PARAMETER)
-def test_api_signup_patient_with_parameters(api_client, user_doctor_with_group, user, first_name, last_name, address,
-                                            phone, age,
-                                            emergency_call,
-                                            status_code):
+def test_api_create_signup_patient_with_parameters(api_client, user_doctor_with_group, user, first_name, last_name,
+                                                   address, phone, age, emergency_call, status_code):
     baseuser, doctor = user_doctor_with_group
     data = {
         'doctor': doctor.pk,
@@ -143,7 +142,7 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
 
 @pytest.mark.skipif(api_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_api_view_doctor_detail(api_client, get_access_and_refresh_token_from_doctor):
+def test_api_retrieve_doctor(api_client, get_access_and_refresh_token_from_doctor):
     refresh, access = get_access_and_refresh_token_from_doctor
     # authenticate token
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))

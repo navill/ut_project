@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
+from accounts.models import Doctor, BaseUser
 from files.models import DataFile
 from prescriptions.models import Prescription
 
@@ -69,14 +70,18 @@ class FileUploadSerializer(serializers.ModelSerializer):
     class Meta:
         model = DataFile
         fields = ['hidden_uploader', 'prescription', 'file', 'created_at']
-        read_only_fields = ['hidden_uploader']
-        write_only_fields = ['file']
+        read_only_fields = ['hidden_uploader', 'created_at']
 
     def create(self, validated_data: dict) -> DataFile:
         try:
             uploader = validated_data.pop('hidden_uploader')
-            # using celery
-            file_object = DataFile.objects.create(uploader_id=uploader.id, **validated_data)
+            prescription = validated_data.pop('prescription')
+            if not isinstance(prescription, int):
+                prescription = prescription.id
+            # file_object = DataFile.objects.create(uploader_id=uploader, **validated_data)
+            file_object = DataFile.objects.create(uploader_id=uploader.id,
+                                                  prescription_id=prescription,
+                                                  file=validated_data['file'])
         except Exception:
             raise
         return file_object

@@ -31,8 +31,6 @@ class FlieListSerializer(DefaultFileSerializer):
         fields = DefaultFileSerializer.Meta.fields
 
     def get_uploader(self, instance):
-        # user = self.context['request'].user
-        # print(user.get_child_account())
         return instance.uploader.get_child_username()
 
 

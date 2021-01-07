@@ -9,6 +9,11 @@ from prescriptions.models import Prescription
 
 User = get_user_model()
 
+DEFAULT_QUERY_FIELDS = ['id', 'prescription', 'uploader_id', 'file', 'created_at']
+UPLOADER_QUERY_FIELDS = ['user_id', 'first_name', 'last_name']
+DOCTOR_QUERY_FIELDS = [f'uploader__doctor__{field}' for field in UPLOADER_QUERY_FIELDS]
+PATIENT_QUERY_FIELDS = [f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS]
+
 
 def directory_path(instance: 'DataFile', filename: str) -> str:
     day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
@@ -17,8 +22,8 @@ def directory_path(instance: 'DataFile', filename: str) -> str:
 
 
 class DataFileQuerySet(models.QuerySet):
-    def necessary_fields(self, *args: str):
-        return self.only('id', 'uploader_id', 'prescription_id', 'created_at', *args)
+    def necessary_fields(self, *fields):
+        return self.only(*DEFAULT_QUERY_FIELDS, *DOCTOR_QUERY_FIELDS, *PATIENT_QUERY_FIELDS, *fields)
 
     def unchecked_list(self):
         return self.filter(checked=False)

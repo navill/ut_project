@@ -16,7 +16,7 @@ class DataFileListAPIView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = super(DataFileListAPIView, self).get_queryset()
+        queryset = super(DataFileListAPIView, self).get_queryset().necessary_fields()
         if user.is_superuser:
             return queryset
         return queryset.filter_current_user(uploader=user)

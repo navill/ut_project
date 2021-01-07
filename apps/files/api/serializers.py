@@ -1,7 +1,8 @@
+from typing import Union
+
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
-from accounts.models import Doctor, BaseUser
 from files.models import DataFile
 from prescriptions.models import Prescription
 
@@ -30,16 +31,19 @@ class FlieListSerializer(DefaultFileSerializer):
         fields = DefaultFileSerializer.Meta.fields
 
     def get_uploader(self, instance):
-        if instance.uploader is None or not hasattr(instance.uploader, 'doctor'):  # test용 조건문
-            pass
-        else:
-            user = instance.uploader.doctor
-            return user.get_full_name()
+        # user = self.context['request'].user
+        # print(user.get_child_account())
+        return instance.uploader.get_child_username()
 
 
 class FlieRetrieveSerializer(DefaultFileSerializer):
     class Meta(DefaultFileSerializer.Meta):
         fields = DefaultFileSerializer.Meta.fields
+
+
+class FileDownloadSerializer(DefaultFileSerializer):
+    class Meta(DefaultFileSerializer.Meta):
+        fields = ['id'] + DefaultFileSerializer.Meta.fields
 
 
 """
@@ -62,7 +66,6 @@ class FileUploadSerializer(serializers.ModelSerializer):
     - 의사가 prescription detail 페이지에서 환자가 업로드한 파일을 체크(checked=True)할 경우, 해당 파일은 prescription과 관계를 형성한다.
     """
     hidden_uploader = serializers.HiddenField(default=CurrentUserDefault())
-    # uploader = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
     prescription = serializers.PrimaryKeyRelatedField(queryset=Prescription.objects.all(), required=False)
     file = serializers.FileField(use_url=False)
     created_at = serializers.DateTimeField(read_only=True)
@@ -72,18 +75,15 @@ class FileUploadSerializer(serializers.ModelSerializer):
         fields = ['hidden_uploader', 'prescription', 'file', 'created_at']
         read_only_fields = ['hidden_uploader', 'created_at']
 
-    def create(self, validated_data: dict) -> DataFile:
-        try:
-            uploader = validated_data.pop('hidden_uploader')
-            prescription = validated_data.pop('prescription')
-            if not isinstance(prescription, int):
-                prescription = prescription.id
-            # file_object = DataFile.objects.create(uploader_id=uploader, **validated_data)
-            file_object = DataFile.objects.create(uploader_id=uploader.id,
-                                                  prescription_id=prescription,
-                                                  file=validated_data['file'])
-        except Exception:
-            raise
+    def create(self, validated_data: dict) -> Union['DataFile', None]:
+        uploader = validated_data.get('hidden_uploader', None)
+        prescription = validated_data.get('prescription', None)
+        if uploader is None:
+            # raise ValueError('uploader should be not None')
+            return None
+        file_object = DataFile.objects.create(uploader_id=uploader.id,
+                                              prescription_id=prescription.id,
+                                              file=validated_data['file'])
         return file_object
 
 

@@ -29,21 +29,14 @@ class DataFileQuerySet(models.QuerySet):
     def filter_current_user(self, uploader):
         return self.filter(uploader=uploader)
 
-    def related_uploader(self, uploader: User):
-        queryset = None
-        if uploader.is_doctor:
-            queryset = self.select_related('uploader__doctor').order_by('-created_at')
-        elif uploader.is_patient:
-            queryset = self.select_related('uploader__patient').order_by('-created_at')
-        return queryset
-
     def related_prescription(self):
         return self.select_related('prescription')
 
 
 class DataFileManager(models.Manager):
     def get_queryset(self):
-        return DataFileQuerySet(self.model, using=self._db).annotate(user=F('uploader_id'))
+        return DataFileQuerySet(self.model, using=self._db).select_related('uploader__doctor').select_related(
+            'uploader__patient').annotate(user=F('uploader_id')).order_by('-created_at')
 
     def owner_queryset(self, user):
         if user.is_superuser:

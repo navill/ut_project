@@ -61,7 +61,7 @@ class PermissionMethodBundleMixin:
         owner = None
         if hasattr(obj, 'user'):
             owner = BaseUser.objects.get(id=obj.user) if isinstance(obj.user, int) else obj.user
-        return bool(user == owner)
+        return user.is_superuser or bool(user == owner)
 
     def has_group(self, request, group_name: str) -> bool:
         return hasattr(request.user, group_name)

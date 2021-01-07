@@ -24,10 +24,7 @@ class BaseQuerySet(models.QuerySet):
 
 class BaseManager(BaseUserManager):
     def get_queryset(self):
-        return BaseQuerySet(self.model, using=self._db).select_related('doctor')
-
-    def get_child_model(self):
-        queryset = self.get_queryset().prefetch_related('doctor')
+        return BaseQuerySet(self.model, using=self._db).select_related('doctor').select_related('patient')
 
     def all(self):
         return super().all()
@@ -90,11 +87,18 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.save()
 
     def get_child_account(self):
-        for user_model in AccountsModel.__subclasses__():
-            child_attribute_name = user_model.__name__.lower()
-            if hasattr(self, child_attribute_name):
-                return getattr(self, child_attribute_name)
+        if self.is_doctor:
+            return self.doctor
+        elif self.is_patient:
+            return self.patient
         return None
+
+    def get_child_username(self):
+        if self.is_doctor:
+            name = self.doctor.get_full_name()
+        elif self.is_patient:
+            name = self.patient.get_full_name()
+        return name
 
 
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):

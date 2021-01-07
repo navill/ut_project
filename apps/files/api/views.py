@@ -61,5 +61,5 @@ class UploadedFileListAPIView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        queryset = super().get_queryset().necessary_fields('checked', 'file')
+        queryset = super().get_queryset().necessary_fields('checked')
         return queryset.unchecked_list().filter_current_user(uploader=user)

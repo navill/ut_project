@@ -61,9 +61,9 @@ class DataFile(models.Model):
     prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, null=True)
     uploader = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='files', null=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    file = models.FileField(upload_to=directory_path, null=True)
 
     # option fields
-    file = models.FileField(upload_to=directory_path, null=True)
     checked = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
 

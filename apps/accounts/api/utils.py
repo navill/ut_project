@@ -36,21 +36,21 @@ class CreatedUserPair:
         return True
 
 
-class GroupPermissionAbstractor(metaclass=ABCMeta):
+class GroupPermissionInterface(metaclass=ABCMeta):
     @abstractmethod
     def set_permissions_for_models(self):
-        raise NotImplementedError("This method must be implemented in subclass!")
+        raise NotImplementedError("This method must be implemented in subclasses!")
 
     @abstractmethod
     def add_user_to_model_group(self):
-        raise NotImplementedError("This method must be implemented in subclass!")
+        raise NotImplementedError("This method must be implemented in subclasses!")
 
     @abstractmethod
     def grant_permission_to_baseuser(self):
-        raise NotImplementedError("This method must be implemented in subclass!")
+        raise NotImplementedError("This method must be implemented in subclasses!")
 
 
-class GroupPermissionBuilder(GroupPermissionAbstractor):  # base builder pattern
+class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
     def __init__(self):
         self.target_user = None
         self.permissions = None

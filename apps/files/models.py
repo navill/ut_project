@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
 
+from files.api.utils import delete_file
 from prescriptions.models import Prescription
 
 User = get_user_model()
@@ -24,6 +25,14 @@ def directory_path(instance: 'DataFile', filename: str) -> str:
 
 
 class DataFileQuerySet(models.QuerySet):
+    def shallow_delete(self):
+        self.update(deleted=True)
+
+    def hard_delete(self):
+        for file in self:
+            file.delete_file()
+        super().delete()
+
     def necessary_fields(self, *fields):
         return self.only(*DEFAULT_QUERY_FIELDS, *DOCTOR_QUERY_FIELDS, *PATIENT_QUERY_FIELDS, *fields)
 
@@ -79,3 +88,12 @@ class DataFile(models.Model):
         if self.uploader.email == str(user.email):
             return True
         return False
+
+    def shallow_delete(self):
+        self.checked = True
+        self.save()
+
+    def hard_delete(self):
+        if self.file:
+            delete_file(self.file.path)
+        super().delete()

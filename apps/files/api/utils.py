@@ -17,3 +17,8 @@ class Downloader:
     def _get_filename(self, file_field):
         filename = os.path.basename(file_field.name)
         return filename
+
+
+def delete_file(path):
+    if os.path.isfile(path):
+        os.remove(path)

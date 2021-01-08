@@ -20,15 +20,15 @@ def test_api_view_data_file_list(client_with_token_auth, data_file_bundle_by_doc
     assert len(response.data) == 5
 
 
-# @pytest.mark.django_db
-# def test_api_create_data_file(client_with_token_auth, prescription, upload_file):
-#     value = {
-#         'prescription': prescription.id,
-#         'file': upload_file
-#     }
-#     url = reverse('files:file-upload')
-#     response = client_with_token_auth.post(url, data=value, format='multipart')
-#     assert response.status_code == 201
+@pytest.mark.django_db
+def test_api_create_data_file(client_with_token_auth, prescription, upload_file):
+    value = {
+        'prescription': prescription.id,
+        'file': upload_file
+    }
+    url = reverse('files:file-upload')
+    response = client_with_token_auth.post(url, data=value, format='multipart')
+    assert response.status_code == 201
 
 
 @pytest.mark.django_db

@@ -186,7 +186,10 @@ def client_with_token_auth(api_client, get_token_from_doctor):
     return api_client
 
 
-@pytest.fixture
-def upload_file():
-    upload_file = SimpleUploadedFile("file.txt", b"test file", content_type='multipart/form-data')
-    return upload_file
+@pytest.fixture(scope='function')
+def upload_file(db):
+    upload_file = SimpleUploadedFile("testfile.txt", b"test file", content_type='multipart/form-data')
+    yield upload_file
+    for file in DataFile.objects.all():
+        file.hard_delete()
+

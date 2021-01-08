@@ -52,7 +52,6 @@ Prescription 작성 -> File 첨부 -> Prescription 객체 생성 -> File 객체 
 
 [Patient] -> Core Serializer에서 처리
 File 첨부 -> File 객체 생성
-
 """
 
 
@@ -76,11 +75,14 @@ class FileUploadSerializer(serializers.ModelSerializer):
     def create(self, validated_data: dict) -> Union['DataFile', None]:
         uploader = validated_data.get('hidden_uploader', None)
         prescription = validated_data.get('prescription', None)
+
         if uploader is None:
             # raise ValueError('uploader should be not None')
             return None
-        file_object = DataFile.objects.create(uploader_id=uploader.id,
-                                              prescription_id=prescription.id,
+        if prescription is not None:
+            prescription = prescription.id
+
+        file_object = DataFile.objects.create(uploader_id=uploader.id, prescription_id=prescription,
                                               file=validated_data['file'])
         return file_object
 
@@ -94,4 +96,4 @@ class UploadedFileListSerializer(DefaultFileSerializer):
 
     class Meta:
         model = DataFile
-        fields = ['download_url', 'url', 'uploader', 'file', 'created_at']
+        fields = ['download_url', 'url', 'uploader', 'file', 'checked', 'created_at']

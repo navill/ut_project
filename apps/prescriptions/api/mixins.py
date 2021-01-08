@@ -1,3 +1,4 @@
+
 class CurrentUserRelatedFieldMixin:
     def filter_current_user_by(self, attribute_name):
         request = self.context.get('request', None)

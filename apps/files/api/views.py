@@ -35,14 +35,14 @@ class PatientDataFileUploadAPIView(CreateAPIView):
 
 
 class DataFileRetrieveAPIView(RetrieveAPIView):
-    queryset = DataFile.objects.all()
+    queryset = DataFile.objects.all().necessary_fields()
     permission_classes = [IsOwner]
     serializer_class = FlieRetrieveSerializer
     lookup_field = 'id'
 
 
 class DataFileDownloadAPIView(RetrieveAPIView):
-    queryset = DataFile.objects.all()
+    queryset = DataFile.objects.all().necessary_fields()
     permission_classes = [IsOwner]
     serializer_class = FileDownloadSerializer
     lookup_field = 'id'

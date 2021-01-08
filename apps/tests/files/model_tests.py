@@ -26,12 +26,12 @@ def test_model_is_uploader(data_file_by_doctor, user_doctor_with_group, user_pat
 def test_model_queryset_unchecked_file_list(data_file_bundle_by_doctor):
     queryset = DataFile.objects.all()
     assert queryset.count() == 5
-    assert queryset.unchecked_list().count() == 0
+    assert queryset.unchecked_list().count() == 5
 
     datafile_obj = queryset.first()
-    datafile_obj.checked = False
+    datafile_obj.checked = True
     datafile_obj.save()
-    assert queryset.unchecked_list().count() == 1
+    assert queryset.unchecked_list().count() == 4
 
 
 @pytest.mark.django_db
@@ -44,8 +44,7 @@ def test_model_queryset_filter_current_user(user_doctor_with_group, data_file_by
 @pytest.mark.django_db
 def test_model_manager_owner_queryset(user_doctor_with_group, super_user, data_file_by_doctor):
     user, doctor = user_doctor_with_group
-    queryset = DataFile.objects.owner_queryset(user)
+    queryset = DataFile.objects.owner_queryset(user=user)
     assert queryset.count()
-    queryset = DataFile.objects.owner_queryset(super_user)
+    queryset = DataFile.objects.owner_queryset(user=super_user)
     assert queryset.count()
-

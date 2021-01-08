@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from accounts.api.authentications import CustomRefreshToken
 from accounts.models import Doctor, Patient
@@ -9,14 +10,6 @@ from files.models import DataFile
 from hospitals.models import Major, Department, MedicalCenter
 from prescriptions.models import Prescription
 from tests.constants import *
-
-
-#
-# pytest_plugins = [
-#     "accounts.conftest",
-#     "files.conftest",
-#     "hospitals.conftest",
-# ]
 
 
 @pytest.fixture
@@ -149,7 +142,7 @@ def generated_uuid4():
     return uuid.uuid4()
 
 
-def renew_generated_uuid():
+def renew_uuid():
     return uuid.uuid4()
 
 
@@ -165,23 +158,35 @@ def data_file_by_doctor(db, generated_uuid4, prescription, user_doctor_with_grou
 @pytest.fixture
 def data_file_bundle_by_doctor(db, prescription, user_doctor_with_group):
     bulk_data = []
+    datafile = {
+        'id': None,
+        'prescription': prescription,
+        'uploader': user_doctor_with_group[0],
+        'file': MEDIA_ROOT + '/test_file.md',
+        'checked': False,
+        'status': HealthStatus.NORMAL
+    }
     for _ in range(5):
-        DATAFILE['id'] = renew_generated_uuid()
-        DATAFILE['prescription'] = prescription
-        DATAFILE['uploader'] = user_doctor_with_group[0]
-        bulk_data.append(DataFile(**DATAFILE))
+        datafile['id'] = renew_uuid()
+        bulk_data.append(DataFile(**datafile))
     DataFile.objects.bulk_create(bulk_data)
 
 
 @pytest.fixture
 def data_file_unchecked(data_file_by_doctor):
-    data_file_by_doctor.status = False
+    data_file_by_doctor.checked = False
     data_file_by_doctor.save()
     return data_file_by_doctor
 
 
 @pytest.fixture
-def api_client_with_token_auth(api_client, get_token_from_doctor):
+def client_with_token_auth(api_client, get_token_from_doctor):
     access = get_token_from_doctor.access_token
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
     return api_client
+
+
+@pytest.fixture
+def upload_file():
+    upload_file = SimpleUploadedFile("file.txt", b"test file", content_type='multipart/form-data')
+    return upload_file

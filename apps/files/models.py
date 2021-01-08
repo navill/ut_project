@@ -11,6 +11,8 @@ User = get_user_model()
 
 DEFAULT_QUERY_FIELDS = ['id', 'prescription', 'uploader_id', 'file', 'created_at']
 UPLOADER_QUERY_FIELDS = ['user_id', 'first_name', 'last_name']
+PRESCRIPTION_QUERY_FIELD = ['prescription__id']
+
 DOCTOR_QUERY_FIELDS = [f'uploader__doctor__{field}' for field in UPLOADER_QUERY_FIELDS]
 PATIENT_QUERY_FIELDS = [f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS]
 
@@ -32,7 +34,7 @@ class DataFileQuerySet(models.QuerySet):
         return self.filter(status='NORMAL')
 
     def filter_current_user(self, uploader):
-        return self.filter(uploader=uploader)
+        return self.filter(uploader_id=uploader.id)
 
     def related_prescription(self):
         return self.select_related('prescription')
@@ -46,7 +48,7 @@ class DataFileManager(models.Manager):
     def owner_queryset(self, user):
         if user.is_superuser:
             return self
-        return self.get_queryset().filter(uploader=user.id)
+        return self.get_queryset().filter(user=user.id)
 
 
 class HealthStatus(models.TextChoices):
@@ -66,6 +68,7 @@ class DataFile(models.Model):
     # option fields
     checked = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
+    deleted = models.BooleanField(default=False)
 
     objects = DataFileManager()
 
@@ -76,5 +79,3 @@ class DataFile(models.Model):
         if self.uploader.email == str(user.email):
             return True
         return False
-
-    # file에 접근할 수 있는 유저: uploader or prescription.writer

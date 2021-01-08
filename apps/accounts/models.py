@@ -16,6 +16,9 @@ class AccountsModel(models.Model):
     class Meta:
         abstract = True
 
+    def get_full_name(self) -> str:
+        return f'{self.first_name}_{self.last_name}'
+
 
 class BaseQuerySet(models.QuerySet):
     def active(self):
@@ -124,16 +127,14 @@ class Doctor(AccountsModel):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
     objects = DoctorManager()
 
     def get_absolute_url(self):
         return reverse('accounts:doctor-detail-update', kwargs={'pk': self.pk})
 
     def __str__(self):
-        return f'{self.major}: {self.user.email}'
-
-    def get_full_name(self):
-        return f'{self.first_name}_{self.last_name}'
+        return f'{self.major}: {self.get_full_name()}'
 
 
 class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
@@ -166,6 +167,3 @@ class Patient(AccountsModel):
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})
-
-    def get_full_name(self) -> str:
-        return f'{self.first_name}_{self.last_name}'

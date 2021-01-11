@@ -1,4 +1,5 @@
 from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView
+from rest_framework.serializers import Serializer
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient, PatientReadOnly
 from prescriptions.api import serializers
@@ -16,7 +17,7 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsDoctor | IsPatient]
     lookup_field = 'pk'
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: Serializer):
         serializer.save(writer=self.request.user)
 
     def get_queryset(self) -> Union["QuerySet", None]:
@@ -37,5 +38,5 @@ class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     permission_classes = [IsOwner | RelatedPatientReadOnly]  # obj.writer == request.user
     lookup_field = 'pk'
 
-    def perform_update(self, serializer):
+    def perform_update(self, serializer: Serializer):
         serializer.save()

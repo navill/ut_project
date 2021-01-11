@@ -1,9 +1,9 @@
 from rest_framework.permissions import BasePermission
 
-from accounts.api.mixins import PermissionMethodBundleMixin
+from accounts.api.mixins import PermissionBundleMethodMixin
 
 
-class RootPermission(PermissionMethodBundleMixin, BasePermission):
+class RootPermission(PermissionBundleMethodMixin, BasePermission):
     pass
 
 

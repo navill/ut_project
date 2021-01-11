@@ -18,7 +18,6 @@ class UserCreateMixin:
             with transaction.atomic():
                 baseuser = BaseUser.objects.create_user(**user_data)
                 user = self.Meta.model.objects.create(user=baseuser, **validated_data)
-
                 user_pair = CreatedUserPair(user=user, baseuser=baseuser)
                 director = PostProcessingUserDirector(created_user=user_pair)
                 director.build_user_group_and_permission()
@@ -46,7 +45,7 @@ class RefreshBlacklistMixin:
         user.set_token_expired(epoch_time)
 
 
-class PermissionMethodBundleMixin:
+class PermissionBundleMethodMixin:
     def is_safe_method(self, request) -> bool:
         return request.method in permissions.SAFE_METHODS
 

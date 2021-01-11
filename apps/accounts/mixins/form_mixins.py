@@ -42,7 +42,7 @@ class UserSaveMixin:
 
 
 class CommonUserQuerySetMixin:
-    def active(self):
+    def filter_user_active(self):
         return self.filter(user__is_active=True)
 
     def filt_doctor(self):
@@ -51,5 +51,15 @@ class CommonUserQuerySetMixin:
     def filt_patient(self):
         return self.filter(Q(is_doctor=False) & Q(is_patient=True))
 
-    def ordered(self, value='-user__created_at'):
+    def ordered(self, value: str = None):
+        default = '-user__created_at'
+        if self.model.__name__ in ['patient', 'doctor']:
+            default = '-created_at'
+        value = default if value is None else value
         return self.order_by(value)
+
+    def defer_fields(self, *fields: Union[tuple, list]):
+        return self.defer(*fields)
+
+    def generate_related_defer_fields(self, fields: Union[tuple, list]):
+        return ('user__' + field for field in fields)

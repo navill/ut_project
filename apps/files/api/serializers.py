@@ -55,6 +55,15 @@ File 첨부 -> File 객체 생성
 """
 
 
+class WriterFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context.get('request', None)
+        queryset = super().get_queryset()
+        if not request or not queryset:
+            return None
+        return queryset.filter(writer_id=request.user.id)
+
+
 class FileUploadSerializer(serializers.ModelSerializer):
     """
     patient 또는 doctor가 파일 업로드에 사용
@@ -63,7 +72,7 @@ class FileUploadSerializer(serializers.ModelSerializer):
     - 의사가 prescription detail 페이지에서 환자가 업로드한 파일을 체크(checked=True)할 경우, 해당 파일은 prescription과 관계를 형성한다.
     """
     hidden_uploader = serializers.HiddenField(default=CurrentUserDefault())
-    prescription = serializers.PrimaryKeyRelatedField(queryset=Prescription.objects.all(), required=False)
+    prescription = WriterFilteredPrimaryKeyRelatedField(queryset=Prescription.objects.all(), required=False)
     file = serializers.FileField(use_url=False)
     created_at = serializers.DateTimeField(read_only=True)
 

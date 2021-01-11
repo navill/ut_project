@@ -1,3 +1,6 @@
+from typing import TYPE_CHECKING
+
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -5,7 +8,12 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 
 from accounts.api.authentications import CustomRefreshToken
 from accounts.api.mixins import UserCreateMixin, RefreshBlacklistMixin
-from accounts.models import BaseUser, Doctor, Patient
+from accounts.models import Doctor, Patient
+
+if TYPE_CHECKING:
+    from accounts.models import BaseUser
+
+User = get_user_model()
 
 
 class DefaultBaseUserSerializer(serializers.ModelSerializer):
@@ -15,12 +23,12 @@ class DefaultBaseUserSerializer(serializers.ModelSerializer):
     last_login = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
     class Meta:
-        model = BaseUser
+        model = User
         fields = ['email', 'created_at', 'updated_at', 'last_login']
 
 
 class BaseUserSignUpSerializer(DefaultBaseUserSerializer):
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
+    email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(
         min_length=8,
         write_only=True,
@@ -68,7 +76,7 @@ class DefaultPatientSerializer(serializers.ModelSerializer):
         lookup_field='pk',
         read_only=True
     )
-    email = serializers.CharField(validators=[UniqueValidator(queryset=BaseUser.objects.all())])
+    email = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all())])
 
     class Meta:
         model = Patient
@@ -95,11 +103,11 @@ class PatientSignUpSerializer(UserCreateMixin, PatientSerailizer):
 
 # serializer relation은 core app에서 처리할 예정
 class SimpleRelatedDoctorSerializer(DoctorSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
 
 class SimpleRelatedPatientSerializer(PatientSerailizer):
-    user = serializers.PrimaryKeyRelatedField(queryset=BaseUser.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
 
 
@@ -113,14 +121,14 @@ class RelatedPatientSerializer(PatientSerailizer):
 
 class AccountsTokenSerializer(TokenObtainPairSerializer):
     @classmethod
-    def get_token(cls, user):
+    def get_token(cls, user: 'BaseUser'):
         token = CustomRefreshToken.for_user(user)
         return token
 
 
 class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializer):
     @transaction.atomic
-    def validate(self, attrs):
+    def validate(self, attrs: dict):
         refresh_obj = CustomRefreshToken(attrs['refresh'])
         data = {'access': str(refresh_obj.access_token)}
         access_token_exp = refresh_obj.access_token.payload['exp']

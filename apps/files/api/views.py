@@ -3,26 +3,27 @@ from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner
+from files.api.mixins import QuerySetMixin
 from files.api.serializers import FlieListSerializer, FileUploadSerializer, FlieRetrieveSerializer, \
     UploadedFileListSerializer, FileDownloadSerializer
 from files.api.utils import Downloader
 from files.models import DataFile
 
 
-class DataFileListAPIView(ListAPIView):
+class DataFileListAPIView(QuerySetMixin, ListAPIView):
     queryset = DataFile.objects.all()
     permission_classes = [IsDoctor | IsPatient]
     serializer_class = FlieListSerializer
 
-    def get_queryset(self):
-        user = self.request.user
-        queryset = super(DataFileListAPIView, self).get_queryset().necessary_fields()
-        if user.is_superuser:
-            return queryset
-        return queryset.filter_current_user(uploader=user)
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     queryset = super(DataFileListAPIView, self).get_queryset().necessary_fields()
+    #     if user.is_superuser:
+    #         return queryset
+    #     return queryset.filter_current_user(current_user=user)
 
 
-class DoctorDataFileUploadAPIView(CreateAPIView):
+class DoctorDataFileUploadAPIView(QuerySetMixin, CreateAPIView):
     permission_classes = [IsDoctor]
     serializer_class = FileUploadSerializer
     parser_classes = (MultiPartParser, FormParser)
@@ -62,4 +63,4 @@ class UploadedFileListAPIView(ListAPIView):
     def get_queryset(self):
         user = self.request.user
         queryset = super().get_queryset().necessary_fields('checked')
-        return queryset.unchecked_list().filter_current_user(uploader=user)
+        return queryset.unchecked_list().filter_current_user(current_user=user)

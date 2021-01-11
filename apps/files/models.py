@@ -10,12 +10,12 @@ from prescriptions.models import Prescription
 
 User = get_user_model()
 
-DEFAULT_QUERY_FIELDS = ['id', 'prescription', 'uploader_id', 'file', 'created_at']
-UPLOADER_QUERY_FIELDS = ['user_id', 'first_name', 'last_name']
-PRESCRIPTION_QUERY_FIELD = ['prescription__id']
+DEFAULT_QUERY_FIELDS = ('id', 'prescription', 'uploader_id', 'file', 'created_at')
+UPLOADER_QUERY_FIELDS = ('user_id', 'first_name', 'last_name')
+PRESCRIPTION_QUERY_FIELD = ('prescription__id',)
 
-DOCTOR_QUERY_FIELDS = [f'uploader__doctor__{field}' for field in UPLOADER_QUERY_FIELDS]
-PATIENT_QUERY_FIELDS = [f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS]
+DOCTOR_QUERY_FIELDS = (f'uploader__doctor__{field}' for field in UPLOADER_QUERY_FIELDS)
+PATIENT_QUERY_FIELDS = (f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS)
 
 
 def directory_path(instance: 'DataFile', filename: str) -> str:
@@ -42,17 +42,23 @@ class DataFileQuerySet(models.QuerySet):
     def normal_status_list(self):
         return self.filter(status='NORMAL')
 
-    def filter_current_user(self, uploader):
-        return self.filter(uploader_id=uploader.id)
+    # necessary query in view(QuerysetMixin)
 
-    def related_prescription(self):
-        return self.select_related('prescription')
+    def filter_current_user(self, current_user):
+        return self.filter(uploader_id=current_user.id)
+
+    def filter_current_user_for_prescription(self, current_user):
+        return self.filter(prescription__writer=current_user.id)
+
+    def join_uploader_as_role(self, query_word: str):
+        return self.select_related(query_word)
 
 
 class DataFileManager(models.Manager):
     def get_queryset(self):
-        return DataFileQuerySet(self.model, using=self._db).select_related('uploader__doctor').select_related(
-            'uploader__patient').annotate(user=F('uploader_id')).order_by('-created_at')
+        return DataFileQuerySet(self.model, using=self._db). \
+            select_related('prescription__writer'). \
+            annotate(user=F('uploader_id')).order_by('-created_at')
 
     def owner_queryset(self, user):
         if user.is_superuser:
@@ -90,7 +96,7 @@ class DataFile(models.Model):
         return False
 
     def shallow_delete(self):
-        self.checked = True
+        self.deleted = True
         self.save()
 
     def hard_delete(self):

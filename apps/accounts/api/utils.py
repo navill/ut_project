@@ -1,14 +1,17 @@
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Union
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
-from accounts.models import AccountsModel, BaseUser
+from accounts.models import AccountsModel
 
 if TYPE_CHECKING:
-    from accounts.models import Patient, Doctor
+    from accounts.models import Patient, Doctor, BaseUser
+
+User = get_user_model()
 
 
 class CreatedUserPair:
@@ -31,7 +34,7 @@ class CreatedUserPair:
         self._model_name = user.__class__.__name__.lower()
 
     def validate_user(self) -> bool:
-        if not isinstance(self.user, AccountsModel) or not isinstance(self.baseuser, BaseUser):
+        if not isinstance(self.user, AccountsModel) and not isinstance(self.baseuser, User):
             return False
         return True
 

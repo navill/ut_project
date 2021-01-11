@@ -9,7 +9,6 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
-
 from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer
 from accounts.models import Doctor, Patient

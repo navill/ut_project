@@ -6,6 +6,11 @@ from django.urls import reverse
 from accounts.mixins.form_mixins import CommonUserQuerySetMixin
 from hospitals.models import Major
 
+DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
+DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'updated_at')
+DEFER_DOCTOR_FIELDS = ('updated_at',) + DEFER_ACCOUNTS_FIELDS
+DEFER_PATIENT_FIELDS = ('age', 'emergency_call') + DEFER_ACCOUNTS_FIELDS
+
 
 class AccountsModel(models.Model):
     first_name = models.CharField(max_length=20, default='')
@@ -24,13 +29,16 @@ class BaseQuerySet(models.QuerySet):
     def active(self):
         return self.filter(is_active=True)
 
+    def defer_fields(self, *fields):
+        return self.defer(*DEFER_BASEUSER_FIELDS, *fields)
+
 
 class BaseManager(BaseUserManager):
     def get_queryset(self):
         return BaseQuerySet(self.model, using=self._db).select_related('doctor').select_related('patient')
 
     def all(self):
-        return super().all()
+        return super().all().active()
 
     def create_user(self, email, password, **attributes):
         if not email:
@@ -58,7 +66,6 @@ class BaseManager(BaseUserManager):
             raise ValueError('Superuser must have is_superuser=True.')
 
 
-# AbstractUser
 class BaseUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -105,15 +112,17 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
 
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
-    pass
+    def defer_fields(self, *fields):
+        defer_user_fields = self.generate_related_defer_fields(DEFER_BASEUSER_FIELDS)
+        return super().defer_fields(*DEFER_DOCTOR_FIELDS, *defer_user_fields, *fields)
 
 
 class DoctorManager(models.Manager):
     def get_queryset(self):
-        return DoctorQuerySet(self.model, using=self._db).select_related('user')
+        return DoctorQuerySet(self.model, using=self._db).select_related('user').select_related('major')
 
     def all(self):
-        active_doctor = self.get_queryset().active()
+        active_doctor = self.get_queryset().filter_user_active()
         return active_doctor
 
     def with_patients(self):
@@ -138,15 +147,17 @@ class Doctor(AccountsModel):
 
 
 class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
-    pass
+    def defer_fields(self, *fields):
+        defer_user_fields = self.generate_related_defer_fields(DEFER_BASEUSER_FIELDS)
+        return super().defer_fields(*DEFER_PATIENT_FIELDS, *defer_user_fields, *fields)
 
 
 class PatientManager(models.Manager):
     def get_queryset(self):
-        return PatientQuerySet(self.model, using=self._db).select_related('user')
+        return PatientQuerySet(self.model, using=self._db).select_related('user').select_related('doctor')
 
     def all(self):
-        active_patient = self.get_queryset().active()
+        active_patient = self.get_queryset().filter_user_active()
         return active_patient
 
 

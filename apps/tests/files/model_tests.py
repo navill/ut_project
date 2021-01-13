@@ -26,19 +26,19 @@ def test_model_is_uploader(data_file_by_doctor, user_doctor_with_group, user_pat
 def test_model_queryset_unchecked_file_list(data_file_bundle_by_doctor):
     queryset = DataFile.objects.all()
     assert queryset.count() == 5
-    assert queryset.unchecked_list().count() == 5
+    assert queryset.unchecked_list().count() == 0
 
     datafile_obj = queryset.first()
-    datafile_obj.checked = True
+    datafile_obj.checked = False
     datafile_obj.save()
-    assert queryset.unchecked_list().count() == 4
+    assert queryset.unchecked_list().count() == 1
 
 
 @pytest.mark.django_db
 def test_model_queryset_filter_current_user(user_doctor_with_group, data_file_by_doctor):
     queryset = DataFile.objects.all()
     user, doctor = user_doctor_with_group
-    assert queryset.filter_current_user(user)
+    assert queryset.filter_uploader(user)
 
 
 @pytest.mark.django_db

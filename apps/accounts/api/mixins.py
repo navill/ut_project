@@ -1,14 +1,16 @@
 from typing import TYPE_CHECKING
 
+from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import permissions
 from rest_framework_simplejwt.settings import api_settings
 
-from accounts.models import BaseUser
 from accounts.api.utils import CreatedUserPair, PostProcessingUserDirector
 
 if TYPE_CHECKING:
     from accounts.api.authentications import CustomRefreshToken
+    
+User = get_user_model()
 
 
 class UserCreateMixin:
@@ -16,7 +18,7 @@ class UserCreateMixin:
         user_data = validated_data.pop('user')
         try:
             with transaction.atomic():
-                baseuser = BaseUser.objects.create_user(**user_data)
+                baseuser = User.objects.create_user(**user_data)
                 user = self.Meta.model.objects.create(user=baseuser, **validated_data)
                 user_pair = CreatedUserPair(user=user, baseuser=baseuser)
                 director = PostProcessingUserDirector(created_user=user_pair)
@@ -57,10 +59,11 @@ class PermissionBundleMethodMixin:
 
     def is_owner(self, request, obj) -> bool:
         user = request.user
-        owner = None
+        owner_id = None
         if hasattr(obj, 'user'):
-            owner = BaseUser.objects.get(id=obj.user) if isinstance(obj.user, int) else obj.user
-        return user.is_superuser or bool(user == owner)
+            # owner = BaseUser.objects.get(id=obj.user) if isinstance(obj.user, int) else obj.user
+            owner_id = obj.user if isinstance(obj.user, int) else obj.user.id
+        return user.is_superuser or bool(user.id == owner_id)
 
     def has_group(self, request, group_name: str) -> bool:
         return hasattr(request.user, group_name)

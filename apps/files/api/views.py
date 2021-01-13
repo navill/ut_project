@@ -1,50 +1,50 @@
 from django.http import FileResponse
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner
 from files.api.mixins import QuerySetMixin
-from files.api.serializers import FlieListSerializer, FileUploadSerializer, FlieRetrieveSerializer, \
-    UploadedFileListSerializer, FileDownloadSerializer
+from files.api.serializers import FlieRetrieveSerializer, \
+    FileDownloadSerializer, PatientFileUploadSerializer, DoctorFileUploadSerializer, \
+    DoctorFileListSerializer, PatientFileListSerializer, PatientUploadedFileListSerializer, \
+    DoctorUploadedFileListSerializer
 from files.api.utils import Downloader
 from files.models import DataFile
 
 
-class DataFileListAPIView(QuerySetMixin, ListAPIView):
-    queryset = DataFile.objects.all()
-    permission_classes = [IsDoctor | IsPatient]
-    serializer_class = FlieListSerializer
+class DoctorDataFileListAPIView(QuerySetMixin, ListAPIView):
+    permission_classes = [IsDoctor]
+    serializer_class = DoctorFileListSerializer
 
-    # def get_queryset(self):
-    #     user = self.request.user
-    #     queryset = super(DataFileListAPIView, self).get_queryset().necessary_fields()
-    #     if user.is_superuser:
-    #         return queryset
-    #     return queryset.filter_current_user(current_user=user)
+
+class PatientDataFileListAPIView(QuerySetMixin, ListAPIView):
+    # queryset = DataFile.objects.all()
+    permission_classes = [IsPatient]
+    serializer_class = PatientFileListSerializer
 
 
 class DoctorDataFileUploadAPIView(QuerySetMixin, CreateAPIView):
     permission_classes = [IsDoctor]
-    serializer_class = FileUploadSerializer
+    serializer_class = DoctorFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser)
 
 
 class PatientDataFileUploadAPIView(CreateAPIView):
     permission_classes = [IsPatient]
-    serializer_class = FileUploadSerializer
+    serializer_class = PatientFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser)
 
 
 class DataFileRetrieveAPIView(RetrieveAPIView):
-    queryset = DataFile.objects.all().necessary_fields()
-    permission_classes = [IsOwner]
+    queryset = DataFile.objects.all()
+    permission_classes = [IsOwner | IsDoctor]
     serializer_class = FlieRetrieveSerializer
     lookup_field = 'id'
 
 
 class DataFileDownloadAPIView(RetrieveAPIView):
-    queryset = DataFile.objects.all().necessary_fields()
-    permission_classes = [IsOwner]
+    queryset = DataFile.objects.all()
+    permission_classes = [IsOwner | IsDoctor]
     serializer_class = FileDownloadSerializer
     lookup_field = 'id'
 
@@ -54,13 +54,41 @@ class DataFileDownloadAPIView(RetrieveAPIView):
         return downloader.response()
 
 
-class UploadedFileListAPIView(ListAPIView):
+class DoctorUploadedFileListAPIView(ListAPIView):
     queryset = DataFile.objects.all()
-    permission_classes = [IsDoctor | IsPatient]
-    serializer_class = UploadedFileListSerializer
+    permission_classes = [IsDoctor]
+    serializer_class = DoctorUploadedFileListSerializer
     parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self):
         user = self.request.user
-        queryset = super().get_queryset().necessary_fields('checked')
-        return queryset.unchecked_list().filter_current_user(current_user=user)
+        queryset = super().get_queryset().join_uploader('uploader__doctor').unchecked_list()
+        queryset = queryset.filter(uploader__patient__doctor_id=user.id)
+        return queryset
+
+
+class PatientUploadedFileListAPIView(ListAPIView):
+    queryset = DataFile.objects.all()
+    permission_classes = [IsPatient]
+    serializer_class = PatientUploadedFileListSerializer
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get_queryset(self):
+        user = self.request.user
+        return super().get_queryset().join_uploader('uploader__patient').filter(uploader_id=user.id).unchecked_list()
+
+
+class DoctorUploadedFileUpdateAPIView(RetrieveUpdateAPIView):
+    queryset = DataFile.objects.all()
+    permission_classes = [IsDoctor]
+    serializer_class = DoctorUploadedFileListSerializer
+    lookup_field = 'id'
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = super().get_queryset().unchecked_list()
+        queryset = queryset.join_prescription_writer().filter(uploader__patient__doctor_id=user.id)
+        return queryset
+
+    def put(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)

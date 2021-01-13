@@ -48,33 +48,35 @@ class TokenLogoutView(APIView):
 
 
 class DoctorSignUpAPIView(CreateAPIView):
+    queryset = Doctor.objects.select_all()
     serializer_class = serializers.DoctorSignUpSerializer
     permission_classes = [AllowAny]
 
 
 class DoctorListAPIView(ListAPIView):
-    queryset = Doctor.objects.all().order_by('-created_at')
-    serializer_class = serializers.DoctorSerializer
+    queryset = Doctor.objects.select_all().order_by('-created_at')
+    serializer_class = serializers.DoctorListSerializer
     permission_classes = [IsDoctor]
     # lookup_field = 'pk'
 
 
 class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):
-    queryset = Doctor.objects.all()
+    queryset = Doctor.objects.select_all()
     serializer_class = serializers.DoctorSerializer
     permission_classes = [IsOwner]
     lookup_field = 'pk'
 
 
 class PatientSignUpAPIView(CreateAPIView):
+    queryset = Patient.objects.select_all()
     serializer_class = serializers.PatientSignUpSerializer
     permission_classes = [AllowAny]
     lookup_field = 'pk'
 
 
 class PatientListAPIView(ListAPIView):
-    queryset = Patient.objects.all().order_by('-created_at')
-    serializer_class = serializers.PatientSerailizer
+    queryset = Patient.objects.select_all().order_by('-created_at')
+    serializer_class = serializers.PatientListSerailizer
     permission_classes = [IsDoctor]
     lookup_field = 'pk'
 
@@ -85,7 +87,7 @@ class PatientListAPIView(ListAPIView):
 
 
 class PatientRetrieveUpdateAPIView(RetrieveUpdateAPIView):
-    queryset = Patient.objects.all()
-    serializer_class = serializers.PatientSerailizer
+    queryset = Patient.objects.select_all()
+    serializer_class = serializers.PatientRetrieveSerializer
     permission_classes = [CareDoctorReadOnly | IsOwner]
     lookup_field = 'pk'

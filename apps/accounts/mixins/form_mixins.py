@@ -58,8 +58,8 @@ class CommonUserQuerySetMixin:
         value = default if value is None else value
         return self.order_by(value)
 
-    def defer_fields(self, *fields: Union[tuple, list]):
-        return self.defer(*fields)
-
-    def generate_related_defer_fields(self, fields: Union[tuple, list]):
-        return ('user__' + field for field in fields)
+    # def defer_fields(self, *fields: Union[tuple, list]):
+    #     return self.defer(*fields)
+    #
+    # def generate_deferred_user_fields(self, fields: Union[tuple, list]):
+    #     return ('user__' + field for field in fields)

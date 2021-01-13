@@ -4,9 +4,8 @@ from typing import TYPE_CHECKING, Union
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q
-
-from accounts.models import AccountsModel
+from django.db.models import Q, F
+from django.db.models.functions import Concat
 
 if TYPE_CHECKING:
     from accounts.models import Patient, Doctor, BaseUser
@@ -34,7 +33,7 @@ class CreatedUserPair:
         self._model_name = user.__class__.__name__.lower()
 
     def validate_user(self) -> bool:
-        if not isinstance(self.user, AccountsModel) and not isinstance(self.baseuser, User):
+        if not isinstance(self.baseuser, User):
             return False
         return True
 
@@ -108,3 +107,5 @@ class PostProcessingUserDirector:
     #     self.builder.set_permissions_for_models()
     #     self.builder.add_user_to_model_group()
     #     self.builder.grant_permission_to_baseuser()
+
+

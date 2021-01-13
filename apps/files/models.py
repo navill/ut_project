@@ -1,16 +1,27 @@
 import datetime
 import uuid
+from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
+from django.db.models.functions import Concat
 
 from files.api.utils import delete_file
 from prescriptions.models import Prescription
 
+if TYPE_CHECKING:
+    from accounts.models import BaseUser
+
 User = get_user_model()
 
-DEFAULT_QUERY_FIELDS = ('id', 'prescription', 'uploader_id', 'file', 'created_at')
+
+def concatenate_name(target_field: str):
+    full_name = Concat(F(f'{target_field}__first_name'), F(f'{target_field}__last_name'))
+    return full_name
+
+
+DEFAULT_QUERY_FIELDS = ('id', 'prescription', 'uploader_id', 'file', 'created_at', 'checked')
 UPLOADER_QUERY_FIELDS = ('user_id', 'first_name', 'last_name')
 PRESCRIPTION_QUERY_FIELD = ('prescription__id',)
 
@@ -22,6 +33,17 @@ def directory_path(instance: 'DataFile', filename: str) -> str:
     day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
     name, ext = filename.split('.')
     return f'{day}/{ext}/{instance.uploader}_{name}_{time}.{ext}'
+
+
+"""
+[uploader]
+- uploader는 patient 또는 doctor 객체가 올 수 있다.
+doctor: 의사가 업로드한 파일 리스트만 출력해야한다.
+patient: 환자가 업로드한 파일 리스트만 출력해야한다.
+공통사항: filter(prescription__writer=current_user_id) + filter(uploader_id=current_user_id)
+
+Superuser는 모든 파일 리스트를 출력할 수 있다.
+"""
 
 
 class DataFileQuerySet(models.QuerySet):
@@ -42,22 +64,29 @@ class DataFileQuerySet(models.QuerySet):
     def normal_status_list(self):
         return self.filter(status='NORMAL')
 
-    # necessary query in view(QuerysetMixin)
+    def filter_uploader(self, current_user: 'BaseUser'):
+        return self.filter(user=current_user.id)
 
-    def filter_current_user(self, current_user):
-        return self.filter(uploader_id=current_user.id)
-
-    def filter_current_user_for_prescription(self, current_user):
+    def filter_prescription_writer(self, current_user: 'BaseUser'):
+        # 접속자가 환자일 경우 환자(current_user.id)가 올린 파일 제외
         return self.filter(prescription__writer=current_user.id)
 
-    def join_uploader_as_role(self, query_word: str):
-        return self.select_related(query_word)
+    def filter_prescription_related_patient(self, current_user: 'BaseUser'):
+        return self.filter(prescription__patient=current_user.id)
+
+    def join_uploader(self, role: str):
+        return self.select_related(role)
+
+    def join_prescription_writer(self):
+        return self.select_related('prescription__writer')
+
+    def select_all(self):
+        return self.select_related('prescription__writer').select_related('uploader')
 
 
 class DataFileManager(models.Manager):
     def get_queryset(self):
         return DataFileQuerySet(self.model, using=self._db). \
-            select_related('prescription__writer'). \
             annotate(user=F('uploader_id')).order_by('-created_at')
 
     def owner_queryset(self, user):

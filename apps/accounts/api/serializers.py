@@ -9,6 +9,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 from accounts.api.authentications import CustomRefreshToken
 from accounts.api.mixins import UserCreateMixin, RefreshBlacklistMixin
 from accounts.models import Doctor, Patient
+from hospitals.api.serializers import DefaultMajorSerializer
+from hospitals.models import Major
 
 if TYPE_CHECKING:
     from accounts.models import BaseUser
@@ -16,18 +18,36 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
+class RawAccountSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    address = serializers.CharField()
+    phone = serializers.CharField()
+
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+
+
+# BaseUser
+
 class DefaultBaseUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['email']
+
+
+class BaseUserSerializer(DefaultBaseUserSerializer):
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     last_login = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
 
-    class Meta:
-        model = User
-        fields = ['email', 'created_at', 'updated_at', 'last_login']
+    class Meta(DefaultBaseUserSerializer.Meta):
+        fields = DefaultBaseUserSerializer.Meta.fields + ['created_at', 'updated_at', 'last_login']
 
 
-class BaseUserSignUpSerializer(DefaultBaseUserSerializer):
+class BaseUserSignUpSerializer(BaseUserSerializer):
     email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())])
     password = serializers.CharField(
         min_length=8,
@@ -42,8 +62,8 @@ class BaseUserSignUpSerializer(DefaultBaseUserSerializer):
         style={'input_type': 'password', 'placeholder': 'Confirm Password'}
     )
 
-    class Meta(DefaultBaseUserSerializer.Meta):
-        fields = DefaultBaseUserSerializer.Meta.fields + ['password', 'password2']
+    class Meta(BaseUserSerializer.Meta):
+        fields = BaseUserSerializer.Meta.fields + ['password', 'password2']
 
     def validate(self, data):
         self._check_matched_password(data)
@@ -55,6 +75,13 @@ class BaseUserSignUpSerializer(DefaultBaseUserSerializer):
         data.pop('password2')
 
 
+# Doctor
+class RawDoctorSerializer(RawAccountSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    major = serializers.PrimaryKeyRelatedField(queryset=Major.objects.all())
+    description = serializers.CharField()
+
+
 class DefaultDoctorSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='accounts:doctor-detail-update',
@@ -62,12 +89,55 @@ class DefaultDoctorSerializer(serializers.ModelSerializer):
         read_only=True
     )
     user = DefaultBaseUserSerializer(read_only=True)
+    major = DefaultMajorSerializer(read_only=True)
 
     class Meta:
         model = Doctor
-        fields = ['url', 'user', 'first_name', 'last_name', 'address', 'phone', 'major', 'description', 'created_at',
-                  'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
+        fields = ['url', 'user', 'first_name', 'last_name', 'major']
+
+    def get_user_email(self, instance):
+        return instance.user.email
+
+    def get_major_name(self, instance):
+        return instance.major.name
+
+
+class DoctorSerializer(DefaultDoctorSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    major = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_email = serializers.SerializerMethodField()
+    major_name = serializers.SerializerMethodField()
+
+    class Meta(DefaultDoctorSerializer.Meta):
+        # fields = DefaultDoctorSerializer.Meta.fields + ['user_email', 'major_name', 'address', 'phone', 'description',
+        #                                                 'created_at', 'updated_at']
+        fields = ['url', 'user', 'user_email', 'major', 'major_name', 'first_name', 'last_name', 'address', 'phone',
+                  'description', 'created_at', 'updated_at']
+
+
+class DoctorListSerializer(DefaultDoctorSerializer):
+    user = DefaultBaseUserSerializer(read_only=True)
+
+    class Meta(DefaultDoctorSerializer.Meta):
+        fields = DefaultDoctorSerializer.Meta.fields
+
+
+class DoctorRetrieveSerializer(DoctorSerializer):
+    class Meta(DoctorSerializer.Meta):
+        fields = DoctorSerializer.Meta.fields
+        read_only_fields = ['first_name', 'last_name']
+
+
+class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
+    user = BaseUserSignUpSerializer()
+
+
+# Patient
+class RawPatientSerializer(RawAccountSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
+    age = serializers.IntegerField()
+    emergency_call = serializers.IntegerField()
 
 
 class DefaultPatientSerializer(serializers.ModelSerializer):
@@ -76,47 +146,52 @@ class DefaultPatientSerializer(serializers.ModelSerializer):
         lookup_field='pk',
         read_only=True
     )
-    email = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all())])
+    user = DefaultBaseUserSerializer()
+    doctor = DefaultDoctorSerializer()
 
     class Meta:
         model = Patient
-        fields = ['url', 'doctor', 'user', 'first_name', 'last_name', 'address', 'phone', 'age', 'emergency_call']
-        read_only_fields = ['doctor', 'user', 'created_at', 'updated_at']  # 의사를 수정할 일이 있는가?
+        # fields = ['url', 'user', 'first_name', 'last_name', 'address', 'phone', 'major', 'description', 'created_at',
+        #           'updated_at']
+        fields = ['url', 'doctor', 'user', 'first_name', 'last_name']
+
+    def get_user_email(self, instance):
+        return instance.user.email
+
+    def get_doctor_name(self, instance):
+        return instance.doctor.get_full_name()
 
 
-class DoctorSerializer(DefaultDoctorSerializer):
-    user = DefaultBaseUserSerializer(read_only=True)
+class PatientSerializer(DefaultPatientSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    doctor = serializers.PrimaryKeyRelatedField(read_only=True)
+    user_email = serializers.SerializerMethodField()
+    doctor_name = serializers.SerializerMethodField()
+
+    class Meta(DefaultPatientSerializer.Meta):
+        # fields = DefaultDoctorSerializer.Meta.fields + ['user_email', 'major_name', 'address', 'phone', 'description',
+        #                                                 'created_at', 'updated_at']
+        fields = ['url', 'doctor', 'doctor_name', 'user', 'user_email', 'first_name', 'last_name', 'address', 'phone',
+                  'age', 'emergency_call', 'created_at', 'updated_at']
 
 
-class PatientSerailizer(DefaultPatientSerializer):
-    user = DefaultBaseUserSerializer(read_only=True)
+class PatientListSerailizer(DefaultPatientSerializer):
+    doctor = serializers.PrimaryKeyRelatedField(read_only=True)
+    doctor_name = serializers.SerializerMethodField()
+
+    class Meta(DefaultPatientSerializer.Meta):
+        fields = DefaultPatientSerializer.Meta.fields + ['doctor_name']
 
 
-class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
-    user = BaseUserSignUpSerializer()
-
-
-class PatientSignUpSerializer(UserCreateMixin, PatientSerailizer):
+class PatientSignUpSerializer(UserCreateMixin, PatientSerializer):
     user = BaseUserSignUpSerializer()
     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
 
 
-# serializer relation은 core app에서 처리할 예정
-class SimpleRelatedDoctorSerializer(DoctorSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-
-
-class SimpleRelatedPatientSerializer(PatientSerailizer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
-
-
-class RelatedDoctorSerializer(DoctorSerializer):
-    pass
-
-
-class RelatedPatientSerializer(PatientSerailizer):
-    doctor = DoctorSerializer()
+class PatientRetrieveSerializer(PatientSerializer):
+    class Meta(PatientSerializer.Meta):
+        fields = PatientSerializer.Meta.fields
+        read_only_fields = ['first_name', 'last_name', 'age']
 
 
 class AccountsTokenSerializer(TokenObtainPairSerializer):
@@ -142,31 +217,20 @@ class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializ
 
         return data
 
-# class DefaultBaseUserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = BaseUser
-#         fields = '__all__'
-#
-#
-# class DefaultBaseUserSignUpSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = BaseUser
-#         fields = '__all__'
-#
-#
-# class DefaultDoctorSignUpSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Doctor
-#         fields = '__all__'
-#
-#
-# class DefaultPatientSignUpSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Patient
-#         fields = '__all__'
 
-#
-# class DefaultPatientSerailizer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Patient
-#         fiedls = '__all__'
+# serializer relation은 core app에서 처리할 예정
+class SimpleRelatedDoctorSerializer(DoctorListSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+
+class SimpleRelatedPatientSerializer(PatientListSerailizer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
+
+
+class RelatedDoctorSerializer(DoctorListSerializer):
+    pass
+
+
+class RelatedPatientSerializer(PatientListSerailizer):
+    doctor = DoctorListSerializer()

@@ -27,6 +27,7 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
             raise InvalidToken('Token contained no recognizable user identification')
 
         try:
+            # todo: query 최적화
             user = User.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except User.DoesNotExist:
             raise AuthenticationFailed('User not found', code='user_not_found')

@@ -78,6 +78,12 @@ def get_token_from_doctor(user_doctor_with_group):
 
 
 @pytest.fixture
+def get_token_from_patient(user_patient_with_group):
+    user, _ = user_patient_with_group
+    return CustomRefreshToken.for_user(user)
+
+
+@pytest.fixture
 def hospital(db):
     data = {
         'country': '대한민국',
@@ -120,7 +126,7 @@ def prescription(db, user_doctor_with_group, user_patient_with_group):
     patient_baseuser, patient = user_patient_with_group
     data = {
         'writer': doctor,
-        'user_patient': patient,
+        'patient': patient,
         'description': 'test 처방'
     }
     instance = Prescription.objects.create(**data)
@@ -133,7 +139,7 @@ def bundle_prescriptions(db, user_doctor_with_group, user_patient_with_group):
     patient_baseuser, patient = user_patient_with_group
     bulk_data = []
     for i in range(5):
-        bulk_data.append(Prescription(writer=doctor, user_patient=patient, prescription='처방-' + str(i)))
+        bulk_data.append(Prescription(writer=doctor, patient=patient, prescription='처방-' + str(i)))
     Prescription.objects.bulk_create(bulk_data)
 
 
@@ -163,6 +169,23 @@ def data_file_bundle_by_doctor(db, prescription, user_doctor_with_group):
         'prescription': prescription,
         'uploader': user_doctor_with_group[0],
         'file': MEDIA_ROOT + '/test_file.md',
+        'checked': True,
+        'status': HealthStatus.NORMAL
+    }
+    for _ in range(5):
+        datafile['id'] = renew_uuid()
+        bulk_data.append(DataFile(**datafile))
+    DataFile.objects.bulk_create(bulk_data)
+
+
+@pytest.fixture
+def data_file_bundle_by_patient(db, prescription, user_patient_with_group):
+    bulk_data = []
+    datafile = {
+        'id': None,
+        'prescription': prescription,
+        'uploader': user_patient_with_group[0],
+        'file': MEDIA_ROOT + '/test_file.md',
         'checked': False,
         'status': HealthStatus.NORMAL
     }
@@ -180,8 +203,15 @@ def data_file_unchecked(data_file_by_doctor):
 
 
 @pytest.fixture
-def client_with_token_auth(api_client, get_token_from_doctor):
+def doctor_client_with_token_auth(api_client, get_token_from_doctor):
     access = get_token_from_doctor.access_token
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
+    return api_client
+
+
+@pytest.fixture
+def patient_client_with_token_auth(api_client, get_token_from_patient):
+    access = get_token_from_patient.access_token
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
     return api_client
 
@@ -192,4 +222,3 @@ def upload_file(db):
     yield upload_file
     for file in DataFile.objects.all():
         file.hard_delete()
-

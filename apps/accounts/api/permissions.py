@@ -49,5 +49,5 @@ class RelatedPatientReadOnly(RootPermission):
     def has_object_permission(self, request, view, obj):
         if self.is_safe_method(request) and self.has_group(request, 'patient'):
             user_patient = request.user.patient
-            return bool(obj.user_patient == user_patient)
+            return bool(obj.patient == user_patient)
         return False

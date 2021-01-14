@@ -2,6 +2,10 @@ from rest_framework import serializers
 
 from hospitals.models import MedicalCenter, Department, Major
 
+"""
+Medical center serializers
+"""
+
 
 class DefaultMedicalCenterSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
@@ -12,19 +16,31 @@ class DefaultMedicalCenterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MedicalCenter
-        fields = ['url', 'country', 'city', 'name', 'address', 'postal_code', 'main_call', 'sub_call']
+        fields = ['url', 'id', 'country', 'city', 'name', 'address', 'postal_code', 'main_call', 'sub_call']
 
 
 class MedicalCenterSerializer(DefaultMedicalCenterSerializer):
-    class Meta(DefaultMedicalCenterSerializer):
-        fields = DefaultMedicalCenterSerializer.Meta.fields
+    pass
+
+
+class MedicalCenterCreateSerializer(DefaultMedicalCenterSerializer):
+    pass
+
+
+class MedicalCenterListSerializer(DefaultMedicalCenterSerializer):
+    pass
 
 
 class MedicalCenterRetrieveSerializer(DefaultMedicalCenterSerializer):
     pass
 
 
-class DefaultDepartmentSerializer(serializers.ModelSerializer):
+"""
+Department serializers
+"""
+
+
+class RawDepartmentSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='hospitals:department-retrieve',
         lookup_field='pk',
@@ -33,18 +49,39 @@ class DefaultDepartmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ['url', 'medical_center', 'name', 'call']
+        fields = ['url', 'id', 'name', 'call']
+
+
+class DefaultDepartmentSerializer(RawDepartmentSerializer):
+    medical_center = MedicalCenterSerializer(read_only=True)
+
+    class Meta(RawDepartmentSerializer.Meta):
+        fields = RawDepartmentSerializer.Meta.fields + ['medical_center']
 
 
 class DepartmentSerializer(DefaultDepartmentSerializer):
     pass
 
 
-class DepartmentRetreiveSerializer(DefaultDepartmentSerializer):
+class DepartmentListSerializer(RawDepartmentSerializer):
+    class Meta(RawDepartmentSerializer.Meta):
+        fields = RawDepartmentSerializer.Meta.fields
+
+
+class DepartmentCreateSerializer(DefaultDepartmentSerializer):
+    medical_center = serializers.PrimaryKeyRelatedField(queryset=MedicalCenter.objects.all())
+
+
+class DepartmentRetreiveSerializer(DepartmentSerializer):
     pass
 
 
-class DefaultMajorSerializer(serializers.ModelSerializer):
+"""
+Major serializers
+"""
+
+
+class RawMajorSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='hospitals:major-retrieve',
         lookup_field='pk',
@@ -53,26 +90,46 @@ class DefaultMajorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Major
-        fields = ['url', 'name']
+        fields = ['url', 'id', 'name', 'call']
+
+
+class DefaultMajorSerializer(RawMajorSerializer):
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.select_related())
+
+    class Meta(RawMajorSerializer.Meta):
+        fields = RawMajorSerializer.Meta.fields + ['department']
 
 
 class MajorSerializer(DefaultMajorSerializer):
-    class Meta(DefaultMajorSerializer.Meta):
-        fields = DefaultMajorSerializer.Meta.fields + ['department', 'call']
+    department = RawDepartmentSerializer(read_only=True)
+
+
+class MajorListSerializer(RawMajorSerializer):
+    class Meta(RawMajorSerializer.Meta):
+        fields = RawMajorSerializer.Meta.fields
+
+
+class MajorCreateSerializer(MajorSerializer):
+    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.select_related('medical_center'))
 
 
 class MajorRetrieveSerializer(MajorSerializer):
     pass
 
 
-class DepartmentNestedMajor(DefaultDepartmentSerializer):
-    major = MajorSerializer(many=True)
-
-    class Meta(DefaultDepartmentSerializer.Meta):
-        fields = DefaultDepartmentSerializer.Meta.fields + ['major']
+"""
+Nested serializer
+"""
 
 
-class MedicalCenterNestedDepartmentMajor(DefaultMedicalCenterSerializer):
+class DepartmentNestedMajor(RawDepartmentSerializer):
+    major = RawMajorSerializer(many=True)
+
+    class Meta(RawDepartmentSerializer.Meta):
+        fields = RawDepartmentSerializer.Meta.fields + ['major']
+
+
+class MedicalCenterNestedDepartmentMajor(MedicalCenterSerializer):
     department = DepartmentNestedMajor(many=True)
 
     class Meta(DefaultMedicalCenterSerializer.Meta):

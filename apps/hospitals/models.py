@@ -2,9 +2,16 @@ from django.db import models
 from django.urls import reverse
 
 
+class MedicalCenterQuerySet(models.QuerySet):
+    pass
+
+
 class MedicalCenterManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().prefetch_related('department').prefetch_related('department__major')
+        return super().get_queryset()
+
+    def prefetch_all(self):
+        return self.get_queryset().prefetch_related('department__major')
 
 
 class MedicalCenter(models.Model):
@@ -25,9 +32,19 @@ class MedicalCenter(models.Model):
         return reverse('hospitals:hospital-retrieve', kwargs={'pk': self.pk})
 
 
+class DepartmentQuerySet(models.QuerySet):
+    pass
+
+
 class DepartmentManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related('medical_center')
+        return DepartmentQuerySet(self.model, using=self._db)
+
+    def select_all(self):
+        return self.get_queryset().select_related('medical_center')
+
+    def prefetch_all(self):
+        return self.get_queryset().prefetch_related('major')
 
 
 class Department(models.Model):
@@ -44,10 +61,20 @@ class Department(models.Model):
         return reverse('hospitals:department-retrieve', kwargs={'pk': self.pk})
 
 
+class MajorQuerySet(models.QuerySet):
+    pass
+
+
 class MajorManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related('department__medical_center')
+        return MajorQuerySet(self.model, using=self._db)
         # .prefetch_related(Prefetch('department__medical_center', queryset=MedicalCenter.objects.all()))
+
+    def select_all(self):
+        return self.get_queryset().select_related('department__medical_center')
+
+    def prefetch_all(self):
+        return self.get_queryset().prefetch_related('doctor')
 
 
 class Major(models.Model):

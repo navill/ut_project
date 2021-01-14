@@ -1,18 +1,22 @@
 from django.urls import path
 
-from hospitals.api.views import DepartmentAPIView, MajorAPIView, MedicalCenterAPIView, MedicalCenterRetrieveAPIView, \
-    DepartmentRetrieveAPIView, MajorRetrieveAPIView, HospitalAllDepthAPIView
+from hospitals.api import views
 
 app_name = 'hospitals-api'
 urlpatterns = [
-    path('medical-centers', MedicalCenterAPIView.as_view(), name='medicalcenter-list-create'),
-    path('medical-centers/<int:pk>', MedicalCenterRetrieveAPIView.as_view(), name='medicalcenter-retrieve'),
+    path('medical-centers', views.MedicalCenterListAPIView.as_view(), name='medicalcenter-list'),
+    path('medical-centers/<int:pk>', views.MedicalCenterRetrieveAPIView.as_view(), name='medicalcenter-retrieve'),
+    path('medical-centers/create', views.MedicalCenterCreateAPIView.as_view(), name='medicalcenter-create'),
 
-    path('departments', DepartmentAPIView.as_view(), name='department-list-create'),
-    path('departments/<int:pk>', DepartmentRetrieveAPIView.as_view(), name='department-retrieve'),
+    path('departments', views.DepartmentListAPIView.as_view(), name='department-list'),
+    path('departments/<int:pk>', views.DepartmentRetrieveAPIView.as_view(), name='department-retrieve'),
+    path('departments/create', views.DepartmentCreateAPIView.as_view(), name='department-create'),
 
-    path('majors', MajorAPIView.as_view(), name='major-list-create'),
-    path('majors/<int:pk>', MajorRetrieveAPIView.as_view(), name='major-retrieve'),
+    path('majors', views.MajorListAPIView.as_view(), name='major-list'),
+    path('majors/<int:pk>', views.MajorRetrieveAPIView.as_view(), name='major-retrieve'),
+    path('majors/create', views.MajorCreateAPIView.as_view(), name='major-create'),
 
-    path('all-depth', HospitalAllDepthAPIView.as_view(), name='all-depth-in-hospital')
+    # nested view
+    path('medical-center-nested', views.MedicalCenterNestedChildAllList.as_view(), name='medicalcenter-nested-all'),
+    path('department-nested', views.DepartmentNestedChildList.as_view(), name='department-nested-child'),
 ]

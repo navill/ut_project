@@ -9,9 +9,9 @@ from accounts.mixins.form_mixins import CommonUserQuerySetMixin
 from hospitals.models import Major
 
 DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
-DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'updated_at', 'token_expired')
-DEFER_DOCTOR_FIELDS = ('updated_at', 'description') + DEFER_ACCOUNTS_FIELDS
-DEFER_PATIENT_FIELDS = ('age', 'emergency_call', 'updated_at') + DEFER_ACCOUNTS_FIELDS
+DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
+DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
+DEFER_PATIENT_FIELDS = ('emergency_call', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
 
 
 def get_defer_field_set(parent_field_name: str, *fields):
@@ -20,13 +20,19 @@ def get_defer_field_set(parent_field_name: str, *fields):
 
 
 def concatenate_name():
-    full_name = Concat(F('first_name'), F('last_name'))
+    full_name = Concat(F('last_name'), F('first_name'))
     return full_name
+
+
+class Gender(models.TextChoices):
+    male = ('MALE', '남')
+    female = ('FEMALE', '여')
 
 
 class AccountsModel(models.Model):
     first_name = models.CharField(max_length=20, default='')
     last_name = models.CharField(max_length=20, default='')
+    gender = models.CharField(max_length=7, choices=Gender.choices, default=Gender.male)
     address = models.CharField(max_length=255, default='')
     phone = models.CharField(max_length=14, unique=True)
 
@@ -62,9 +68,6 @@ class BaseManager(BaseUserManager):
         # request에서 user에 대한 select_related를 적용해야할 경우 authentication 수정 필요
         return BaseQuerySet(self.model, using=self._db).select_related('doctor').select_related('patient')
 
-    def all(self):
-        return super().all().active()
-
     def create_user(self, email, password, **attributes):
         if not email:
             raise ValueError('No email has been entered')
@@ -84,11 +87,11 @@ class BaseManager(BaseUserManager):
         attributes.setdefault('is_superuser', True)
         attributes.setdefault('is_active', True)
 
-    def _validate_superuser_status(self, attributes):
-        if attributes.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if attributes.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
+    # def _validate_superuser_status(self, attributes):
+    #     if attributes.get('is_staff') is not True:
+    #         raise ValueError('Superuser must have is_staff=True.')
+    #     if attributes.get('is_superuser') is not True:
+    #         raise ValueError('Superuser must have is_superuser=True.')
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
@@ -148,12 +151,11 @@ class DoctorManager(models.Manager):
         return DoctorQuerySet(self.model, using=self._db). \
             annotate(full_name=concatenate_name())
 
-    def all(self):
-        active_doctor = self.get_queryset().filter_user_active()
-        return active_doctor
-
     def select_all(self):
         return self.select_related('user').select_related('major').filter_user_active()
+
+    def non_related_all(self):
+        return self.defer('user', 'major')
 
     def with_patients(self):
         return self.all().prefetch_related('patients')
@@ -182,16 +184,15 @@ class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
 
 class PatientManager(models.Manager):
     def get_queryset(self):
-        return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name())
+        return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name()).filter_user_active()
 
     def select_all(self):
-        return self.select_related('user').select_related('doctor').filter_user_active()
+        return self.select_related('user').select_related('doctor')
 
 
 class Patient(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, related_name='patients')
-
     age = models.PositiveIntegerField(default=0)
     emergency_call = models.CharField(max_length=14, default='010')
 

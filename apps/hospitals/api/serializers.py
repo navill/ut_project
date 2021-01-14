@@ -53,14 +53,15 @@ class DefaultMajorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Major
-        fields = ['url', 'department', 'name', 'call']
+        fields = ['url', 'name']
 
 
 class MajorSerializer(DefaultMajorSerializer):
-    pass
+    class Meta(DefaultMajorSerializer.Meta):
+        fields = DefaultMajorSerializer.Meta.fields + ['department', 'call']
 
 
-class MajorRetrieveSerializer(DefaultMajorSerializer):
+class MajorRetrieveSerializer(MajorSerializer):
     pass
 
 

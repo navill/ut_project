@@ -24,7 +24,7 @@ class PrescriptionQuerySet(models.QuerySet):
     def join_uploader(self, query_word: str):
         return self.select_related(query_word)
 
-    def defer_fields(self):
+    def defer_option_fields(self):
         deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
         deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
         return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
@@ -54,4 +54,7 @@ class Prescription(models.Model):
     objects = PrescriptionManager()
 
     def __str__(self):
-        return f'prescription-{str(self.created_at)}'
+        return f'{self.writer.get_full_name()}-{self.patient.get_full_name()}-{str(self.created_at)}'
+
+    def get_writer_name(self):
+        return self.writer.get_full_name()

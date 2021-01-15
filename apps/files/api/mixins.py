@@ -12,21 +12,17 @@ from files.models import DataFile
 
 
 class QuerySetMixin:
-    queryset = DataFile.objects.all().necessary_fields()
+    queryset = DataFile.objects.select_all().necessary_fields()
 
     def get_queryset(self):
         user = self.request.user
-        # uploader_role = self._get_user_role(user)
-        queryset = super().get_queryset().join_prescription_writer()
+        queryset = super().get_queryset()
         if user.is_doctor:
-            queryset = queryset.join_uploader('uploader__doctor'). \
-                filter_prescription_writer(user). \
-                filter_uploader(user)
+            queryset = queryset.select_doctor().select_prescription(). \
+                filter_prescription_writer(user).filter_checked_list()
         elif user.is_patient:
-            queryset = queryset.join_uploader('uploader__patient'). \
-                filter_uploader(user)
+            queryset = queryset.select_patient().select_doctor().filter_uploader(user)
 
-        # queryset = super().get_queryset().join_uploader(uploader_role)
         return queryset if user.is_superuser else queryset
 
     def _get_user_role(self, user):

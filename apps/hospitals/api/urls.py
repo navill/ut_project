@@ -18,5 +18,5 @@ urlpatterns = [
 
     # nested view
     path('medical-center-nested', views.MedicalCenterNestedChildAllList.as_view(), name='medicalcenter-nested-all'),
-    path('department-nested', views.DepartmentNestedChildList.as_view(), name='department-nested-child'),
+    path('department-nested', views.DepartmentNestedChildList.as_view(), name='department-nested-major'),
 ]

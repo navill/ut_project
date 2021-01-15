@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class PrescriptionListCreateAPIView(ListCreateAPIView):
-    queryset = Prescription.objects.select_all().defer_fields()
+    queryset = Prescription.objects.select_all().defer_option_fields()
     serializer_class = serializers.PrescriptionSerializer
     permission_classes = [IsDoctor | IsPatient]
     lookup_field = 'pk'
@@ -31,7 +31,7 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
 
 
 class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
-    queryset = Prescription.objects.select_all().defer_fields()
+    queryset = Prescription.objects.select_all().defer_option_fields()
     serializer_class = serializers.PrescriptionSerializer
     permission_classes = [IsOwner | RelatedPatientReadOnly]
     lookup_field = 'pk'

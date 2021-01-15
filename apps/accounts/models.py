@@ -1,3 +1,5 @@
+from typing import Union, TYPE_CHECKING
+
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -7,6 +9,9 @@ from django.urls import reverse
 
 from accounts.mixins.form_mixins import CommonUserQuerySetMixin
 from hospitals.models import Major
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
 DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
@@ -47,16 +52,16 @@ class AccountsModel(models.Model):
 
 
 class BaseQuerySet(models.QuerySet):
-    def active(self):
+    def active(self) -> 'QuerySet':
         return self.filter(is_active=True)
 
-    def defer_fields(self, *fields):
+    def defer_option_fields(self, *fields) -> 'QuerySet':
         return self.defer(*DEFER_BASEUSER_FIELDS, *fields)
 
-    def select_all(self):
+    def select_all(self) -> 'QuerySet':
         return self.select_related('doctor').select_related('patient')
 
-    def defer_unnecessary_fields(self):
+    def defer_unnecessary_fields(self) -> 'QuerySet':
         # deferred_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         deferred_doctor_fields = get_defer_field_set(parent_field_name='doctor', *DEFER_DOCTOR_FIELDS)
         deferred_patient_fields = get_defer_field_set(parent_field_name='patient', *DEFER_PATIENT_FIELDS)
@@ -64,11 +69,11 @@ class BaseQuerySet(models.QuerySet):
 
 
 class BaseManager(BaseUserManager):
-    def get_queryset(self):
+    def get_queryset(self) -> 'QuerySet':
         # request에서 user에 대한 select_related를 적용해야할 경우 authentication 수정 필요
         return BaseQuerySet(self.model, using=self._db).select_related('doctor').select_related('patient')
 
-    def create_user(self, email, password, **attributes):
+    def create_user(self, email, password, **attributes) -> 'BaseUser':
         if not email:
             raise ValueError('No email has been entered')
 
@@ -77,7 +82,7 @@ class BaseManager(BaseUserManager):
         user.save()
         return user
 
-    def create_superuser(self, email, password, **attributes):
+    def create_superuser(self, email, password, **attributes) -> 'BaseUser':
         self._set_superuser_status(attributes)
         # self._validate_superuser_status(attributes)
         return self.create_user(email=email, password=password, **attributes)
@@ -110,28 +115,29 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
 
     @property
-    def is_doctor(self):
+    def is_doctor(self) -> bool:
         return hasattr(self, 'doctor')
 
     @property
-    def is_patient(self):
+    def is_patient(self) -> bool:
         return hasattr(self, 'patient')
 
-    def __str__(self):
-        return self.email
+    def __str__(self) -> str:
+        return str(self.email)
 
     def set_token_expired(self, time: int):
         self.token_expired = time
         self.save()
 
-    def get_child_account(self):
+    def get_child_account(self) -> Union['AccountsModel', None]:
         if self.is_doctor:
             return self.doctor
         elif self.is_patient:
             return self.patient
         return None
 
-    def get_child_username(self):
+    def get_child_username(self) -> str:
+        name = ''
         if self.is_doctor:
             name = self.doctor.get_full_name()
         elif self.is_patient:
@@ -140,14 +146,14 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
 
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
-    def defer_fields(self, *fields):
+    def defer_option_fields(self, *fields: tuple) -> 'QuerySet':
         # deferred_user_fields = get_defer_field_set('user', DEFER_BASEUSER_FIELDS)
         deferred_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
         return self.defer(*DEFER_DOCTOR_FIELDS, *deferred_user_fields, *fields)
 
 
 class DoctorManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> 'QuerySet':
         return DoctorQuerySet(self.model, using=self._db). \
             annotate(full_name=concatenate_name())
 
@@ -168,18 +174,21 @@ class Doctor(AccountsModel):
 
     objects = DoctorManager()
 
+    def __str__(self):
+        return f'{self.major.name}: {self.get_full_name()}'
+
     def get_absolute_url(self):
         return reverse('accounts:doctor-detail-update', kwargs={'pk': self.pk})
 
-    def __str__(self):
-        return f'{self.major}: {self.get_full_name()}'
-
 
 class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
-    def defer_fields(self, *fields):
+    def defer_option_fields(self, *fields):
         defer_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
         defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
+
+    def select_all(self):
+        return self.select_related('user').select_related('doctor')
 
 
 class PatientManager(models.Manager):
@@ -187,7 +196,7 @@ class PatientManager(models.Manager):
         return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name()).filter_user_active()
 
     def select_all(self):
-        return self.select_related('user').select_related('doctor')
+        return self.get_queryset().select_related('user').select_related('doctor')
 
 
 class Patient(AccountsModel):

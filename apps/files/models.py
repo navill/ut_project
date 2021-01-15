@@ -21,7 +21,7 @@ def concatenate_name(target_field: str):
     return full_name
 
 
-DEFAULT_QUERY_FIELDS = ('id', 'prescription', 'uploader_id', 'file', 'created_at', 'checked')
+DEFAULT_QUERY_FIELDS = ('id', 'prescription', 'uploader_id', 'file', 'created_at', 'status', 'checked')
 UPLOADER_QUERY_FIELDS = ('user_id', 'first_name', 'last_name')
 PRESCRIPTION_QUERY_FIELD = ('prescription__id',)
 
@@ -58,13 +58,29 @@ class DataFileQuerySet(models.QuerySet):
     def necessary_fields(self, *fields):
         return self.only(*DEFAULT_QUERY_FIELDS, *DOCTOR_QUERY_FIELDS, *PATIENT_QUERY_FIELDS, *fields)
 
-    def unchecked_list(self):
+    def filter_unchecked_list(self):
         return self.filter(checked=False)
 
-    def normal_status_list(self):
+    def filter_checked_list(self):
+        return self.filter(checked=True)
+
+    def filter_normal_list(self):
         return self.filter(status='NORMAL')
 
-    def filter_uploader(self, current_user: 'BaseUser'):
+    def select_patient(self):
+        return self.select_related('uploader__patient')
+
+    def select_doctor(self):
+        return self.select_related('uploader__doctor')
+
+    def select_prescription(self):
+        return self.select_related('prescription__writer')
+
+    def select_all(self):
+        return self.select_prescription().select_patient().select_doctor()
+
+    # for views
+    def filter_uploader(self, current_user):
         return self.filter(user=current_user.id)
 
     def filter_prescription_writer(self, current_user: 'BaseUser'):
@@ -74,25 +90,31 @@ class DataFileQuerySet(models.QuerySet):
     def filter_prescription_related_patient(self, current_user: 'BaseUser'):
         return self.filter(prescription__patient=current_user.id)
 
-    def join_uploader(self, role: str):
-        return self.select_related(role)
-
-    def join_prescription_writer(self):
-        return self.select_related('prescription__writer')
-
-    def select_all(self):
-        return self.select_related('prescription__writer').select_related('uploader')
-
 
 class DataFileManager(models.Manager):
     def get_queryset(self):
         return DataFileQuerySet(self.model, using=self._db). \
-            annotate(user=F('uploader_id')).order_by('-created_at')
+            annotate(user=F('uploader_id'),
+                     uploader_doctor_name=concatenate_name('uploader__doctor'),
+                     uploader_patient_name=concatenate_name('uploader__patient')). \
+            order_by('-created_at')
 
     def owner_queryset(self, user):
         if user.is_superuser:
             return self
         return self.get_queryset().filter(user=user.id)
+
+    def select_patient(self):
+        return self.get_queryset().select_related('uploader__patient')
+
+    def select_doctor(self):
+        return self.get_queryset().select_related('uploader__doctor')
+
+    def select_prescription(self):
+        return self.get_queryset().select_related('prescription__writer')
+
+    def select_all(self):
+        return self.get_queryset().select_prescription().select_patient().select_doctor()
 
 
 class HealthStatus(models.TextChoices):
@@ -102,14 +124,12 @@ class HealthStatus(models.TextChoices):
 
 
 class DataFile(models.Model):
-    # necessary fields
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, null=True)
     uploader = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='files', null=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     file = models.FileField(upload_to=directory_path, null=True)
 
-    # option fields
     checked = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
     deleted = models.BooleanField(default=False)

@@ -27,7 +27,7 @@ class DefaultPrescriptionSerializer(serializers.ModelSerializer):
         lookup_field='pk'
     )
     writer = serializers.PrimaryKeyRelatedField(read_only=True)
-    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.select_all().defer_fields())
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.select_all().defer_option_fields())
     description = serializers.CharField()
     created = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
     updated = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
@@ -39,7 +39,7 @@ class DefaultPrescriptionSerializer(serializers.ModelSerializer):
 
 class PrescriptionSerializer(DefaultPrescriptionSerializer):
     writer = serializers.HiddenField(default=CurrentUserDefault())
-    patient = PatientFilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all().defer_fields(),
+    patient = PatientFilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all().defer_option_fields(),
                                                     write_only=True)
 
     writer_name = serializers.SerializerMethodField(read_only=True)

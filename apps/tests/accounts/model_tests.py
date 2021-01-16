@@ -27,6 +27,12 @@ def test_create_doctor(user_doctor_with_group):
     assert doctor.major.name == '정신의학'
 
 
+@pytest.mark.django_db
+def test_create_doctors(doctors_with_group):
+    doctors = doctors_with_group
+    assert doctors.count() == 5
+
+
 @pytest.mark.skipif(doctor_test_condition, reason='passed')
 def test_doctor_get_absolute_url(user_doctor_with_group):
     user, doctor = user_doctor_with_group
@@ -50,6 +56,12 @@ def test_create_patient(user_patient_with_group):
     assert user.groups.filter(name='patient').exists()
     assert patient.pk == 2
     assert patient.doctor.pk == 1
+
+
+@pytest.mark.django_db
+def test_create_patients(patients_with_group):
+    patients = patients_with_group
+    assert patients.count() == 5
 
 
 @pytest.mark.skipif(patient_test_condition, reason='passed')

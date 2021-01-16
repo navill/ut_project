@@ -16,9 +16,27 @@ from tests.constants import *
 def user_doctor_with_group(db, major):
     user = User.objects.create_user(**USER_DOCTOR)
     doctor = Doctor.objects.create(user=user, major=major, **DOCTOR)
-    group = Group.objects.create(name='doctor')
+    group, created = Group.objects.get_or_create(name='doctor')
     user.groups.add(group)
     return user, doctor
+
+
+@pytest.fixture
+def doctors_with_group(db, major):
+    group, created = Group.objects.get_or_create(name='doctor')
+
+    for i in range(5):
+        user = User.objects.create_user(email=f'doctor{i}@test.com', password='test1234')
+        user.groups.add(group)
+        Doctor.objects.create(user=user,
+                              first_name=f'의사{i}',
+                              last_name=f'성{i}',
+                              address='광주어딘가..',
+                              phone=f'010-111-11{i}',
+                              description=f'test{i}',
+                              major=major)
+
+    return Doctor.objects.all()
 
 
 @pytest.fixture
@@ -26,9 +44,30 @@ def user_patient_with_group(db, user_doctor_with_group):
     user_doctor, doctor = user_doctor_with_group
     user = User.objects.create_user(**USER_PATIENT)
     patient = Patient.objects.create(user=user, doctor=doctor, **PATIENT)
-    group = Group.objects.create(name='patient')
+    group, created = Group.objects.get_or_create(name='patient')
     user.groups.add(group)
     return user, patient
+
+
+@pytest.fixture
+def patients_with_group(db, user_doctor_with_group):
+    user_, doctor = user_doctor_with_group
+    group, created = Group.objects.get_or_create(name='patient')
+
+    for i in range(5):
+        user = User.objects.create_user(email=f'patient{i}@test.com', password='test1234')
+        user.groups.add(group)
+
+        Patient.objects.create(user=user,
+                               doctor=doctor,
+                               first_name=f'환자{i}',
+                               last_name=f'성{i}',
+                               address='광주 어디',
+                               phone=f'010-2222-22{i}',
+                               age=30 + i,
+                               emergency_call=f'010-333-333{i}'
+                               )
+    return Patient.objects.all()
 
 
 @pytest.fixture

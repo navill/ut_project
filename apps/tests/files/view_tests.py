@@ -2,19 +2,26 @@ import pytest
 from rest_framework.reverse import reverse
 
 from files.models import DataFile, HealthStatus
+from tests.constants import User
 
 """
-    path('files', DoctorDataFileListAPIView.as_view(), name='doctor-file-list'),
-    path('files/patients', PatientDataFileListAPIView.as_view(), name='patient-file-list'),
+    path('doctor-files', DoctorDataFileListAPIView.as_view(), name='doctor-file-list'),
+    path('doctor-files/upload', DoctorDataFileUploadAPIView.as_view(), name='doctor-file-upload'),
+    path('doctor-uploaded-files', DoctorUploadedFileListAPIView.as_view(), name='doctor-file-not-checked'),
+    path('doctor-uploaded-files/<uuid:id>', DoctorUploadedFileUpdateAPIView.as_view(), name='file-status-update'),
+
+    path('patient-files', PatientDataFileListAPIView.as_view(), name='patient-file-list'),
+    path('patient-files/upload', PatientDataFileUploadAPIView.as_view(), name='patient-file-upload'),
+    path('patient-uploaded-files', PatientUploadedFileListAPIView.as_view(), name='patient-file-not-checked'),
+
     path('files/<uuid:id>', DataFileRetrieveAPIView.as_view(), name='file-retrieve'),
-    path('files/upload', DoctorDataFileUploadAPIView.as_view(), name='file-upload'),
-    path('files/download/<uuid:id>', DataFileDownloadAPIView.as_view(), name='file-download'),
-    path('uploaded-list', UploadedFileListAPIView.as_view(), name='file-not-checked')
+    path('files/download/<uuid:id>', DataFileDownloadAPIView.as_view(), name='file-download'))
 """
 
 
 @pytest.mark.django_db
-def test_api_view_data_file_list_by_doctor(doctor_client_with_token_auth, data_file_bundle_by_doctor):
+def test_api_view_data_file_list_by_doctor(api_client, doctors_with_group, doctor_client_with_token_auth,
+                                           data_file_bundle_by_doctor):
     url = reverse('files:doctor-file-list')
     response = doctor_client_with_token_auth.get(url, format='json')
     assert response.status_code == 200

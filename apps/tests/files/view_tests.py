@@ -15,7 +15,7 @@ from files.models import DataFile, HealthStatus
 
 @pytest.mark.django_db
 def test_api_view_data_file_list_by_doctor(doctor_client_with_token_auth, data_file_bundle_by_doctor):
-    url = reverse('files:file-doctor-list')
+    url = reverse('files:doctor-file-list')
     response = doctor_client_with_token_auth.get(url, format='json')
     assert response.status_code == 200
     assert len(response.data) == 5
@@ -28,7 +28,7 @@ def test_api_create_data_file_by_doctor(doctor_client_with_token_auth, prescript
         'file': upload_file,
         'status': HealthStatus.NORMAL
     }
-    url = reverse('files:file-doctor-upload')
+    url = reverse('files:doctor-file-upload')
     response = doctor_client_with_token_auth.post(url, data=value, format='multipart')
     assert response.status_code == 201
 
@@ -46,7 +46,7 @@ def test_api_retrieve_data_file_by_doctor(doctor_client_with_token_auth, data_fi
 
 @pytest.mark.django_db
 def test_api_view_uploaded_file_list_by_doctor(doctor_client_with_token_auth, data_file_bundle_by_doctor):
-    url = reverse('files:file-not-checked')
+    url = reverse('files:doctor-file-not-checked')
     data_file = DataFile.objects.all()
     response = doctor_client_with_token_auth.get(url, format='json')
     assert data_file.count() == 5
@@ -56,7 +56,7 @@ def test_api_view_uploaded_file_list_by_doctor(doctor_client_with_token_auth, da
 
 @pytest.mark.django_db
 def test_api_view_data_file_list_by_patient(patient_client_with_token_auth, data_file_bundle_by_patient):
-    url = reverse('files:file-patient-list')
+    url = reverse('files:patient-file-list')
     response = patient_client_with_token_auth.get(url, format='json')
     assert response.status_code == 200
     assert len(response.data) == 5
@@ -69,7 +69,7 @@ def test_api_create_data_file_by_patient(patient_client_with_token_auth, prescri
         'file': upload_file,
         'status': HealthStatus.NORMAL
     }
-    url = reverse('files:file-patient-upload')
+    url = reverse('files:patient-file-upload')
     response = patient_client_with_token_auth.post(url, data=value, format='multipart')
     assert response.status_code == 201
 
@@ -87,7 +87,7 @@ def test_api_retrieve_data_file_by_patient(patient_client_with_token_auth, data_
 
 @pytest.mark.django_db
 def test_api_view_uploaded_file_list_by_patient(patient_client_with_token_auth, data_file_bundle_by_patient):
-    url = reverse('files:file-not-checked')
+    url = reverse('files:patient-file-not-checked')
     data_file = DataFile.objects.all()
     response = patient_client_with_token_auth.get(url, format='json')
     assert data_file.count() == len(response.data)

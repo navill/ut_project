@@ -10,22 +10,22 @@ api_test_condition = False
 @pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
 @pytest.mark.django_db
 @pytest.mark.parametrize(*DOCTOR_PARAMETER)
-def test_api_create_signup_doctor_with_parameters(api_client, major, user, first_name, last_name, address, phone,
-                                                  description,
-                                                  status_code):
-    assert major.id
+def test_api_create_signup_doctor_with_parameters(api_client, major, user, first_name, last_name,
+                                                  address, phone, description, status_code):
+    assert major.id == 1
+
     data = {
         'user': user,
-        'firs_name': first_name,
+        'first_name': first_name,
         'last_name': last_name,
         'address': address,
         'phone': phone,
         'description': description,
-        'major': major.id
+        'major': major.id,
+        'gender': 'MALE'
     }
     url = reverse('accounts:api-signup-doctor')
     response = api_client.post(url, data=data, format='json')
-
     assert response.status_code == status_code
     if response.status_code == 201:
         assert response.data['user']['email'] == 'doctor@test.com'
@@ -45,7 +45,8 @@ def test_api_create_signup_patient_with_parameters(api_client, user_doctor_with_
         'address': address,
         'phone': phone,
         'age': age,
-        'emergency_call': emergency_call
+        'emergency_call': emergency_call,
+        'gender': 'MALE'
     }
     url = reverse('accounts:api-signup-patient')
     response = api_client.post(url, data=data, format='json')
@@ -106,7 +107,7 @@ def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refre
     # list - success
     assert response.status_code == 200
     assert url in response.data[0]['url']
-    assert response.data[0]['user']['email'] == 'doctor@test.com'
+    assert response.data[0]['user_id'] == 1
 
     # fail - 유효하지 않은 인증 정보
     api_client.credentials()
@@ -130,9 +131,10 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
     # success
     assert response.status_code == 200
     assert url in response.data[0]['url']
-    assert response.data[0]['user']['email'] == 'patient@test.com'
+    assert response.data[0]['user_id'] == 2
     assert response.data[0]['age'] == 30
-    assert response.data[0]['emergency_call'] == '010-119'
+    assert response.data[0]['full_name'] == 'firstpatient_lastpatient'
+    assert response.data[0]['doctor_name'] == 'firstdoctor_lastdoctor'
 
     # fail - 인증 x
     api_client.credentials()
@@ -151,8 +153,7 @@ def test_api_retrieve_doctor(api_client, get_access_and_refresh_token_from_docto
     url = reverse('accounts:doctor-detail-update', kwargs={'pk': 1})
     response = api_client.get(url, format='json')
     assert response.status_code == 200
-    assert response.data['user']['email'] == 'doctor@test.com'
-
+    assert response.data['user_id'] == 1
     # fail - 인증 x
     api_client.credentials()
     response = api_client.get(url, format='json')

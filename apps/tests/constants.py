@@ -76,42 +76,42 @@ PATIENT_PARAMETER = 'user, first_name, last_name, address, phone, age, emergency
 ]
 
 USER_BASEUSER = {
-    'email': 'test@test.com',
-    'password': 'test12345'
+    u'email': 'test@test.com',
+    u'password': 'test12345'
 }
 USER_PATIENT = {
-    'email': 'patient@test.com',
-    'password': 'test12345'
+    u'email': 'patient@test.com',
+    u'password': 'test12345'
 }
 
 USER_DOCTOR = {
-    'email': 'doctor@test.com',
-    'password': 'test12345'
+    u'email': 'doctor@test.com',
+    u'password': 'test12345'
 }
 DOCTOR = {
-    'first_name': 'firstdoctor',
-    'last_name': 'lastdoctor',
-    'address': '광주광역시 어디어디..',
-    'phone': '010-111-1111',
-    'description': '의사입니다.'
+    u'first_name': 'firstdoctor',
+    u'last_name': 'lastdoctor',
+    u'address': '광주광역시 어디어디..',
+    u'phone': '010-111-1111',
+    u'description': '의사입니다.'
 }
 
 PATIENT = {
-    'first_name': 'firstpatient',
-    'last_name': 'lastpatient',
-    'address': '광주광역시 어디어디..',
-    'phone': '010-3333-3333',
-    'age': 30,
-    'emergency_call': '010-119'
+    u'first_name': 'firstpatient',
+    u'last_name': 'lastpatient',
+    u'address': '광주광역시 어디어디..',
+    u'phone': '010-3333-3333',
+    u'age': 30,
+    u'emergency_call': '010-119'
 }
 
 DATAFILE = {
-    'id': None,
-    'prescription': None,
-    'uploader': None,
-    'file': MEDIA_ROOT + '/test_file.md',
-    'checked': True,
-    'status': HealthStatus.NORMAL
+    u'id': None,
+    u'prescription': None,
+    u'uploader': None,
+    u'file': MEDIA_ROOT + '/test_file.md',
+    u'checked': True,
+    u'status': HealthStatus.NORMAL
 }
 
 User = get_user_model()

@@ -1,6 +1,6 @@
 import pytest
 
-from accounts.models import BaseUser, BaseQuerySet
+from accounts.models import BaseUser, BaseQuerySet, Doctor
 from tests.conftest import USER_BASEUSER
 
 doctor_test_condition = False
@@ -17,6 +17,7 @@ superuser_test_condition = False
 
 
 @pytest.mark.skipif(doctor_test_condition, reason='passed')
+@pytest.mark.django_db
 def test_create_doctor(user_doctor_with_group):
     user, doctor = user_doctor_with_group
     assert user.email == 'doctor@test.com'
@@ -34,12 +35,14 @@ def test_create_doctors(doctors_with_group):
 
 
 @pytest.mark.skipif(doctor_test_condition, reason='passed')
+@pytest.mark.django_db
 def test_doctor_get_absolute_url(user_doctor_with_group):
     user, doctor = user_doctor_with_group
     assert doctor.get_absolute_url() == '/accounts/doctors/' + str(doctor.pk)
 
 
 @pytest.mark.skipif(doctor_test_condition, reason='passed')
+@pytest.mark.django_db
 def test_check_is_doctor(user_doctor_with_group):
     user, doctor = user_doctor_with_group
     assert user.is_patient is False
@@ -50,12 +53,11 @@ def test_check_is_doctor(user_doctor_with_group):
 
 
 @pytest.mark.skipif(patient_test_condition, reason='passed')
+@pytest.mark.django_db
 def test_create_patient(user_patient_with_group):
     user, patient = user_patient_with_group
     assert user.email == 'patient@test.com'
     assert user.groups.filter(name='patient').exists()
-    assert patient.pk == 2
-    assert patient.doctor.pk == 1
 
 
 @pytest.mark.django_db
@@ -65,12 +67,14 @@ def test_create_patients(patients_with_group):
 
 
 @pytest.mark.skipif(patient_test_condition, reason='passed')
+@pytest.mark.django_db
 def test_patient_get_absolute_url(user_patient_with_group):
     user, patient = user_patient_with_group
     assert patient.get_absolute_url() == '/accounts/patients/' + str(patient.pk)
 
 
 @pytest.mark.skipif(patient_test_condition, reason='passed')
+@pytest.mark.django_db
 def test_check_is_patient(user_patient_with_group):
     user, patient = user_patient_with_group
     assert user.is_patient is True

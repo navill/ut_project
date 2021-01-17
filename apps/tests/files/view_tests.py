@@ -48,7 +48,6 @@ def test_api_retrieve_data_file_by_doctor(doctor_client_with_token_auth, data_fi
     assert response.status_code == 200
     assert response.data.get('id', None) is None
     assert response.data['url'] == 'http://testserver/datafiles/files/' + str(data_file.id)
-    assert response.data['prescription'] == 1
 
 
 @pytest.mark.django_db
@@ -89,7 +88,6 @@ def test_api_retrieve_data_file_by_patient(patient_client_with_token_auth, data_
     assert response.status_code == 200
     assert response.data.get('id', None) is None
     assert response.data['url'] == 'http://testserver/datafiles/files/' + str(data_file.id)
-    assert response.data['prescription'] == 1
 
 
 @pytest.mark.django_db

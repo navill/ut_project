@@ -8,6 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_DIR = BASE_DIR.parent
 
 KEY_PATH = os.path.join(ROOT_DIR, 'secrets.json')
+DB_CONF_PATH = os.path.join(BASE_DIR, 'django_mysql.cnf')
+
 with open(KEY_PATH) as f:
     secrets = json.loads(f.read())
 

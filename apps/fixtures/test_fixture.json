@@ -1,0 +1,92 @@
+[
+{
+    "model": "accounts.doctor",
+    "pk": 2,
+    "fields": {
+        "first_name": "\uae38\ub3d9",
+        "last_name": "\ud64d",
+        "gender": "MALE",
+        "address": "!\uc11c\uc6b8 \uc5b4\ub518\uac00",
+        "phone": "010-313-4444",
+        "created_at": "2020-12-30T15:55:08.803",
+        "updated_at": "2021-01-14T13:25:12.657",
+        "major": 1,
+        "description": "\uc11c\uc6b8\ubcd1\uc6d0 \uc815\uc2e0\uc758\ud559\uacfc \uc758\uc0ac"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 3,
+    "fields": {
+        "first_name": "\ucca0\uc218",
+        "last_name": "\uae40",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc \uc5b4\ub518\uac00",
+        "phone": "010-323-4444",
+        "created_at": "2020-12-30T15:56:01.427",
+        "updated_at": "2020-12-30T15:56:01.427",
+        "major": 3,
+        "description": "\uad11\uc8fc\ubcd1\uc6d0 \uc815\uc2e0\uc758\ud559\uacfc \uc758\uc0ac"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 4,
+    "fields": {
+        "first_name": "\uac11\uc218",
+        "last_name": "\uae40",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc \uc5b4\ub518\uac00",
+        "phone": "010-333-4444",
+        "created_at": "2020-12-30T15:56:24.291",
+        "updated_at": "2020-12-30T15:56:24.292",
+        "major": 4,
+        "description": "\uad11\uc8fc\ubcd1\uc6d0 \ub0b4\uacfc \uc758\uc0ac"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 9,
+    "fields": {
+        "first_name": "\uc758\uc0ac",
+        "last_name": "\uc77c\uc601",
+        "gender": "MALE",
+        "address": "\ud55c\uad6d",
+        "phone": "010-111",
+        "created_at": "2021-01-13T17:45:17.219",
+        "updated_at": "2021-01-13T17:45:17.220",
+        "major": 3,
+        "description": "\ud558\uc774"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 10,
+    "fields": {
+        "first_name": "\ub2e5\ud130",
+        "last_name": "\uc774",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc",
+        "phone": "010-111333333",
+        "created_at": "2021-01-14T13:57:38.267",
+        "updated_at": "2021-01-14T13:57:38.267",
+        "major": 1,
+        "description": "\ud558\uc774"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 11,
+    "fields": {
+        "first_name": "\ub2e5\ud130",
+        "last_name": "\uc774",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc",
+        "phone": "010-11133333",
+        "created_at": "2021-01-14T13:58:32.605",
+        "updated_at": "2021-01-14T13:58:32.605",
+        "major": 4,
+        "description": "\ud558\uc774"
+    }
+}
+]

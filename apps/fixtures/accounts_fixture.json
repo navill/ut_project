@@ -1,0 +1,573 @@
+[
+{
+    "model": "accounts.baseuser",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$ZzGgdrhEVBNk$uZpDMWHtmiBsAQo4URQBaI1VsYF5F3J3tR2M8Uk/ID4=",
+        "last_login": null,
+        "email": "admin@admin.com",
+        "created_at": "2020-12-30T14:25:06.678",
+        "updated_at": "2020-12-30T14:25:06.678",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": true,
+        "is_staff": true,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$7av2Xtolkkvi$Er0PN7hYV1wRjZ99th6jtQoxAIcO1tSxonEynYptW5o=",
+        "last_login": "2021-01-13T13:50:04.589",
+        "email": "docto1@doctor.com",
+        "created_at": "2020-12-30T15:55:08.774",
+        "updated_at": "2021-01-06T15:07:45.720",
+        "token_expired": 1610032065,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            2
+        ],
+        "user_permissions": [
+            25,
+            26,
+            27,
+            28
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 3,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$l1MZ0K5ekrty$4Gjn4NMwByVgnhAdvV03b84c/Gt4B87yJditEt2PJJ8=",
+        "last_login": "2021-01-11T18:33:55.276",
+        "email": "docto2@doctor.com",
+        "created_at": "2020-12-30T15:56:01.418",
+        "updated_at": "2020-12-30T15:56:01.418",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            2
+        ],
+        "user_permissions": [
+            25,
+            26,
+            27,
+            28
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 4,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$F7hlwVO8QIkP$F7IZDpT0Q0dKnwi4YAQ5BDU5tMojnFlcwskQLPf5hXE=",
+        "last_login": null,
+        "email": "docto3@doctor.com",
+        "created_at": "2020-12-30T15:56:24.282",
+        "updated_at": "2020-12-30T16:17:46.833",
+        "token_expired": 1609431466,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            2
+        ],
+        "user_permissions": [
+            25,
+            26,
+            27,
+            28
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 5,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$Jh339Qnzy5xP$RjX6go2B4qijtwVtaXEXZBlS7VFNcWglbDKrBPiB0rI=",
+        "last_login": "2021-01-15T15:19:21.745",
+        "email": "patient1@patient.com",
+        "created_at": "2020-12-30T16:42:40.216",
+        "updated_at": "2020-12-30T16:42:40.216",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 6,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$FPodCpkQH8wT$7a9iaS4TEOskE4EIUNAoK/uNWlHXPNhuBE0UgC44Z+E=",
+        "last_login": "2021-01-15T13:38:58.778",
+        "email": "patient2@patient.com",
+        "created_at": "2020-12-30T16:42:58.900",
+        "updated_at": "2020-12-30T16:42:58.900",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 7,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$8uFFOYCsq3l1$riUKaKZcXuQiNpA4pPl9UKY6kOMOSThXccaSopvhf58=",
+        "last_login": null,
+        "email": "patient00@patient.com",
+        "created_at": "2021-01-13T16:58:03.633",
+        "updated_at": "2021-01-13T16:58:03.633",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 8,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$K6PflUaWKSpO$p7SayBqmmCBqxYAjYMdd0FHkLZ5Pn57BeW9afyyHYSU=",
+        "last_login": null,
+        "email": "test01@test.com",
+        "created_at": "2021-01-13T16:59:30.145",
+        "updated_at": "2021-01-13T16:59:30.145",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 9,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$AabkXqnCnH7F$fdNjjbFH5pbIpbXIGnUiA+8TtK7xgKbzFe+/Sg1MiFE=",
+        "last_login": null,
+        "email": "doctor0-1@test.com",
+        "created_at": "2021-01-13T17:45:17.188",
+        "updated_at": "2021-01-13T17:45:17.188",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            2
+        ],
+        "user_permissions": [
+            25,
+            26,
+            27,
+            28
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 10,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$qUOq9mTAQf6T$zG+/ew91+1LzlUfUBQ/MLq2AHT1xhng4LFvII7UyMZk=",
+        "last_login": null,
+        "email": "doctortest@test.com",
+        "created_at": "2021-01-14T13:57:38.239",
+        "updated_at": "2021-01-14T13:57:38.239",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            2
+        ],
+        "user_permissions": [
+            25,
+            26,
+            27,
+            28
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 11,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$aQE6XxzcHtew$YwcGppkEyl2honDg7a36s4D2n5ihHR65H8Kt/2p/K7c=",
+        "last_login": null,
+        "email": "doctortest1@test.com",
+        "created_at": "2021-01-14T13:58:32.576",
+        "updated_at": "2021-01-14T13:58:32.576",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            2
+        ],
+        "user_permissions": [
+            25,
+            26,
+            27,
+            28
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 12,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$h9wpMhw17Y3S$FtEosqW71xkUHURwIDa5mYQWjhu2gCBkXpcSUvUeYGw=",
+        "last_login": null,
+        "email": "pateint_test@test.com",
+        "created_at": "2021-01-14T17:46:40.710",
+        "updated_at": "2021-01-14T17:46:40.710",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 13,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$q8eRXmixHFz3$hW66WhwXJYaID3aJb42NdgoBmZE+Ldkknd8ho8iEFdQ=",
+        "last_login": null,
+        "email": "pateint_t23dest@test.com",
+        "created_at": "2021-01-14T17:50:23.947",
+        "updated_at": "2021-01-14T17:50:23.947",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 14,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$ob6oZiF2v1H5$McCYEzptIRhw07XOkXuDzZ8nqBSR0apE31KenoWD/eQ=",
+        "last_login": null,
+        "email": "azzsdf@adsf.com",
+        "created_at": "2021-01-14T17:57:48.906",
+        "updated_at": "2021-01-14T17:57:48.906",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.baseuser",
+    "pk": 15,
+    "fields": {
+        "password": "pbkdf2_sha256$180000$UPP7JaPjEG7U$bGVRuFlOU46xp7Ng06u8P3WW8CPv8x3XNhsJ0A0wpGo=",
+        "last_login": null,
+        "email": "asdf@asdfc.com",
+        "created_at": "2021-01-15T13:55:59.984",
+        "updated_at": "2021-01-15T13:55:59.984",
+        "token_expired": 0,
+        "is_active": true,
+        "is_superuser": false,
+        "is_staff": false,
+        "groups": [
+            3
+        ],
+        "user_permissions": [
+            29,
+            30,
+            31,
+            32
+        ]
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 2,
+    "fields": {
+        "first_name": "\uae38\ub3d9",
+        "last_name": "\ud64d",
+        "gender": "MALE",
+        "address": "!\uc11c\uc6b8 \uc5b4\ub518\uac00",
+        "phone": "010-313-4444",
+        "created_at": "2020-12-30T15:55:08.803",
+        "updated_at": "2021-01-14T13:25:12.657",
+        "major": 1,
+        "description": "\uc11c\uc6b8\ubcd1\uc6d0 \uc815\uc2e0\uc758\ud559\uacfc \uc758\uc0ac"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 3,
+    "fields": {
+        "first_name": "\ucca0\uc218",
+        "last_name": "\uae40",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc \uc5b4\ub518\uac00",
+        "phone": "010-323-4444",
+        "created_at": "2020-12-30T15:56:01.427",
+        "updated_at": "2020-12-30T15:56:01.427",
+        "major": 3,
+        "description": "\uad11\uc8fc\ubcd1\uc6d0 \uc815\uc2e0\uc758\ud559\uacfc \uc758\uc0ac"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 4,
+    "fields": {
+        "first_name": "\uac11\uc218",
+        "last_name": "\uae40",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc \uc5b4\ub518\uac00",
+        "phone": "010-333-4444",
+        "created_at": "2020-12-30T15:56:24.291",
+        "updated_at": "2020-12-30T15:56:24.292",
+        "major": 4,
+        "description": "\uad11\uc8fc\ubcd1\uc6d0 \ub0b4\uacfc \uc758\uc0ac"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 9,
+    "fields": {
+        "first_name": "\uc758\uc0ac",
+        "last_name": "\uc77c\uc601",
+        "gender": "MALE",
+        "address": "\ud55c\uad6d",
+        "phone": "010-111",
+        "created_at": "2021-01-13T17:45:17.219",
+        "updated_at": "2021-01-13T17:45:17.220",
+        "major": 3,
+        "description": "\ud558\uc774"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 10,
+    "fields": {
+        "first_name": "\ub2e5\ud130",
+        "last_name": "\uc774",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc",
+        "phone": "010-111333333",
+        "created_at": "2021-01-14T13:57:38.267",
+        "updated_at": "2021-01-14T13:57:38.267",
+        "major": 1,
+        "description": "\ud558\uc774"
+    }
+},
+{
+    "model": "accounts.doctor",
+    "pk": 11,
+    "fields": {
+        "first_name": "\ub2e5\ud130",
+        "last_name": "\uc774",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc",
+        "phone": "010-11133333",
+        "created_at": "2021-01-14T13:58:32.605",
+        "updated_at": "2021-01-14T13:58:32.605",
+        "major": 4,
+        "description": "\ud558\uc774"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 5,
+    "fields": {
+        "first_name": "\ud658\uc790",
+        "last_name": "\uc77c",
+        "gender": "MALE",
+        "address": "!\uad11\uc8fc\uc5b4\ub518\uac00",
+        "phone": "010-000-1010",
+        "created_at": "2020-12-30T21:50:52.821",
+        "updated_at": "2021-01-14T13:25:03.262",
+        "doctor": 2,
+        "age": 30,
+        "emergency_call": "010-119"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 6,
+    "fields": {
+        "first_name": "\ud658\uc790",
+        "last_name": "\uc774",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc\uc5b4\ub518\uac00",
+        "phone": "010-010-1010",
+        "created_at": "2020-12-30T21:50:52.821",
+        "updated_at": "2020-12-30T21:50:52.865",
+        "doctor": 3,
+        "age": 30,
+        "emergency_call": "010-119"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 7,
+    "fields": {
+        "first_name": "\ud658\uc790",
+        "last_name": "\uc601",
+        "gender": "MALE",
+        "address": "\uad11\uc8fc \uc5b4\ub518\uac00",
+        "phone": "010-1111-11111",
+        "created_at": "2021-01-13T16:58:03.663",
+        "updated_at": "2021-01-13T16:58:03.663",
+        "doctor": 2,
+        "age": 22,
+        "emergency_call": "010-119"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 8,
+    "fields": {
+        "first_name": "\ud14c\uc2a4",
+        "last_name": "\ud2b8",
+        "gender": "MALE",
+        "address": "\ud55c\uc591\uc5b4\ub518\uac00",
+        "phone": "010-1112-3344",
+        "created_at": "2021-01-13T16:59:30.176",
+        "updated_at": "2021-01-13T16:59:30.176",
+        "doctor": 2,
+        "age": 40,
+        "emergency_call": "010-119"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 12,
+    "fields": {
+        "first_name": "",
+        "last_name": "",
+        "gender": "MALE",
+        "address": "asdf",
+        "phone": "010-3333334",
+        "created_at": "2021-01-14T17:46:40.741",
+        "updated_at": "2021-01-14T17:46:40.741",
+        "doctor": 3,
+        "age": 33,
+        "emergency_call": "33333"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 13,
+    "fields": {
+        "first_name": "",
+        "last_name": "",
+        "gender": "MALE",
+        "address": "asdf",
+        "phone": "010-33333",
+        "created_at": "2021-01-14T17:50:23.958",
+        "updated_at": "2021-01-14T17:50:23.958",
+        "doctor": 3,
+        "age": 33,
+        "emergency_call": "33333"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 14,
+    "fields": {
+        "first_name": "",
+        "last_name": "",
+        "gender": "MALE",
+        "address": "asdf",
+        "phone": "asdf",
+        "created_at": "2021-01-14T17:57:48.931",
+        "updated_at": "2021-01-14T17:57:48.931",
+        "doctor": 4,
+        "age": 112,
+        "emergency_call": "asdf"
+    }
+},
+{
+    "model": "accounts.patient",
+    "pk": 15,
+    "fields": {
+        "first_name": "",
+        "last_name": "",
+        "gender": "MALE",
+        "address": "asdklf",
+        "phone": "010011-111",
+        "created_at": "2021-01-15T13:56:00.017",
+        "updated_at": "2021-01-15T13:56:00.017",
+        "doctor": 2,
+        "age": 23,
+        "emergency_call": "0403-203"
+    }
+}
+]

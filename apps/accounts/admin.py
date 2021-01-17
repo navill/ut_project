@@ -13,7 +13,7 @@ class BaseUserAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
-        queryset = queryset.prefetch_related('groups')
+        queryset = queryset.prefetch_related('groups').prefetch_related('doctor').prefetch_related('patient')
         return queryset
 
     def get_groups(self, obj):
@@ -33,20 +33,20 @@ class GroupsAdmin(GroupAdmin):
     list_display = ["name", "pk"]
 
 
-def full_name(obj):
-    return obj.user.full_name
+# def full_name(obj):
+#     return obj.user.get_child_username()
 
 
 class DoctorAdmin(admin.ModelAdmin):
-    fields = ['user', full_name, 'major', 'description']
-    readonly_fields = ('user', full_name,)
+    fields = ['user', 'first_name', 'last_name', 'major', 'description']
+    readonly_fields = ('user', 'first_name', 'last_name',)
     list_display = ['user', 'major']
 
 
 class PatientAdmin(admin.ModelAdmin):
     fields = ['user', 'doctor', 'age', 'emergency_call']
-    readonly_fields = ('user', full_name,)
-    list_display = ['user', 'doctor', full_name]
+    readonly_fields = ('user', 'first_name', 'last_name',)
+    list_display = ['user', 'doctor', 'first_name', 'last_name']
 
 
 admin.site.register(BaseUser, BaseUserAdmin)

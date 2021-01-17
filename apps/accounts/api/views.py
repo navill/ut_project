@@ -9,7 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
-from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly
+from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer
 from accounts.models import Doctor, Patient
 
@@ -56,7 +56,7 @@ class DoctorSignUpAPIView(CreateAPIView):
 class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.select_all().defer_option_fields().order_by('-created_at')
     serializer_class = serializers.DoctorListSerializer
-    permission_classes = [IsDoctor]
+    permission_classes = [IsSuperUser | IsDoctor]
 
 
 class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):

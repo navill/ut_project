@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.reverse import reverse
 
-from accounts.models import Doctor, Patient
+from accounts.models import Doctor
 from tests.conftest import DOCTOR_PARAMETER, PATIENT_PARAMETER
 
 api_accounts_parameter_test_condition = False
@@ -9,8 +9,8 @@ api_test_condition = False
 
 
 @pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
-@pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize(*DOCTOR_PARAMETER)
+@pytest.mark.django_db
 def test_api_create_signup_doctor_with_parameters(api_client, major, user, first_name, last_name,
                                                   address, phone, description, status_code):
     data = {
@@ -31,13 +31,13 @@ def test_api_create_signup_doctor_with_parameters(api_client, major, user, first
 
 
 @pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
-@pytest.mark.django_db(transaction=True)
 @pytest.mark.parametrize(*PATIENT_PARAMETER)
-def test_api_create_signup_patient_with_parameters(api_client, user_doctor_with_group, user, first_name, last_name,
+@pytest.mark.django_db
+def test_api_create_signup_patient_with_parameters(api_client, doctor_with_group, user, first_name, last_name,
                                                    address, phone, age, emergency_call, status_code):
-    baseuser, doctor = user_doctor_with_group
+    doctor = doctor_with_group
     data = {
-        'doctor': doctor.pk,
+        'doctor': doctor.user_id,
         'user': user,
         'first_name': first_name,
         'last_name': last_name,
@@ -56,20 +56,20 @@ def test_api_create_signup_patient_with_parameters(api_client, user_doctor_with_
 
 
 @pytest.mark.skipif(api_test_condition, reason='passed')
-@pytest.mark.django_db(transaction=True)
-def test_api_create_token_by_login_with_doctor_info(api_client, user_doctor_with_group):
-    user, doctor = user_doctor_with_group
+def test_api_create_token_by_login_with_doctor_info(api_client, doctor_with_group):
     url = reverse('token-login')
-    response = api_client.post(url, data={'email': user.email, 'password': 'test12345'}, format='json')
+    response = api_client.post(url, data={'email': doctor_with_group.user.email, 'password': 'test12345'},
+                               format='json')
 
     # success
-    assert user.email == 'doctor@test.com'
+    assert doctor_with_group.user.email == 'doctor@test.com'
     assert response.status_code == 200
     assert 'access' in response.data
     assert 'refresh' in response.data
 
     # fail - 유효하지 않은 인증 정보
-    response = api_client.post(url, data={'email': user.email, 'password': 'test00000'}, format='json')
+    response = api_client.post(url, data={'email': doctor_with_group.user.email, 'password': 'test00000'},
+                               format='json')
     assert response.status_code == 401
     response = api_client.post(url, data={'email': 'unknownuser', 'password': 'test12345'}, format='json')
     assert response.status_code == 401
@@ -77,24 +77,23 @@ def test_api_create_token_by_login_with_doctor_info(api_client, user_doctor_with
 
 @pytest.mark.skipif(api_test_condition, reason='passed')
 @pytest.mark.django_db
-def test_api_create_token_by_login_with_patient_info(api_client, user_patient_with_group):
-    user, patient = user_patient_with_group
+def test_api_create_token_by_login_with_patient_info(api_client, patient_with_group):
+    patient = patient_with_group
     url = reverse('token-login')
-    response = api_client.post(url, data={'email': user.email, 'password': 'test12345'}, format='json')
+    response = api_client.post(url, data={'email': patient.user.email, 'password': 'test12345'}, format='json')
 
     # success
-    assert user.email == 'patient@test.com'
+    assert patient.user.email == 'patient@test.com'
     assert response.status_code == 200
 
     # fail - 유효하지 않은 인증 정보
-    response = api_client.post(url, data={'email': user.email, 'password': 'test00000'}, format='json')
+    response = api_client.post(url, data={'email': patient.user.email, 'password': 'test00000'}, format='json')
     assert response.status_code == 401
     response = api_client.post(url, data={'email': 'unknownuser', 'password': 'test12345'}, format='json')
     assert response.status_code == 401
 
 
 @pytest.mark.skipif(api_test_condition, reason='passed')
-@pytest.mark.django_db(transaction=True)
 def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refresh_token_from_doctor):
     # create doctor & token
     refresh, access = get_access_and_refresh_token_from_doctor
@@ -114,11 +113,10 @@ def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refre
 
 
 @pytest.mark.skipif(api_test_condition, reason='passed')
-@pytest.mark.django_db(transaction=True)
 def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refresh_token_from_doctor,
-                                                 user_patient_with_group):
+                                                 patient_with_group):
     # create patient
-    _, _ = user_patient_with_group
+    # _, _ = patient_with_group
     # create doctor & token
     refresh, access = get_access_and_refresh_token_from_doctor
     url = reverse('accounts:patient-list')
@@ -140,7 +138,6 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
 
 
 @pytest.mark.skipif(api_test_condition, reason='passed')
-@pytest.mark.django_db(transaction=True)
 def test_api_retrieve_doctor(api_client, get_access_and_refresh_token_from_doctor):
     refresh, access = get_access_and_refresh_token_from_doctor
     # authenticate token
@@ -157,7 +154,6 @@ def test_api_retrieve_doctor(api_client, get_access_and_refresh_token_from_docto
 
 
 @pytest.mark.skipif(api_test_condition, reason='passed')
-@pytest.mark.django_db(transaction=True)
 def test_api_update_doctor(api_client, get_access_and_refresh_token_from_doctor):
     refresh, access = get_access_and_refresh_token_from_doctor
     doctor = Doctor.objects.first()

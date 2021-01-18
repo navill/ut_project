@@ -170,3 +170,4 @@ secrets.json
 handle_groups.py
 results.sqlite
 .coveragerc
+django_mysql.cnf

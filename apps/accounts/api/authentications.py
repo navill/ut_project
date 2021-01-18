@@ -27,7 +27,6 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
             raise InvalidToken('Token contained no recognizable user identification')
 
         try:
-            # todo: query 최적화
             user = User.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except User.DoesNotExist:
             raise AuthenticationFailed('User not found', code='user_not_found')
@@ -68,9 +67,11 @@ class CustomRefreshToken(BlacklistMixin, CustomToken):
 
     @classmethod
     @transaction.atomic
-    def for_user(cls, user) -> Token:
+    def for_user(cls, user, raise_error=False) -> Token:
         token = super().for_user(user)
         access_token_exp = int(token.access_token.payload['exp'])
+        if raise_error:
+            raise Exception
         user.set_token_expired(access_token_exp)
         return token
 

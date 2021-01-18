@@ -28,39 +28,12 @@ ALLOWED_HOSTS = ['*']
 #     }
 # }
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': 'django_mysql',
-    #     'USER': 'root',
-    #     'PASSWORD': 'test1234',
-    #     'HOST': '127.0.0.1',
-    #     'PORT': '3306',
-    #     'OPTIONS': {
-    #         # 'charset': 'utf8mb4',
-    #         # 'use_unicode': True,
-    #         # 'init_command': 'SET '
-    #         #                 'storage_engine=INNODB,'
-    #         #                 'character_set_connection=utf8mb4,'
-    #         #                 'collation_connection=utf8mb4_general_ci'
-    #         'read_default_file': 'django_mysql.cnf',
-    #     },
-    #     'TEST_CHARSET': 'utf8mb4',
-    #     'TEST_COLLATION': 'utf8mb4_general_ci',
-    #     'TEST': {
-    #         'CHARSET': 'utf8mb4',
-    #         'COLLATION': 'utf8mb4_general_ci',
-    #     }
-    # }
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
             'read_default_file': DB_CONF_PATH,
         },
-        'TEST': {
-            'CHARSET': 'utf8mb4',
-            'COLLATION': 'utf8mb4_general_ci'
-        }
-    }
+    },
 }
 
 # celery for local setting

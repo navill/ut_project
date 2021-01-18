@@ -13,16 +13,16 @@ from tests.constants import *
 
 
 @pytest.fixture(scope='function')
-def user_doctor_with_group(db, major):
+def doctor_with_group(major):
     user = User.objects.create_user(**USER_DOCTOR)
     doctor = Doctor.objects.create(user=user, major=major, **DOCTOR)
     group, created = Group.objects.get_or_create(name='doctor')
     user.groups.add(group)
-    return user, doctor
+    return doctor
 
 
 @pytest.fixture(scope='function')
-def doctors_with_group(db, major):
+def doctors_with_group(major):
     group, created = Group.objects.get_or_create(name='doctor')
 
     for i in range(5):
@@ -40,18 +40,16 @@ def doctors_with_group(db, major):
 
 
 @pytest.fixture(scope='function')
-def user_patient_with_group(db, user_doctor_with_group):
-    user_doctor, doctor = user_doctor_with_group
+def patient_with_group(doctor_with_group):
     user = User.objects.create_user(**USER_PATIENT)
-    patient = Patient.objects.create(user=user, doctor=doctor, **PATIENT)
+    patient = Patient.objects.create(user=user, doctor=doctor_with_group, **PATIENT)
     group, created = Group.objects.get_or_create(name='patient')
     user.groups.add(group)
-    return user, patient
+    return patient
 
 
 @pytest.fixture(scope='function')
-def patients_with_group(db, user_doctor_with_group):
-    user_, doctor = user_doctor_with_group
+def patients_with_group(doctor_with_group):
     group, created = Group.objects.get_or_create(name='patient')
 
     for i in range(5):
@@ -59,7 +57,7 @@ def patients_with_group(db, user_doctor_with_group):
         user.groups.add(group)
 
         Patient.objects.create(user=user,
-                               doctor=doctor,
+                               doctor=doctor_with_group,
                                first_name=f'환자{i}',
                                last_name=f'성{i}',
                                address='광주 어디',
@@ -77,14 +75,13 @@ def api_client():
 
 
 @pytest.fixture(scope='function')
-def super_user(db):
+def super_user():
     instance = User.objects.create_superuser(**USER_BASEUSER)
     return instance
 
 
 @pytest.fixture(scope='function')
-def create_bundle_user_with_some_inactive(db):
-    user_values = []
+def create_bundle_user_with_some_inactive():
     for i in range(10):
         value = {
             'email': f'test{i}@test.com',
@@ -92,34 +89,31 @@ def create_bundle_user_with_some_inactive(db):
         }
         if i % 2 == 0:
             value['is_active'] = False
-        user_values.append(User(**value))
-    instances = User.objects.bulk_create(user_values)
-    return instances
+        User.objects.create_user(**value)
+    # instances = User.objects.bulk_create(user_values)
+    return User.objects.all()
 
 
 @pytest.fixture(scope='function')
-def baseuser(db):
+def baseuser():
     instance = User.objects.create_user(**USER_BASEUSER)
     return instance
 
 
 @pytest.fixture(scope='function')
-def get_access_and_refresh_token_from_doctor(db, user_doctor_with_group):
-    user, doctor = user_doctor_with_group
-    token = CustomRefreshToken.for_user(user)
+def get_access_and_refresh_token_from_doctor(doctor_with_group):
+    token = CustomRefreshToken.for_user(doctor_with_group.user)
     return str(token), str(token.access_token)
 
 
 @pytest.fixture(scope='function')
-def get_token_from_doctor(db, user_doctor_with_group):
-    user, _ = user_doctor_with_group
-    return CustomRefreshToken.for_user(user)
+def get_token_from_doctor(doctor_with_group):
+    return CustomRefreshToken.for_user(doctor_with_group.user)
 
 
 @pytest.fixture(scope='function')
-def get_token_from_patient(db, user_patient_with_group):
-    user, _ = user_patient_with_group
-    return CustomRefreshToken.for_user(user)
+def get_token_from_patient(patient_with_group):
+    return CustomRefreshToken.for_user(patient_with_group.user)
 
 
 @pytest.fixture(scope='function')
@@ -160,12 +154,10 @@ def major(department):
 
 
 @pytest.fixture(scope='function')
-def prescription(db, user_doctor_with_group, user_patient_with_group):
-    doctor_baseuser, doctor = user_doctor_with_group
-    patient_baseuser, patient = user_patient_with_group
+def prescription(doctor_with_group, patient_with_group):
     data = {
-        'writer': doctor,
-        'patient': patient,
+        'writer': doctor_with_group,
+        'patient': patient_with_group,
         'description': 'test 처방'
     }
     instance = Prescription.objects.create(**data)
@@ -173,12 +165,11 @@ def prescription(db, user_doctor_with_group, user_patient_with_group):
 
 
 @pytest.fixture(scope='function')
-def bundle_prescriptions(db, user_doctor_with_group, user_patient_with_group):
-    doctor_baseuser, doctor = user_doctor_with_group
-    patient_baseuser, patient = user_patient_with_group
+def bundle_prescriptions(doctor_with_group, patient_with_group):
     bulk_data = []
     for i in range(5):
-        bulk_data.append(Prescription(writer=doctor, patient=patient, prescription='처방-' + str(i)))
+        bulk_data.append(
+            Prescription(writer=doctor_with_group, patient=patient_with_group, prescription='처방-' + str(i)))
     Prescription.objects.bulk_create(bulk_data)
 
 
@@ -192,46 +183,48 @@ def renew_uuid():
 
 
 @pytest.fixture(scope='function')
-def data_file_by_doctor(db, generated_uuid4, prescription, user_doctor_with_group):
+def data_file_by_doctor(generated_uuid4, prescription, doctor_with_group):
     DATAFILE['id'] = generated_uuid4
     DATAFILE['prescription'] = prescription
-    DATAFILE['uploader'] = user_doctor_with_group[0]
+    DATAFILE['uploader'] = doctor_with_group.user
     instance = DataFile.objects.create(**DATAFILE)
     return instance
 
 
 @pytest.fixture(scope='function')
-def data_file_bundle_by_doctor(db, prescription, user_doctor_with_group):
-    bulk_data = []
+def data_file_bundle_by_doctor(prescription, doctor_with_group):
+    # bulk_data = []
     datafile = {
         'id': None,
         'prescription': prescription,
-        'uploader': user_doctor_with_group[0],
+        'uploader': doctor_with_group.user,
         'file': MEDIA_ROOT + '/test_file.md',
         'checked': True,
         'status': HealthStatus.NORMAL
     }
     for _ in range(5):
         datafile['id'] = renew_uuid()
-        bulk_data.append(DataFile(**datafile))
-    DataFile.objects.bulk_create(bulk_data)
+        # bulk_data.append(DataFile(**datafile))
+        DataFile.objects.create(**datafile)
+    # DataFile.objects.bulk_create(bulk_data)
 
 
 @pytest.fixture(scope='function')
-def data_file_bundle_by_patient(db, prescription, user_patient_with_group):
-    bulk_data = []
+def data_file_bundle_by_patient(prescription, patient_with_group):
+    # bulk_data = []
     datafile = {
         'id': None,
         'prescription': prescription,
-        'uploader': user_patient_with_group[0],
+        'uploader': patient_with_group.user,
         'file': MEDIA_ROOT + '/test_file.md',
         'checked': False,
         'status': HealthStatus.NORMAL
     }
     for _ in range(5):
         datafile['id'] = renew_uuid()
-        bulk_data.append(DataFile(**datafile))
-    DataFile.objects.bulk_create(bulk_data)
+        # bulk_data.append(DataFile(**datafile))
+        DataFile.objects.create(**datafile)
+    # DataFile.objects.bulk_create(bulk_data)
 
 
 @pytest.fixture(scope='function')

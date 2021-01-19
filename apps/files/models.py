@@ -1,25 +1,17 @@
-import datetime
 import uuid
 from typing import TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
-from django.db.models.functions import Concat
 
-from files.api.utils import delete_file
-from prescriptions.models import Prescription
+from files.api.utils import delete_file, concatenate_name, directory_path
+from prescriptions.models import Prescription, FilePrescription
 
 if TYPE_CHECKING:
     from accounts.models import BaseUser
 
 User = get_user_model()
-
-
-def concatenate_name(target_field: str):
-    full_name = Concat(F(f'{target_field}__first_name'), F(f'{target_field}__last_name'))
-    return full_name
-
 
 DEFAULT_QUERY_FIELDS = ('id', 'prescription', 'uploader_id', 'file', 'created_at', 'status', 'checked')
 UPLOADER_QUERY_FIELDS = ('user_id', 'first_name', 'last_name')
@@ -27,13 +19,6 @@ PRESCRIPTION_QUERY_FIELD = ('prescription__id',)
 
 DOCTOR_QUERY_FIELDS = (f'uploader__doctor__{field}' for field in UPLOADER_QUERY_FIELDS)
 PATIENT_QUERY_FIELDS = (f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS)
-
-
-def directory_path(instance: 'DataFile', filename: str) -> str:
-    day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
-    name, ext = filename.split('.')
-    return f'{day}/{ext}/{instance.uploader}_{name}_{time}.{ext}'
-
 
 """
 [uploader]
@@ -123,9 +108,15 @@ class HealthStatus(models.TextChoices):
     UNKNOWN = 'UNKNOWN', '알 수 없음'
 
 
+# todo: PatientFile, DoctorFile로 분리.
+#  abstract model(created_at, file, checked, status, deleted)
+#  PatientFile(file_prescription(null=False)), DoctorFile(prescription(null=False))
+
 class DataFile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, null=True)
+    file_prescription = models.ForeignKey(FilePrescription, on_delete=models.DO_NOTHING, null=True)
+
     uploader = models.ForeignKey(User, on_delete=models.DO_NOTHING, related_name='files', null=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     file = models.FileField(upload_to=directory_path, null=True)

@@ -1,6 +1,9 @@
+import datetime
 import mimetypes
 import os
 
+from django.db.models import F
+from django.db.models.functions import Concat
 from django.http import FileResponse
 
 
@@ -22,3 +25,14 @@ class Downloader:
 def delete_file(path):
     if os.path.isfile(path):
         os.remove(path)
+
+
+def directory_path(instance: 'DataFile', filename: str) -> str:
+    day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
+    name, ext = filename.split('.')
+    return f'{day}/{ext}/{instance.uploader}_{name}_{time}.{ext}'
+
+
+def concatenate_name(target_field: str):
+    full_name = Concat(F(f'{target_field}__first_name'), F(f'{target_field}__last_name'))
+    return full_name

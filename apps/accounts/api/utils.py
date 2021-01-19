@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING, Union
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, F
-from django.db.models.functions import Concat
+from django.db.models import Q
 
 if TYPE_CHECKING:
     from accounts.models import Patient, Doctor, BaseUser

@@ -169,7 +169,12 @@ def bundle_prescriptions(doctor_with_group, patient_with_group):
     bulk_data = []
     for i in range(5):
         bulk_data.append(
-            Prescription(writer=doctor_with_group, patient=patient_with_group, prescription='처방-' + str(i)))
+            Prescription(
+                writer=doctor_with_group,
+                patient=patient_with_group,
+                prescription='처방-' + str(i)
+            )
+        )
     Prescription.objects.bulk_create(bulk_data)
 
 

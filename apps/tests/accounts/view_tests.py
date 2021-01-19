@@ -4,11 +4,7 @@ from rest_framework.reverse import reverse
 from accounts.models import Doctor
 from tests.conftest import DOCTOR_PARAMETER, PATIENT_PARAMETER
 
-api_accounts_parameter_test_condition = False
-api_test_condition = False
 
-
-@pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
 @pytest.mark.parametrize(*DOCTOR_PARAMETER)
 @pytest.mark.django_db
 def test_api_create_signup_doctor_with_parameters(api_client, major, user, first_name, last_name,
@@ -30,7 +26,6 @@ def test_api_create_signup_doctor_with_parameters(api_client, major, user, first
         assert response.data['user']['email'] == 'doctor@test.com'
 
 
-@pytest.mark.skipif(api_accounts_parameter_test_condition, reason='passed')
 @pytest.mark.parametrize(*PATIENT_PARAMETER)
 @pytest.mark.django_db
 def test_api_create_signup_patient_with_parameters(api_client, doctor_with_group, user, first_name, last_name,
@@ -55,7 +50,6 @@ def test_api_create_signup_patient_with_parameters(api_client, doctor_with_group
         assert response.data['user']['email'] == 'patient@test.com'
 
 
-@pytest.mark.skipif(api_test_condition, reason='passed')
 def test_api_create_token_by_login_with_doctor_info(api_client, doctor_with_group):
     url = reverse('token-login')
     response = api_client.post(url, data={'email': doctor_with_group.user.email, 'password': 'test12345'},
@@ -75,7 +69,6 @@ def test_api_create_token_by_login_with_doctor_info(api_client, doctor_with_grou
     assert response.status_code == 401
 
 
-@pytest.mark.skipif(api_test_condition, reason='passed')
 @pytest.mark.django_db
 def test_api_create_token_by_login_with_patient_info(api_client, patient_with_group):
     patient = patient_with_group
@@ -93,7 +86,6 @@ def test_api_create_token_by_login_with_patient_info(api_client, patient_with_gr
     assert response.status_code == 401
 
 
-@pytest.mark.skipif(api_test_condition, reason='passed')
 def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refresh_token_from_doctor):
     # create doctor & token
     refresh, access = get_access_and_refresh_token_from_doctor
@@ -112,7 +104,6 @@ def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refre
     assert response.status_code == 401
 
 
-@pytest.mark.skipif(api_test_condition, reason='passed')
 def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refresh_token_from_doctor,
                                                  patient_with_group):
     # create patient
@@ -137,7 +128,6 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
     assert response.status_code == 401
 
 
-@pytest.mark.skipif(api_test_condition, reason='passed')
 def test_api_retrieve_doctor(api_client, get_access_and_refresh_token_from_doctor):
     refresh, access = get_access_and_refresh_token_from_doctor
     # authenticate token
@@ -153,7 +143,6 @@ def test_api_retrieve_doctor(api_client, get_access_and_refresh_token_from_docto
     assert response.status_code == 401
 
 
-@pytest.mark.skipif(api_test_condition, reason='passed')
 def test_api_update_doctor(api_client, get_access_and_refresh_token_from_doctor):
     refresh, access = get_access_and_refresh_token_from_doctor
     doctor = Doctor.objects.first()

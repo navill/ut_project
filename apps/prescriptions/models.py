@@ -1,17 +1,8 @@
 from django.db import models
 from django.db.models import F
-from django.db.models.functions import Concat
 
-from accounts.models import Patient, Doctor, DEFER_PATIENT_FIELDS, DEFER_DOCTOR_FIELDS, DEFER_BASEUSER_FIELDS
-
-
-def get_defer_fields_set(parent_field_name: str, *fields):
-    return [f'{parent_field_name}__{field}' for field in fields]
-
-
-def concatenate_name(target_field: str):
-    full_name = Concat(F(f'{target_field}__first_name'), F(f'{target_field}__last_name'))
-    return full_name
+from accounts.models import Patient, Doctor, DEFER_PATIENT_FIELDS, DEFER_DOCTOR_FIELDS
+from prescriptions.api.utils import get_defer_fields_set, concatenate_name
 
 
 class PrescriptionQuerySet(models.QuerySet):
@@ -32,9 +23,10 @@ class PrescriptionQuerySet(models.QuerySet):
 
 class PrescriptionManager(models.Manager):
     def get_queryset(self):
-        return PrescriptionQuerySet(self.model, using=self._db).annotate(user=F('writer_id'),
-                                                                         writer_name=concatenate_name('writer'),
-                                                                         patient_name=concatenate_name('patient'))
+        return PrescriptionQuerySet(self.model, using=self._db). \
+            annotate(user=F('writer_id'),
+                     writer_name=concatenate_name('writer'),
+                     patient_name=concatenate_name('patient'))
 
     def select_all(self):
         return self.get_queryset().select_related('writer'). \
@@ -58,3 +50,12 @@ class Prescription(models.Model):
 
     def get_writer_name(self):
         return self.writer.get_full_name()
+
+
+# Prescription과 DataFile을 잇는 중계 모델
+class FilePrescription(models.Model):
+    prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE)
+    created_at = models.DateField(auto_now_add=True)
+    updated_at = models.DateField(auto_now=True)
+    description = models.TextField()
+    deleted = models.BooleanField(default=False)

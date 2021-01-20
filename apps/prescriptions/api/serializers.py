@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
 from accounts.models import Patient
-from prescriptions.models import Prescription
+from prescriptions.models import Prescription, HealthStatus, FilePrescription
 
 
 class WriterFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
@@ -27,26 +27,33 @@ class DefaultPrescriptionSerializer(serializers.ModelSerializer):
         lookup_field='pk'
     )
     writer = serializers.PrimaryKeyRelatedField(read_only=True)
-    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.select_all().defer_option_fields())
+    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.select_all())
     description = serializers.CharField()
-    created = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
-    updated = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S", read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Prescription
-        fields = ['url', 'writer', 'patient', 'description', 'created', 'updated']
+        fields = ['url', 'writer', 'patient', 'description', 'created_at', 'updated_at']
 
 
 class PrescriptionSerializer(DefaultPrescriptionSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='prescriptions:prescription-detail-update',
+        lookup_field='pk'
+    )
     writer = serializers.HiddenField(default=CurrentUserDefault())
-    patient = PatientFilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all().defer_option_fields(),
+    patient = PatientFilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
                                                     write_only=True)
 
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
     writer_name = serializers.SerializerMethodField(read_only=True)
     patient_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta(DefaultPrescriptionSerializer.Meta):
-        fields = DefaultPrescriptionSerializer.Meta.fields + ['writer_name', 'patient_name']
+        fields = DefaultPrescriptionSerializer.Meta.fields + ['writer_name', 'patient_name', 'start_date', 'end_date',
+                                                              'url']
 
     def get_writer_name(self, instance):
         if hasattr(instance, 'writer_name'):
@@ -59,9 +66,36 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
             return instance.patient_name
         return instance.patient.get_full_name()
 
-    def validate(self, attrs):
-        return attrs
-
     def create(self, validated_data):
         validated_data['writer'] = validated_data['writer'].doctor
         return super().create(validated_data)
+
+
+class FilePrescriptionSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='prescriptions:file-prescription-detail-update',
+        lookup_field='pk'
+    )
+    description = serializers.CharField(default='')
+    status = serializers.ChoiceField(choices=HealthStatus.choices, default=HealthStatus.NONE)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    deleted = serializers.BooleanField(default=False, read_only=True)
+    prescription = serializers.PrimaryKeyRelatedField(read_only=True)
+    day_number = serializers.IntegerField(read_only=True)
+    active = serializers.BooleanField()
+    # updated = serializers.BooleanField()
+    checked = serializers.BooleanField()
+
+    class Meta:
+        model = FilePrescription
+        fields = '__all__'
+
+
+class FilePrescriptionListSerializer(FilePrescriptionSerializer):
+    pass
+
+
+class FilePrescriptionRetrieveUpdateSerializer(FilePrescriptionSerializer):
+    class Meta(FilePrescriptionSerializer.Meta):
+        fields = FilePrescriptionSerializer.Meta.fields

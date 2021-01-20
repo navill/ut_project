@@ -29,8 +29,10 @@ def delete_file(path):
 
 def directory_path(instance: 'DataFile', filename: str) -> str:
     day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
-    name, ext = filename.split('.')
-    return f'{day}/{ext}/{instance.uploader}_{name}_{time}.{ext}'
+    splited_name = filename.split('.')
+    filename = splited_name[:-1]
+    extension = splited_name[-1]
+    return f'{day}/{extension}/{instance.uploader}_{time}_{filename}.{extension}'
 
 
 def concatenate_name(target_field: str):

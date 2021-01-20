@@ -60,8 +60,8 @@ class PermissionBundleMethodMixin:
     def is_owner(self, request, obj) -> bool:
         user = request.user
         owner_id = None
+
         if hasattr(obj, 'user'):
-            # owner = BaseUser.objects.get(id=obj.user) if isinstance(obj.user, int) else obj.user
             owner_id = obj.user if isinstance(obj.user, int) else obj.user.id
         return user.is_superuser or bool(user.id == owner_id)
 

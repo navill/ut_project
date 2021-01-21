@@ -3,288 +3,628 @@
     "model": "prescriptions.prescription",
     "pk": 1,
     "fields": {
+        "description": "\ud658\uc790 \uc77c\uc740 \ubd88\uba74\uc99d\uc744 \uac00\uc9c0\uace0 \uc788\uc2b5\ub2c8\ub2e4.",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "\ud658\uc790 \uc77c\uc740 \ubd88\uba74\uc99d\uc744 \uac00\uc9c0\uace0 \uc788\uc2b5\ub2c8\ub2e4.",
-        "created_at": "2021-01-04T11:17:24.319",
-        "updated_at": "2021-01-04T11:17:24.319",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 2,
     "fields": {
+        "description": "\ud658\uc790 \uc774 \ub294 \uc6b0\uc6b8\uc99d\uc744 \uac00\uc9c0\uace0 \uc788\uc2b5\ub2c8\ub2e4.",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 6,
-        "description": "\ud658\uc790 \uc774 \ub294 \uc6b0\uc6b8\uc99d\uc744 \uac00\uc9c0\uace0 \uc788\uc2b5\ub2c8\ub2e4.",
-        "created_at": "2021-01-04T11:17:36.439",
-        "updated_at": "2021-01-04T11:17:36.439",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 3,
     "fields": {
+        "description": "asdfzer",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "asdfzer",
-        "created_at": "2021-01-04T13:57:07.090",
-        "updated_at": "2021-01-04T13:57:07.090",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 4,
     "fields": {
+        "description": "asdfawer",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 3,
         "patient": 6,
-        "description": "asdfawer",
-        "created_at": "2021-01-04T14:21:52.198",
-        "updated_at": "2021-01-04T14:21:52.198",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 5,
     "fields": {
+        "description": "asdfawerddar",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 3,
         "patient": 5,
-        "description": "asdfawerddar",
-        "created_at": "2021-01-04T14:21:56.659",
-        "updated_at": "2021-01-04T14:21:56.659",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 6,
     "fields": {
+        "description": "asdfzer",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 3,
         "patient": 5,
-        "description": "asdfzer",
-        "created_at": "2021-01-04T14:32:07.581",
-        "updated_at": "2021-01-04T14:32:07.581",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 7,
     "fields": {
+        "description": "asdfzer",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 3,
         "patient": 6,
-        "description": "asdfzer",
-        "created_at": "2021-01-04T14:32:10.739",
-        "updated_at": "2021-01-04T14:32:10.739",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 8,
     "fields": {
+        "description": "asdz",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-04T00:00:00",
+        "updated_at": "2021-01-04T00:00:00",
+        "deleted": false,
         "writer": 3,
         "patient": 5,
-        "description": "asdz",
-        "created_at": "2021-01-04T14:32:47.186",
-        "updated_at": "2021-01-04T14:32:47.186",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 9,
     "fields": {
+        "description": "asfdaasdrasdfer",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "asfdaasdrasdfer",
-        "created_at": "2021-01-12T17:18:46.157",
-        "updated_at": "2021-01-12T17:18:46.157",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 10,
     "fields": {
+        "description": "11111111111",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "11111111111",
-        "created_at": "2021-01-12T17:19:16.080",
-        "updated_at": "2021-01-12T17:19:16.080",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 11,
     "fields": {
+        "description": "azzxdd",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "azzxdd",
-        "created_at": "2021-01-12T17:30:23.025",
-        "updated_at": "2021-01-12T17:30:23.025",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 12,
     "fields": {
+        "description": "333333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "333333333",
-        "created_at": "2021-01-12T17:41:39.717",
-        "updated_at": "2021-01-12T17:41:39.717",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 13,
     "fields": {
+        "description": "333333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "333333333",
-        "created_at": "2021-01-12T17:42:33.059",
-        "updated_at": "2021-01-12T17:42:33.059",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 14,
     "fields": {
+        "description": "a11111111111",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "a11111111111",
-        "created_at": "2021-01-12T17:44:59.921",
-        "updated_at": "2021-01-12T17:44:59.921",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 15,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:47:20.401",
-        "updated_at": "2021-01-12T17:47:20.401",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 16,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:47:49.936",
-        "updated_at": "2021-01-12T17:47:49.937",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 17,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:48:13.313",
-        "updated_at": "2021-01-12T17:48:13.313",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 18,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:53:10.384",
-        "updated_at": "2021-01-12T17:53:10.384",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 19,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:54:37.063",
-        "updated_at": "2021-01-12T17:54:37.063",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 20,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:54:56.716",
-        "updated_at": "2021-01-12T17:54:56.716",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 21,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:56:04.378",
-        "updated_at": "2021-01-12T17:56:04.378",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 22,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-12T00:00:00",
+        "updated_at": "2021-01-12T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-12T17:56:23.324",
-        "updated_at": "2021-01-12T17:56:23.324",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 23,
     "fields": {
+        "description": "343333333",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-13T00:00:00",
+        "updated_at": "2021-01-13T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "343333333",
-        "created_at": "2021-01-13T09:24:48.360",
-        "updated_at": "2021-01-13T09:24:48.360",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
     }
 },
 {
     "model": "prescriptions.prescription",
     "pk": 24,
     "fields": {
+        "description": "asdfaewr",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-13T00:00:00",
+        "updated_at": "2021-01-13T00:00:00",
+        "deleted": false,
         "writer": 2,
         "patient": 5,
-        "description": "asdfaewr",
-        "created_at": "2021-01-13T14:07:36.070",
-        "updated_at": "2021-01-13T14:07:36.070",
-        "deleted": false
+        "start_date": null,
+        "end_date": null
+    }
+},
+{
+    "model": "prescriptions.prescription",
+    "pk": 25,
+    "fields": {
+        "description": "210120 \ucc98\ubc29\uc804",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T00:00:00",
+        "updated_at": "2021-01-20T00:00:00",
+        "deleted": false,
+        "writer": 2,
+        "patient": 5,
+        "start_date": null,
+        "end_date": null
+    }
+},
+{
+    "model": "prescriptions.prescription",
+    "pk": 26,
+    "fields": {
+        "description": "start & end date",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T00:00:00",
+        "updated_at": "2021-01-20T00:00:00",
+        "deleted": false,
+        "writer": 2,
+        "patient": 7,
+        "start_date": "2021-01-23",
+        "end_date": "2021-01-27"
+    }
+},
+{
+    "model": "prescriptions.prescription",
+    "pk": 27,
+    "fields": {
+        "description": "\ud658\uc790\uac00 \uc774\uc0c1\ud569\ub2c8\ub2e4",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T17:09:08.082",
+        "updated_at": "2021-01-20T17:09:08.082",
+        "deleted": false,
+        "writer": 3,
+        "patient": 12,
+        "start_date": "2021-01-21",
+        "end_date": "2021-01-25"
+    }
+},
+{
+    "model": "prescriptions.prescription",
+    "pk": 28,
+    "fields": {
+        "description": "asdr",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-21T09:23:39.390",
+        "updated_at": "2021-01-21T09:23:39.390",
+        "deleted": false,
+        "writer": 3,
+        "patient": 6,
+        "start_date": "2021-01-22",
+        "end_date": "2021-01-27"
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 1,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T00:00:00",
+        "updated_at": "2021-01-20T16:52:19.142",
+        "deleted": false,
+        "prescription": 26,
+        "day_number": 1,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 2,
+    "fields": {
+        "description": "\uc774\uc0c1\ud568",
+        "status": "ABNORMAL",
+        "created_at": "2021-01-20T00:00:00",
+        "updated_at": "2021-01-20T16:52:26.873",
+        "deleted": false,
+        "prescription": 26,
+        "day_number": 2,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 3,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T00:00:00",
+        "updated_at": "2021-01-20T00:00:00",
+        "deleted": false,
+        "prescription": 26,
+        "day_number": 3,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 4,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T00:00:00",
+        "updated_at": "2021-01-20T00:00:00",
+        "deleted": false,
+        "prescription": 26,
+        "day_number": 4,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 5,
+    "fields": {
+        "description": "dedddf",
+        "status": "NORMAL",
+        "created_at": "2021-01-20T17:09:08.112",
+        "updated_at": "2021-01-20T17:24:32.287",
+        "deleted": false,
+        "prescription": 27,
+        "day_number": 1,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 6,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T17:09:08.112",
+        "updated_at": "2021-01-20T17:09:08.112",
+        "deleted": false,
+        "prescription": 27,
+        "day_number": 2,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 7,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T17:09:08.112",
+        "updated_at": "2021-01-21T09:33:57.984",
+        "deleted": false,
+        "prescription": 27,
+        "day_number": 3,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 8,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-20T17:09:08.112",
+        "updated_at": "2021-01-20T17:09:08.112",
+        "deleted": false,
+        "prescription": 27,
+        "day_number": 4,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 9,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-21T09:23:39.416",
+        "updated_at": "2021-01-21T09:23:39.416",
+        "deleted": false,
+        "prescription": 28,
+        "day_number": 1,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 10,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-21T09:23:39.416",
+        "updated_at": "2021-01-21T09:23:39.416",
+        "deleted": false,
+        "prescription": 28,
+        "day_number": 2,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 11,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-21T09:23:39.416",
+        "updated_at": "2021-01-21T09:23:39.416",
+        "deleted": false,
+        "prescription": 28,
+        "day_number": 3,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 12,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-21T09:23:39.416",
+        "updated_at": "2021-01-21T09:23:39.416",
+        "deleted": false,
+        "prescription": 28,
+        "day_number": 4,
+        "active": true,
+        "checked": false,
+        "uploaded": false
+    }
+},
+{
+    "model": "prescriptions.fileprescription",
+    "pk": 13,
+    "fields": {
+        "description": "",
+        "status": "UNKNOWN",
+        "created_at": "2021-01-21T09:23:39.416",
+        "updated_at": "2021-01-21T09:23:39.416",
+        "deleted": false,
+        "prescription": 28,
+        "day_number": 5,
+        "active": true,
+        "checked": false,
+        "uploaded": false
     }
 }
 ]

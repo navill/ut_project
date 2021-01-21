@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Prefetch
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -41,6 +41,17 @@ class PrescriptionQuerySet(models.QuerySet):
         deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
         return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
+    def select_patient(self):
+        return self.select_related('patient')
+
+    def select_writer(self):
+        return self.select_related('writer')
+
+    def prefetch_file_prescription_with_files(self):
+        return self.prefetch_related(Prefetch('file_prescriptions',
+                                              queryset=FilePrescription.objects.prefetch_related('patient_files')
+                                              ))
+
 
 class PrescriptionManager(models.Manager):
     def get_queryset(self):
@@ -50,9 +61,17 @@ class PrescriptionManager(models.Manager):
                      patient_name=concatenate_name('patient'))
 
     def select_all(self):
-        return self.get_queryset().select_related('writer'). \
-            select_related('patient'). \
+        return self.get_queryset().\
+            select_writer(). \
+            select_patient(). \
             order_by('-created_at'). \
+            filter(deleted=False)
+
+    def nested_all(self):
+        return self.get_queryset(). \
+            select_writer(). \
+            select_patient(). \
+            prefetch_file_prescription_with_files().\
             filter(deleted=False)
 
 
@@ -103,6 +122,12 @@ class FilePrescriptionQuerySet(models.QuerySet):
         deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
         return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
+    def prefetch_all(self):
+        return self.prefetch_related('patient_files')
+
+    def select_all(self):
+        return self.select_related('prescription')
+
 
 class FilePrescriptionManager(models.Manager):
     def get_queryset(self):
@@ -111,8 +136,11 @@ class FilePrescriptionManager(models.Manager):
                      writer_name=concatenate_name('prescription__writer'),
                      patient=concatenate_name('prescription__patient'))
 
-    # def select_all(self):
-    #     return self.get_queryset().select_related('prescription')
+    def prefetch_all(self):
+        return self.get_queryset().prefetch_all()
+
+    def select_all(self):
+        return self.get_queryset().select_all()
 
 
 """
@@ -123,9 +151,13 @@ FilePrescription
 
 # Prescription과 DataFile을 잇는 중계 모델
 class FilePrescription(BasePrescription):
-    prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE)
+    prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='file_prescriptions')
     day_number = models.IntegerField()
     active = models.BooleanField(default=True)
     checked = models.BooleanField(default=False)  # 환자가 파일 업로드할 때 True, 의사가 FilePrescription 생성할 때 False
+    uploaded = models.BooleanField(default=False)
 
     objects = FilePrescriptionManager()
+
+    def __str__(self):
+        return f'{self.prescription.start_date}: {self.day_number}일'

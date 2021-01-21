@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from config.settings.local import MEDIA_ROOT
-from files.models import HealthStatus
+from prescriptions.models import HealthStatus
 
 DOCTOR_PARAMETER = 'user, first_name, last_name, address, phone, description, status_code', [
     ({

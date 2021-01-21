@@ -87,6 +87,9 @@ class BaseManager(BaseUserManager):
         # self._validate_superuser_status(attributes)
         return self.create_user(email=email, password=password, **attributes)
 
+    def select_all(self):
+        return self.get_queryset().select_all()
+
     def _set_superuser_status(self, attributes):
         attributes.setdefault('is_staff', True)
         attributes.setdefault('is_superuser', True)

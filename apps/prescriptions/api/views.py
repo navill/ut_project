@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Union
 
-from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.serializers import Serializer
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class PrescriptionListCreateAPIView(ListCreateAPIView):
-    queryset = Prescription.objects.select_all()  # + defer_option_fields()
+    queryset = Prescription.objects.select_all().defer_option_fields()
     serializer_class = serializers.PrescriptionSerializer
     permission_classes = [IsDoctor | IsPatient]
     lookup_field = 'pk'
@@ -31,7 +31,7 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
 
 
 class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
-    queryset = Prescription.objects.select_all()  # + defer_option_fields()
+    queryset = Prescription.objects.select_all().defer_option_fields()
     serializer_class = serializers.PrescriptionSerializer
     permission_classes = [IsOwner | RelatedPatientReadOnly]
     lookup_field = 'pk'
@@ -60,5 +60,12 @@ class FilePrescriptionListAPIView(ListAPIView):
 class FilePrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = FilePrescription.objects.all()
     serializer_class = serializers.FilePrescriptionRetrieveUpdateSerializer
+    permission_classes = [IsOwner | RelatedPatientReadOnly]
+    lookup_field = 'pk'
+
+
+class TestPrescriptionAPIView(RetrieveAPIView):
+    queryset = Prescription.objects.nested_all()  # + defer_option_fields()
+    serializer_class = serializers.NestedPrescriptionSerializer
     permission_classes = [IsOwner | RelatedPatientReadOnly]
     lookup_field = 'pk'

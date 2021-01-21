@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
 from files.models import DoctorFile, PatientFile
-from prescriptions.models import Prescription, HealthStatus, FilePrescription
+from prescriptions.models import Prescription, FilePrescription
 
 User = get_user_model()
 
@@ -21,7 +21,6 @@ class BasedCurrentUserPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField)
 
 """
 BaseFile Serializer
-- fields: url, download_url, created_at, file, deleted
 """
 
 
@@ -116,7 +115,7 @@ class DoctorFileSerializer(_BaseFileSerializer):
 
     class Meta:
         model = DoctorFile
-        fields = ['id', 'url', 'download_url', 'prescription', 'file', 'uploader', 'created_at']
+        fields = ['url', 'id', 'download_url', 'prescription', 'file', 'uploader', 'created_at']
 
 
 class DoctorFlieRetrieveSerializer(DoctorFileSerializer):
@@ -132,7 +131,7 @@ class DoctorFileUploadSerializer(DoctorFileSerializer):
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields
 
-    def create(self, validated_data: dict):
+    def create(self, validated_data: dict) -> Union['DoctorFile', None]:
         uploader = validated_data.get('uploader', None)
         prescription = validated_data.get('prescription', None)
         # try:
@@ -186,12 +185,33 @@ DataFile(related Patient) Serializer
 """
 
 
+class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context.get('request', None)
+        queryset = super().get_queryset()
+        if not request or not queryset:
+            return None
+        return queryset.filter(prescription__patient_id=request.user.id)
+
+
 class PatientFileSerializer(_BaseFileSerializer):
-    file_prescription = serializers.PrimaryKeyRelatedField(queryset=FilePrescription.objects.all())
+    url = serializers.HyperlinkedIdentityField(
+        view_name='files:patient-file-retrieve',
+        lookup_field='id',
+        read_only=True
+    )
+    download_url = serializers.HyperlinkedIdentityField(
+        view_name='files:patient-file-download',
+        lookup_field='id',
+        read_only=True
+    )
+    file_prescription = CurrentPatientPrimaryKeyRelatedField(queryset=FilePrescription.objects.select_all())
+    uploader = serializers.PrimaryKeyRelatedField(read_only=True)
+    uploader_name = serializers.SerializerMethodField()
 
     class Meta:
-        model = PatientFile.objects.select_all()
-        fields = ['url', 'download_url', 'file_prescription', 'uploader', 'uploader_name', 'created_at']
+        model = PatientFile
+        fields = ['url', 'download_url', 'id', 'file_prescription', 'uploader', 'uploader_name', 'created_at']
 
 
 class PatientFlieRetrieveSerializer(PatientFileSerializer):
@@ -201,24 +221,27 @@ class PatientFlieRetrieveSerializer(PatientFileSerializer):
 
 class PatientFileUploadSerializer(PatientFileSerializer):
     uploader = serializers.HiddenField(default=CurrentUserDefault())
-    checked = serializers.BooleanField(read_only=True, default=False)
+
+    # checked = serializers.BooleanField(read_only=True, default=False)
 
     class Meta(PatientFileSerializer.Meta):
         # fields = ['uploader', 'created_at', 'checked', 'file']
         fields = PatientFileSerializer.Meta.fields + ['file']
 
-    def create(self, validated_data: dict) -> Union['DataFile', None]:
+    def create(self, validated_data: dict) -> Union['PatientFile', None]:
         uploader = validated_data.get('uploader', None)
-        prescription_id = validated_data.get('file_prescription', None)
-
-        try:
-            uploader_id = uploader.id
-        except AttributeError('uploader is None'):
-            raise
-
-        file_object = PatientFile.objects.create(uploader_id=uploader_id, file_prescription_id=prescription_id,
-                                                 **validated_data)
-        return file_object
+        file_prescription = validated_data.get('file_prescription', None)
+        if uploader and file_prescription:
+            try:
+                uploader_id = uploader.id if isinstance(uploader, User) else uploader
+                file_prescription_id = file_prescription.id if isinstance(file_prescription,
+                                                                          FilePrescription) else file_prescription
+            except Exception:
+                raise
+            file_object = PatientFile.objects.create(uploader_id=uploader_id, file_prescription_id=file_prescription_id,
+                                                     **validated_data)
+            return file_object
+        return None
 
 
 class PatientFileDownloadSerializer(PatientFileSerializer):
@@ -228,15 +251,11 @@ class PatientFileDownloadSerializer(PatientFileSerializer):
 
 class PatientFileListSerializer(PatientFileSerializer):
     uploader_name = serializers.SerializerMethodField()
-    prescription_writer = serializers.SerializerMethodField()
 
     class Meta(PatientFileSerializer.Meta):
-        # fields = ['download_url', 'url', 'checked', 'status', 'created_at',
-        # 'uploader', 'uploader_name', 'prescription', 'prescription_writer']
-        fields = PatientFileSerializer.Meta.fields + ['uploader_name', 'prescription_writer']
+        fields = PatientFileSerializer.Meta.fields + ['uploader_name']
 
 
 class PatientUploadedFileListSerializer(PatientFileSerializer):
     class Meta(PatientFileSerializer.Meta):
-        # fields = ['uploader', 'created_at', 'checked']
         fields = PatientFileSerializer.Meta.fields

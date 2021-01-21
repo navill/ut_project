@@ -3,6 +3,8 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import F
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from files.api.utils import delete_file, concatenate_name, directory_path
 from prescriptions.models import Prescription, FilePrescription
@@ -91,7 +93,9 @@ PATIENT_QUERY_FIELDS = (f'uploader__patient__{field}' for field in UPLOADER_QUER
 # todo: PatientFile, DoctorFile로 분리.
 #  abstract model(created_at, file, checked, status, deleted)
 #  PatientFile(file_prescription(null=False)), DoctorFile(prescription(null=False))
-class BaseFileQuerySet(models.QuerySet):
+# class BaseFileQuerySet(models.QuerySet):
+class BaseFileQuerySetMixin:
+
     def shallow_delete(self):
         self.update(deleted=True)
 
@@ -134,7 +138,7 @@ class BaseFile(models.Model):
         super().delete()
 
 
-class DoctorFileQuerySet(BaseFileQuerySet):
+class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
     def select_doctor(self):
         return self.select_related('uploader__doctor')
 
@@ -166,15 +170,21 @@ class DoctorFile(BaseFile):
     objects = DoctorFileManager()
 
 
-class PatientFileQuerySet(BaseFileQuerySet):
+class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
     def filter_unchecked_list(self):
         return self.filter(checked=False)
 
     def filter_checked_list(self):
         return self.filter(checked=True)
 
+    def filter_uploader(self, user):
+        return self.filter(uploader=user)
+
     def select_patient(self):
         return self.select_related('uploader__patient')
+
+    def select_doctor(self):
+        return self.select_related('prescription__doctor')
 
     def select_file_prescription(self):
         return self.select_related('file_prescription')
@@ -195,6 +205,16 @@ class PatientFileManager(models.Manager):
 
 
 class PatientFile(BaseFile):
-    file_prescription = models.ForeignKey(FilePrescription, on_delete=models.DO_NOTHING, null=True)
+    file_prescription = models.ForeignKey(FilePrescription, on_delete=models.DO_NOTHING, null=True,
+                                          related_name='patient_files')
 
     objects = PatientFileManager()
+
+
+@receiver(post_save, sender=PatientFile)
+def create_patient_file(sender, **kwargs):
+    instance = kwargs['instance']
+    file_prescription = instance.file_prescription
+    if not file_prescription.uploaded:
+        file_prescription.uploaded = True
+        file_prescription.save()

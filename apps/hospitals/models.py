@@ -67,7 +67,7 @@ class MajorQuerySet(models.QuerySet):
 
 class MajorManager(models.Manager):
     def get_queryset(self):
-        return MajorQuerySet(self.model, using=self._db)
+        return MajorQuerySet(self.model, using=self._db).order_by('id')
         # .prefetch_related(Prefetch('department__medical_center', queryset=MedicalCenter.objects.all()))
 
     def select_all(self):

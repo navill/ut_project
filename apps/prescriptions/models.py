@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from django.db import models
 from django.db.models import F, Prefetch
 from django.db.models.signals import post_save
@@ -27,51 +29,51 @@ class BasePrescription(models.Model):
 
 
 class PrescriptionQuerySet(models.QuerySet):
-    def filter_writer(self, writer_id: int):
+    def filter_writer(self, writer_id: int) -> 'PrescriptionQuerySet':
         return self.filter(writer_id=writer_id)
 
-    def filter_patient(self, patient_id: int):
+    def filter_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
         return self.filter(patient_id=patient_id)
 
-    def join_uploader(self, query_word: str):
+    def join_uploader(self, query_word: str) -> 'PrescriptionQuerySet':
         return self.select_related(query_word)
 
-    def defer_option_fields(self):
+    def defer_option_fields(self) -> 'PrescriptionQuerySet':
         deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
         deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
         return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
-    def select_patient(self):
+    def select_patient(self) -> 'PrescriptionQuerySet':
         return self.select_related('patient')
 
-    def select_writer(self):
+    def select_writer(self) -> 'PrescriptionQuerySet':
         return self.select_related('writer')
 
-    def prefetch_file_prescription_with_files(self):
+    def prefetch_file_prescription_with_files(self) -> 'PrescriptionQuerySet':
         return self.prefetch_related(Prefetch('file_prescriptions',
                                               queryset=FilePrescription.objects.prefetch_related('patient_files')
                                               ))
 
 
 class PrescriptionManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> 'PrescriptionQuerySet':
         return PrescriptionQuerySet(self.model, using=self._db). \
             annotate(user=F('writer_id'),
                      writer_name=concatenate_name('writer'),
                      patient_name=concatenate_name('patient'))
 
-    def select_all(self):
-        return self.get_queryset().\
+    def select_all(self) -> 'PrescriptionQuerySet':
+        return self.get_queryset(). \
             select_writer(). \
             select_patient(). \
             order_by('-created_at'). \
             filter(deleted=False)
 
-    def nested_all(self):
+    def nested_all(self) -> 'PrescriptionQuerySet':
         return self.get_queryset(). \
             select_writer(). \
             select_patient(). \
-            prefetch_file_prescription_with_files().\
+            prefetch_file_prescription_with_files(). \
             filter(deleted=False)
 
 
@@ -111,35 +113,35 @@ def create_file_prescription(sender, **kwargs):
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
-    def filter_writer(self, writer_id: int):
+    def filter_writer(self, writer_id: int) -> 'FilePrescriptionQuerySet':
         return self.filter(writer_id=writer_id)
 
-    def filter_patient(self, patient_id: int):
+    def filter_patient(self, patient_id: int) -> 'FilePrescriptionQuerySet':
         return self.filter(patient_id=patient_id)
 
-    def defer_option_fields(self):
+    def defer_option_fields(self) -> 'FilePrescriptionQuerySet':
         deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
         deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
         return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
-    def prefetch_all(self):
+    def prefetch_all(self) -> 'FilePrescriptionQuerySet':
         return self.prefetch_related('patient_files')
 
-    def select_all(self):
+    def select_all(self) -> 'FilePrescriptionQuerySet':
         return self.select_related('prescription')
 
 
 class FilePrescriptionManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> 'FilePrescriptionQuerySet':
         return FilePrescriptionQuerySet(self.model, using=self._db). \
             annotate(user=F('prescription__writer_id'),
                      writer_name=concatenate_name('prescription__writer'),
                      patient=concatenate_name('prescription__patient'))
 
-    def prefetch_all(self):
+    def prefetch_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().prefetch_all()
 
-    def select_all(self):
+    def select_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().select_all()
 
 
@@ -159,5 +161,5 @@ class FilePrescription(BasePrescription):
 
     objects = FilePrescriptionManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.prescription.start_date}: {self.day_number}일'

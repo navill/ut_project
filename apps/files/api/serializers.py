@@ -1,4 +1,6 @@
-from typing import Union
+from __future__ import annotations
+
+from typing import Dict, Any, Optional, Type, TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -6,6 +8,9 @@ from rest_framework.fields import CurrentUserDefault
 
 from files.models import DoctorFile, PatientFile
 from prescriptions.models import Prescription, FilePrescription
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 User = get_user_model()
 
@@ -28,66 +33,8 @@ class _BaseFileSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True)
     deleted = serializers.BooleanField(default=False, read_only=True)
 
-    def get_uploader_name(self, instance):
+    def get_uploader_name(self, instance: User):
         return getattr(instance, 'uploader_patient_name', None) or getattr(instance, 'uploader_doctor_name', None)
-
-
-# class DefaultFileSerializer(RawFileSerializer):
-#     class Meta(RawFileSerializer.Meta):
-#         # fields = ['download_url', 'url', 'checked', 'status', 'created_at', 'uploader', 'prescription']
-#         fields = RawFileSerializer.Meta.fields + ['uploader', 'prescription']
-
-
-# class _FileSerializer(_BaseFileSerializer):
-
-# prescription_writer = serializers.SerializerMethodField()
-
-# def get_uploader_name(self, instance):
-#     return getattr(instance, 'uploader_patient_name', None) or getattr(instance, 'uploader_doctor_name', None)
-
-# def get_prescription_writer(self, instance):
-#     if instance.prescription is not None:
-#         return instance.prescription.get_writer_name()
-#     return None
-
-
-#
-# class FileUploadSerializer(serializers.ModelSerializer):
-#     uploader = serializers.HiddenField(default=CurrentUserDefault())
-#     file = serializers.FileField(write_only=True)
-#
-#     class Meta:
-#         model = DataFile
-#         fields = ['uploader', 'created_at', 'checked']
-#
-#     def create(self, validated_data: dict) -> Union['DataFile', None]:
-#         uploader = validated_data.get('uploader', None)
-#         prescription = validated_data.get('prescription', None)
-#         prescription_id = None
-#
-#         try:
-#             uploader_id = uploader.id
-#         except AttributeError('uploader is None'):
-#             raise
-#
-#         if isinstance(prescription, Prescription):
-#             prescription_id = prescription.id
-#
-#         file_object = DataFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id,
-#                                               **validated_data)
-#         return file_object
-#
-#
-# class FlieRetrieveSerializer(FileSerializer):
-#     class Meta(FileSerializer.Meta):
-#         # fields = ['download_url', 'url', 'checked', 'status', 'created_at', 'uploader', 'prescription']
-#         fields = FileSerializer.Meta.fields
-#         # fields = '__all__'
-#
-#
-# class FileDownloadSerializer(FileSerializer):
-#     class Meta(FileSerializer.Meta):
-#         fields = ['id'] + FileSerializer.Meta.fields
 
 
 """
@@ -131,13 +78,10 @@ class DoctorFileUploadSerializer(DoctorFileSerializer):
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields
 
-    def create(self, validated_data: dict) -> Union['DoctorFile', None]:
+    def create(self, validated_data: Dict[str, Any]) -> Optional[Type[DoctorFile]]:
         uploader = validated_data.get('uploader', None)
         prescription = validated_data.get('prescription', None)
-        # try:
-        #     uploader_id = uploader.id
-        # except AttributeError('uploader is None'):
-        #     raise
+
         uploader_id, prescription_id = (uploader.id, prescription.id) \
             if isinstance(uploader, User) and isinstance(prescription, Prescription) \
             else (uploader, prescription)
@@ -186,7 +130,7 @@ DataFile(related Patient) Serializer
 
 
 class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self):
+    def get_queryset(self) -> Optional[Type[QuerySet]]:
         request = self.context.get('request', None)
         queryset = super().get_queryset()
         if not request or not queryset:
@@ -228,7 +172,7 @@ class PatientFileUploadSerializer(PatientFileSerializer):
         # fields = ['uploader', 'created_at', 'checked', 'file']
         fields = PatientFileSerializer.Meta.fields + ['file']
 
-    def create(self, validated_data: dict) -> Union['PatientFile', None]:
+    def create(self, validated_data: Dict[str, Any]) -> Optional[PatientFile]:
         uploader = validated_data.get('uploader', None)
         file_prescription = validated_data.get('file_prescription', None)
         if uploader and file_prescription:

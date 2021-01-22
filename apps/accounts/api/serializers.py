@@ -1,18 +1,18 @@
-from typing import TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Union, Dict, Any, AnyStr, NoReturn
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.authentications import CustomRefreshToken
 from accounts.api.mixins import UserCreateMixin, RefreshBlacklistMixin
 from accounts.models import Doctor, Patient, Gender
 from hospitals.models import Major
-
-if TYPE_CHECKING:
-    from accounts.models import BaseUser
 
 User = get_user_model()
 
@@ -24,7 +24,7 @@ class RawAccountSerializer(serializers.ModelSerializer):
     address = serializers.CharField()
     phone = serializers.CharField()
 
-    def get_full_name(self, instance):
+    def get_full_name(self, instance: Union[Doctor, Patient]) -> str:
         return instance.get_full_name()
 
 
@@ -61,11 +61,11 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
     class Meta(BaseUserSerializer.Meta):
         fields = BaseUserSerializer.Meta.fields + ['password', 'password2']
 
-    def validate(self, data: dict):
+    def validate(self, data: Dict[str, AnyStr]) -> Dict[str, AnyStr]:
         self._check_matched_password(data)
         return data
 
-    def _check_matched_password(self, data: dict):
+    def _check_matched_password(self, data: Dict[str, AnyStr]) -> NoReturn:
         if data.get('password') != data.get('password2'):
             raise serializers.ValidationError("Those passwords do not match.")
         data.pop('password2')
@@ -106,7 +106,7 @@ class DoctorListSerializer(RawDoctorSerializer):
     class Meta(RawDoctorSerializer.Meta):
         fields = RawDoctorSerializer.Meta.fields + ['full_name', 'major_name']
 
-    def get_major_name(self, instance):
+    def get_major_name(self, instance: Doctor) -> str:
         return instance.major.name
 
 
@@ -139,7 +139,7 @@ class RawPatientSerializer(RawAccountSerializer):
         model = Patient
         fields = ['url', 'user_id', 'first_name', 'last_name', 'gender']
 
-    def get_doctor_name(self, instance):
+    def get_doctor_name(self, instance: Patient) -> str:
         return instance.doctor.get_full_name()
 
 
@@ -185,14 +185,14 @@ class PatientRetrieveSerializer(RawPatientSerializer):
 
 class AccountsTokenSerializer(TokenObtainPairSerializer):
     @classmethod
-    def get_token(cls, user: 'BaseUser'):
+    def get_token(cls, user: User) -> Token:
         token = CustomRefreshToken.for_user(user)
         return token
 
 
 class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializer):
     @transaction.atomic
-    def validate(self, attrs: dict):
+    def validate(self, attrs: Dict[str, Union[AnyStr, int]]) -> Dict[str, Union[AnyStr, int]]:
         refresh_obj = CustomRefreshToken(attrs['refresh'])
         data = {'access': str(refresh_obj.access_token)}
         access_token_exp = refresh_obj.access_token.payload['exp']

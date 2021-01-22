@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Type
+
+from django.db.models import QuerySet
 from django.http import FileResponse
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
@@ -38,7 +43,7 @@ class DoctorUploadedFileListAPIView(ListAPIView):
     serializer_class = DoctorUploadedFileListSerializer
     parser_classes = (MultiPartParser, FormParser)
 
-    def get_queryset(self):
+    def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
         queryset = super().get_queryset()
         queryset = queryset.filter(uploader__patient__doctor_id=user.id)
@@ -51,7 +56,7 @@ class DoctorUploadedFileUpdateAPIView(RetrieveUpdateAPIView):
     serializer_class = DoctorUploadedFileRetrieveSerializer
     lookup_field = 'id'
 
-    def get_queryset(self):
+    def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
         queryset = super().get_queryset().filter_unchecked_list()
         queryset = queryset.filter(uploader__patient__doctor_id=user.id)
@@ -88,7 +93,7 @@ class PatientUploadedFileListAPIView(ListAPIView):
     parser_classes = (MultiPartParser, FormParser)
     lookup_field = 'id'
 
-    def get_queryset(self):
+    def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
         return super().get_queryset().filter(uploader_id=user.id).filter_unchecked_list()
 

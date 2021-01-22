@@ -1,14 +1,13 @@
-from typing import TYPE_CHECKING, Union
+from __future__ import annotations
 
+from typing import Optional, Type
+
+from django.db.models import QuerySet
 from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView
-from rest_framework.serializers import Serializer
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
 from prescriptions.api import serializers
 from prescriptions.models import Prescription, FilePrescription
-
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
 
 
 class PrescriptionListCreateAPIView(ListCreateAPIView):
@@ -17,7 +16,7 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
     permission_classes = [IsDoctor | IsPatient]
     lookup_field = 'pk'
 
-    def get_queryset(self) -> Union["QuerySet", None]:
+    def get_queryset(self) -> Optional[Type[QuerySet]]:
         queryset = super().get_queryset()
 
         user = self.request.user
@@ -36,7 +35,7 @@ class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     permission_classes = [IsOwner | RelatedPatientReadOnly]
     lookup_field = 'pk'
 
-    def perform_update(self, serializer: Serializer):
+    def perform_update(self, serializer: serializers.PrescriptionSerializer):
         serializer.save()
 
 
@@ -45,7 +44,7 @@ class FilePrescriptionListAPIView(ListAPIView):
     serializer_class = serializers.FilePrescriptionListSerializer
     permission_classes = [IsDoctor | IsPatient]
 
-    def get_queryset(self) -> Union["QuerySet", None]:
+    def get_queryset(self) -> Optional[QuerySet]:
         queryset = super().get_queryset()
         user = self.request.user
 

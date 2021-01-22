@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from django.db import models
 from django.urls import reverse
 
@@ -7,10 +9,10 @@ class MedicalCenterQuerySet(models.QuerySet):
 
 
 class MedicalCenterManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset()
+    def get_queryset(self) -> MedicalCenterQuerySet:
+        return MedicalCenterQuerySet(self.model, using=self._db)
 
-    def prefetch_all(self):
+    def prefetch_all(self) -> MedicalCenterQuerySet:
         return self.get_queryset().prefetch_related('department__major')
 
 
@@ -25,10 +27,10 @@ class MedicalCenter(models.Model):
 
     objects = MedicalCenterManager()
 
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return str(self.name)
 
-    def get_absoulte_url(self):
+    def get_absoulte_url(self) -> str:
         return reverse('hospitals:hospital-retrieve', kwargs={'pk': self.pk})
 
 
@@ -37,13 +39,13 @@ class DepartmentQuerySet(models.QuerySet):
 
 
 class DepartmentManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> DepartmentQuerySet:
         return DepartmentQuerySet(self.model, using=self._db)
 
-    def select_all(self):
+    def select_all(self) -> DepartmentQuerySet:
         return self.get_queryset().select_related('medical_center')
 
-    def prefetch_all(self):
+    def prefetch_all(self) -> DepartmentQuerySet:
         return self.get_queryset().prefetch_related('major')
 
 
@@ -54,10 +56,10 @@ class Department(models.Model):
 
     objects = DepartmentManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.medical_center}-{self.name}'
 
-    def get_absoulte_url(self):
+    def get_absoulte_url(self) -> str:
         return reverse('hospitals:department-retrieve', kwargs={'pk': self.pk})
 
 
@@ -66,14 +68,14 @@ class MajorQuerySet(models.QuerySet):
 
 
 class MajorManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> MajorQuerySet:
         return MajorQuerySet(self.model, using=self._db).order_by('id')
         # .prefetch_related(Prefetch('department__medical_center', queryset=MedicalCenter.objects.all()))
 
-    def select_all(self):
+    def select_all(self) -> MajorQuerySet:
         return self.get_queryset().select_related('department__medical_center')
 
-    def prefetch_all(self):
+    def prefetch_all(self) -> MajorQuerySet:
         return self.get_queryset().prefetch_related('doctor')
 
 
@@ -84,8 +86,8 @@ class Major(models.Model):
 
     objects = MajorManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.department}-{self.name}'
 
-    def get_absoulte_url(self):
+    def get_absoulte_url(self) -> str:
         return reverse('hospitals:major-retrieve', kwargs={'pk': self.pk})

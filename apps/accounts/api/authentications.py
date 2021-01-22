@@ -1,6 +1,11 @@
+from __future__ import annotations
+
+from typing import Dict, AnyStr
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
+from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
 from rest_framework_simplejwt.settings import api_settings
@@ -10,7 +15,7 @@ User = get_user_model()
 
 
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
-    def authenticate(self, request):
+    def authenticate(self, request: Request):
         try:
             user, validated_token = super(CustomJWTTokenUserAuthentication, self).authenticate(request)
         except TypeError:
@@ -20,7 +25,7 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
             raise AuthenticationFailed("User don't have valid token", code='invalid_token')
         return user, validated_token
 
-    def get_user(self, validated_token):
+    def get_user(self, validated_token: Dict[str, AnyStr]):
         try:
             user_id = validated_token[api_settings.USER_ID_CLAIM]
         except KeyError:
@@ -41,7 +46,7 @@ class CustomToken(Token):
     token_type = None
     lifetime = None
 
-    def __init__(self, token=None, verify=True):
+    def __init__(self, token: AnyStr = None, verify: bool = True):
         super().__init__(token, verify)
         self.current_time = timezone.now()  # local time 적용
         self.token = token
@@ -67,7 +72,7 @@ class CustomRefreshToken(BlacklistMixin, CustomToken):
 
     @classmethod
     @transaction.atomic
-    def for_user(cls, user, raise_error=False) -> Token:
+    def for_user(cls, user: User, raise_error: bool = False) -> Token:
         token = super().for_user(user)
         access_token_exp = int(token.access_token.payload['exp'])
         if raise_error:
@@ -76,7 +81,7 @@ class CustomRefreshToken(BlacklistMixin, CustomToken):
         return token
 
     @property
-    def access_token(self):
+    def access_token(self) -> Token:
         access = AccessToken()
         access.set_exp(from_time=self.current_time)
 

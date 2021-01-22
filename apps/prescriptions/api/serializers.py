@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Dict, Any, Type, Optional
+
+from django.db.models import QuerySet
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
@@ -11,7 +16,7 @@ class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         super().__init__(**kwargs)
         self.related_id = related_id
 
-    def get_queryset(self):
+    def get_queryset(self) -> Optional[Type[QuerySet]]:
         request = self.context.get('request', None)
         if not request:
             return None
@@ -54,18 +59,18 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
         fields = DefaultPrescriptionSerializer.Meta.fields + ['writer_name', 'patient_name', 'start_date',
                                                               'end_date', 'url']
 
-    def get_writer_name(self, instance):
+    def get_writer_name(self, instance: Prescription) -> str:
         if hasattr(instance, 'writer_name'):
             return instance.writer_name
         # queryset에 writer_name이 없을 경우
         return instance.writer.get_full_name()
 
-    def get_patient_name(self, instance):
+    def get_patient_name(self, instance: Prescription) -> str:
         if hasattr(instance, 'patient_name'):
             return instance.patient_name
         return instance.patient.get_full_name()
 
-    def create(self, validated_data):
+    def create(self, validated_data: Dict[str, Any]) -> Prescription:
         validated_data['writer'] = validated_data['writer'].doctor
         return super().create(validated_data)
 

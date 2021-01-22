@@ -171,3 +171,4 @@ handle_groups.py
 results.sqlite
 .coveragerc
 django_mysql.cnf
+django_mysql_test.cnf

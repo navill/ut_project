@@ -1,4 +1,6 @@
-from typing import Union, TYPE_CHECKING
+from __future__ import annotations
+
+from typing import Union, TYPE_CHECKING, Tuple, Dict, List
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -19,12 +21,12 @@ DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') 
 DEFER_PATIENT_FIELDS = ('emergency_call', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
 
 
-def get_defer_field_set(parent_field_name: str, *fields):
+def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str]:
     fields = [f'{parent_field_name}__{field}' for field in fields]
     return fields
 
 
-def concatenate_name():
+def concatenate_name() -> Concat:
     full_name = Concat(F('last_name'), F('first_name'))
     return full_name
 
@@ -52,16 +54,16 @@ class AccountsModel(models.Model):
 
 
 class BaseQuerySet(models.QuerySet):
-    def active(self) -> 'QuerySet':
+    def active(self) -> 'BaseQuerySet':
         return self.filter(is_active=True)
 
-    def defer_option_fields(self, *fields) -> 'QuerySet':
+    def defer_option_fields(self, *fields: Tuple[str]) -> 'BaseQuerySet':
         return self.defer(*DEFER_BASEUSER_FIELDS, *fields)
 
-    def select_all(self) -> 'QuerySet':
+    def select_all(self) -> 'BaseQuerySet':
         return self.select_related('doctor').select_related('patient')
 
-    def defer_unnecessary_fields(self) -> 'QuerySet':
+    def defer_unnecessary_fields(self) -> 'BaseQuerySet':
         # deferred_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         deferred_doctor_fields = get_defer_field_set(parent_field_name='doctor', *DEFER_DOCTOR_FIELDS)
         deferred_patient_fields = get_defer_field_set(parent_field_name='patient', *DEFER_PATIENT_FIELDS)
@@ -69,11 +71,11 @@ class BaseQuerySet(models.QuerySet):
 
 
 class BaseManager(BaseUserManager):
-    def get_queryset(self) -> 'QuerySet':
+    def get_queryset(self) -> BaseQuerySet:
         # request에서 user에 대한 select_related를 적용해야할 경우 authentication 수정 필요
         return BaseQuerySet(self.model, using=self._db).select_related('doctor').select_related('patient')
 
-    def create_user(self, email, password, **attributes) -> 'BaseUser':
+    def create_user(self, email, password, **attributes: Dict[str, str]) -> 'BaseUser':
         if not email:
             raise ValueError('No email has been entered')
 
@@ -82,9 +84,8 @@ class BaseManager(BaseUserManager):
         user.save()
         return user
 
-    def create_superuser(self, email, password, **attributes) -> 'BaseUser':
+    def create_superuser(self, email, password, **attributes: Dict[str, str]) -> 'BaseUser':
         self._set_superuser_status(attributes)
-        # self._validate_superuser_status(attributes)
         return self.create_user(email=email, password=password, **attributes)
 
     def select_all(self):
@@ -132,7 +133,7 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.token_expired = time
         self.save()
 
-    def get_child_account(self) -> Union['AccountsModel', None]:
+    def get_child_account(self) -> Union['Doctor', 'Patient', None]:
         if self.is_doctor:
             return self.doctor
         elif self.is_patient:
@@ -149,24 +150,24 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
 
 class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
-    def defer_option_fields(self, *fields: tuple) -> 'QuerySet':
+    def defer_option_fields(self, *fields: str) -> 'DoctorQuerySet':
         # deferred_user_fields = get_defer_field_set('user', DEFER_BASEUSER_FIELDS)
         deferred_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
         return self.defer(*DEFER_DOCTOR_FIELDS, *deferred_user_fields, *fields)
 
 
 class DoctorManager(models.Manager):
-    def get_queryset(self) -> 'QuerySet':
+    def get_queryset(self) -> DoctorQuerySet:
         return DoctorQuerySet(self.model, using=self._db). \
             annotate(full_name=concatenate_name())
 
-    def select_all(self):
+    def select_all(self) -> DoctorQuerySet:
         return self.select_related('user').select_related('major').filter_user_active()
 
-    def non_related_all(self):
+    def non_related_all(self) -> DoctorQuerySet:
         return self.defer('user', 'major')
 
-    def with_patients(self):
+    def with_patients(self) -> DoctorQuerySet:
         return self.all().prefetch_related('patients')
 
 
@@ -177,28 +178,28 @@ class Doctor(AccountsModel):
 
     objects = DoctorManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.major.name}: {self.get_full_name()}'
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse('accounts:doctor-detail-update', kwargs={'pk': self.pk})
 
 
 class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
-    def defer_option_fields(self, *fields):
+    def defer_option_fields(self, *fields: str) -> 'PatientQuerySet':
         defer_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
         defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
 
-    def select_all(self):
+    def select_all(self) -> 'PatientQuerySet':
         return self.select_related('user').select_related('doctor')
 
 
 class PatientManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> PatientQuerySet:
         return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name()).filter_user_active()
 
-    def select_all(self):
+    def select_all(self) -> PatientQuerySet:
         return self.get_queryset().select_related('user').select_related('doctor')
 
 
@@ -210,7 +211,7 @@ class Patient(AccountsModel):
 
     objects = PatientManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.get_full_name()
 
     def get_absolute_url(self) -> str:

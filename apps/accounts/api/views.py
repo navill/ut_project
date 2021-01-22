@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Type
+
+from django.db.models import QuerySet
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -79,7 +84,7 @@ class PatientListAPIView(ListAPIView):
     permission_classes = [IsDoctor]
     lookup_field = 'pk'
 
-    def get_queryset(self):
+    def get_queryset(self) -> Type[QuerySet]:
         queryset = super().get_queryset()
         doctor = self.request.user.doctor
         return queryset.filter(doctor=doctor)

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -9,7 +9,7 @@ from accounts.api.utils import CreatedUserPair, PostProcessingUserDirector
 
 if TYPE_CHECKING:
     from accounts.api.authentications import CustomRefreshToken
-    
+
 User = get_user_model()
 
 
@@ -42,7 +42,7 @@ class RefreshBlacklistMixin:
         refresh.set_jti()
         refresh.set_exp()
 
-    def set_user_expired_to(self, epoch_time: int):
+    def set_user_expired_to(self, epoch_time: int) -> NoReturn:
         user = self.context['request'].user
         user.set_token_expired(epoch_time)
 

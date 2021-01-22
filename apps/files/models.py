@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import uuid
+from typing import Type, Dict, Any, Union
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import F
+from django.db.models import F, QuerySet
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -19,92 +22,21 @@ DOCTOR_QUERY_FIELDS = (f'uploader__doctor__{field}' for field in UPLOADER_QUERY_
 PATIENT_QUERY_FIELDS = (f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS)
 
 
-# class DataFileQuerySet(models.QuerySet):
-#     def shallow_delete(self):
-#         self.update(deleted=True)
-#
-#     def hard_delete(self):
-#         for file in self:
-#             file.delete_file()
-#         super().delete()
-#
-#     # def necessary_fields(self, *fields):
-#     #     return self.only(*BASE_QUERY_FIELDS, *DOCTOR_QUERY_FIELDS, *PATIENT_QUERY_FIELDS, *fields)
-#
-#     def filter_unchecked_list(self):
-#         return self.filter(checked=False)
-#
-#     def filter_checked_list(self):
-#         return self.filter(checked=True)
-#
-#     def filter_normal_list(self):
-#         return self.filter(status='NORMAL')
-#
-#     def select_patient(self):
-#         return self.select_related('uploader__patient')
-#
-#     def select_doctor(self):
-#         return self.select_related('uploader__doctor')
-#
-#     def select_prescription(self):
-#         return self.select_related('prescription__writer')
-#
-#     def select_all(self):
-#         return self.select_prescription().select_patient().select_doctor()
-#
-#     # for views
-#     def filter_uploader(self, current_user):
-#         return self.filter(user=current_user.id)
-#
-#     def filter_prescription_writer(self, current_user: 'BaseUser'):
-#         # 접속자가 환자일 경우 환자(current_user.id)가 올린 파일 제외
-#         return self.filter(prescription__writer=current_user.id)
-#
-#     def filter_prescription_related_patient(self, current_user: 'BaseUser'):
-#         return self.filter(prescription__patient=current_user.id)
-#
-#
-# class DataFileManager(models.Manager):
-#     def get_queryset(self):
-#         return DataFileQuerySet(self.model, using=self._db). \
-#             annotate(user=F('uploader_id'),
-#                      uploader_doctor_name=concatenate_name('uploader__doctor'),
-#                      uploader_patient_name=concatenate_name('uploader__patient')). \
-#             order_by('-created_at')
-#
-#     def owner_queryset(self, user):
-#         if user.is_superuser:
-#             return self
-#         return self.get_queryset().filter(user=user.id)
-#
-#     def select_patient(self):
-#         return self.get_queryset().select_related('uploader__patient')
-#
-#     def select_doctor(self):
-#         return self.get_queryset().select_related('uploader__doctor')
-#
-#     def select_prescription(self):
-#         return self.get_queryset().select_related('prescription__writer')
-#
-#     def select_all(self):
-#         return self.get_queryset().select_prescription().select_patient().select_doctor()
-
-
-# todo: PatientFile, DoctorFile로 분리.
-#  abstract model(created_at, file, checked, status, deleted)
-#  PatientFile(file_prescription(null=False)), DoctorFile(prescription(null=False))
-# class BaseFileQuerySet(models.QuerySet):
 class BaseFileQuerySetMixin:
-
-    def shallow_delete(self):
+    def shallow_delete(self: Union[DoctorFileQuerySet, PatientFileQuerySet]) -> str:
+        obj_name_list = [str(obj_name) for obj_name in self]
         self.update(deleted=True)
+        return f'finish shallow delete [{obj_name_list}]'
 
-    def hard_delete(self):
+    def hard_delete(self: Union[DoctorFileQuerySet, PatientFileQuerySet]) -> str:
+        obj_name_list = []
         for file in self:
+            obj_name_list.append(str(self))
             file.delete_file()
         super().delete()
+        return f'finish hard delete [{obj_name_list}]'
 
-    def filter_normal_list(self):
+    def filter_normal_list(self: Union[DoctorFileQuerySet, PatientFileQuerySet]) -> Type[QuerySet]:
         return self.filter(status='NORMAL')
 
 
@@ -115,104 +47,105 @@ class BaseFile(models.Model):
     file = models.FileField(upload_to=directory_path, null=True)
     deleted = models.BooleanField(default=False)
 
-    # objects = DataFileManager()
-
     class Meta:
         abstract = True
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.file)
 
-    def is_uploader(self, user):
+    def is_uploader(self, user: User) -> bool:
         if self.uploader.email == str(user.email):
             return True
         return False
 
-    def shallow_delete(self):
+    def shallow_delete(self) -> str:
+        obj_name = str(self)
         self.deleted = True
         self.save()
+        return f'finish shallow delete [{obj_name}]'
 
-    def hard_delete(self):
+    def hard_delete(self) -> str:
+        obj_name = str(self)
         if self.file:
             delete_file(self.file.path)
         super().delete()
+        return f'finish hard delete [{obj_name}]'
 
 
 class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
-    def select_doctor(self):
+    def select_doctor(self) -> 'DoctorFileQuerySet':
         return self.select_related('uploader__doctor')
 
-    def select_prescription(self):
+    def select_prescription(self) -> 'DoctorFileQuerySet':
         return self.select_related('prescription')
 
-    def select_all(self):
+    def select_all(self) -> 'DoctorFileQuerySet':
         return self.select_doctor().select_prescription()
 
-    def filter_prescription_writer(self, current_user: 'User'):
+    def filter_prescription_writer(self, current_user: User) -> 'DoctorFileQuerySet':
         # 접속자가 환자일 경우 환자(current_user.id)가 올린 파일 제외
         return self.filter(prescription__writer_id=current_user.id)
 
 
 class DoctorFileManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> DoctorFileQuerySet:
         return DoctorFileQuerySet(self.model, using=self._db). \
             annotate(user=F('uploader_id'),
                      uploader_doctor_name=concatenate_name('uploader__doctor')). \
             order_by('-created_at')
 
-    def select_all(self):
+    def select_all(self) -> DoctorFileQuerySet:
         return self.get_queryset().select_all()
 
 
 class DoctorFile(BaseFile):
-    prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, null=True)
+    prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING)
 
     objects = DoctorFileManager()
 
 
 class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
-    def filter_unchecked_list(self):
+    def filter_unchecked_list(self) -> 'PatientFileQuerySet':
         return self.filter(checked=False)
 
-    def filter_checked_list(self):
+    def filter_checked_list(self) -> 'PatientFileQuerySet':
         return self.filter(checked=True)
 
-    def filter_uploader(self, user):
+    def filter_uploader(self, user) -> 'PatientFileQuerySet':
         return self.filter(uploader=user)
 
-    def select_patient(self):
+    def select_patient(self) -> 'PatientFileQuerySet':
         return self.select_related('uploader__patient')
 
-    def select_doctor(self):
+    def select_doctor(self) -> 'PatientFileQuerySet':
         return self.select_related('prescription__doctor')
 
-    def select_file_prescription(self):
+    def select_file_prescription(self) -> 'PatientFileQuerySet':
         return self.select_related('file_prescription')
 
-    def select_all(self):
+    def select_all(self) -> 'PatientFileQuerySet':
         return self.select_patient().select_file_prescription()
 
 
 class PatientFileManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> PatientFileQuerySet:
         return PatientFileQuerySet(self.model, using=self._db). \
             annotate(user=F('uploader_id'),
                      uploader_patient_name=concatenate_name('uploader__patient')). \
             order_by('-created_at')
 
-    def select_all(self):
+    def select_all(self) -> PatientFileQuerySet:
         return self.get_queryset().select_all()
 
 
 class PatientFile(BaseFile):
-    file_prescription = models.ForeignKey(FilePrescription, on_delete=models.DO_NOTHING, null=True,
-                                          related_name='patient_files')
+    file_prescription = models.ForeignKey(FilePrescription, on_delete=models.DO_NOTHING, related_name='patient_files')
 
     objects = PatientFileManager()
 
 
 @receiver(post_save, sender=PatientFile)
-def create_patient_file(sender, **kwargs):
+def create_patient_file(sender, **kwargs: Dict[str, Any]):
     instance = kwargs['instance']
     file_prescription = instance.file_prescription
     if not file_prescription.uploaded:

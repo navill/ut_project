@@ -1,24 +1,31 @@
+from __future__ import annotations
+
 import datetime
 import mimetypes
 import os
+from typing import Union, TYPE_CHECKING
 
 from django.db.models import F
 from django.db.models.functions import Concat
 from django.http import FileResponse
 
+if TYPE_CHECKING:
+    from files.models import DoctorFile, PatientFile
+    from django.db.models.fields.files import FieldFile
+
 
 class Downloader:
-    def __init__(self, instance):
-        self.file_field = instance.file
+    def __init__(self, instance: Union['DoctorFile', 'PatientFile']):
+        self.field_file = instance.file
 
     def response(self) -> FileResponse:
-        filename = self._get_filename(self.file_field)
+        filename = self._get_filename(self.field_file)
         content_type, encoding = mimetypes.guess_type(filename)
         # FileResponse._wrap_file_to_stream_close() 메서드가 context manager 처럼 동작하므로 self.file_field.close() 필요 없음
-        return FileResponse(self.file_field.open(), content_type=content_type, as_attachment=True)
+        return FileResponse(self.field_file.open(), content_type=content_type, as_attachment=True)
 
-    def _get_filename(self, file_field):
-        filename = os.path.basename(file_field.name)
+    def _get_filename(self, field_file: 'FieldFile'):
+        filename = os.path.basename(field_file.name)
         return filename
 
 
@@ -27,7 +34,7 @@ def delete_file(path):
         os.remove(path)
 
 
-def directory_path(instance: 'DataFile', filename: str) -> str:
+def directory_path(instance: Union['DoctorFile', 'PatientFile'], filename: str) -> str:
     day, time = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S').split('_')
     splited_name = filename.split('.')
     filename = splited_name[:-1]
@@ -35,6 +42,6 @@ def directory_path(instance: 'DataFile', filename: str) -> str:
     return f'{day}/{extension}/{instance.uploader}_{time}_{filename}.{extension}'
 
 
-def concatenate_name(target_field: str):
+def concatenate_name(target_field: str) -> Concat:
     full_name = Concat(F(f'{target_field}__first_name'), F(f'{target_field}__last_name'))
     return full_name

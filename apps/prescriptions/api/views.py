@@ -1,7 +1,8 @@
 from typing import Optional, Type
 
 from django.db.models import QuerySet
-from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView, \
+    CreateAPIView
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
 from prescriptions.api import serializers
@@ -9,7 +10,7 @@ from prescriptions.models import Prescription, FilePrescription
 
 
 class PrescriptionListCreateAPIView(ListCreateAPIView):
-    queryset = Prescription.objects.select_all().defer_option_fields()
+    queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
     serializer_class = serializers.PrescriptionSerializer
     permission_classes = [IsDoctor | IsPatient]
     lookup_field = 'pk'
@@ -28,7 +29,7 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
 
 
 class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
-    queryset = Prescription.objects.select_all().defer_option_fields()
+    queryset = Prescription.objects.select_all()  # .defer_option_fields()
     serializer_class = serializers.PrescriptionSerializer
     permission_classes = [IsOwner | RelatedPatientReadOnly]
     lookup_field = 'pk'
@@ -52,6 +53,12 @@ class FilePrescriptionListAPIView(ListAPIView):
             return queryset.filter(prescription__patient_id=user.id)
         else:
             return queryset if user.is_superuser else None
+
+
+class FilePrescriptionCreateAPIView(CreateAPIView):
+    queryset = FilePrescription.objects.all()
+    serializer_class = serializers.FilePrescriptionCreateSerializer
+    permission_classes = [IsDoctor | IsPatient]
 
 
 class FilePrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):

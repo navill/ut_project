@@ -17,6 +17,7 @@ class HealthStatus(models.TextChoices):
 class BasePrescription(models.Model):
     description = models.TextField()
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
+    checked = models.BooleanField(default=False)  # 환자가 파일 업로드할 때 True, 의사가 FilePrescription 생성할 때 False
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -45,7 +46,10 @@ class PrescriptionQuerySet(models.QuerySet):
         return self.select_related('patient')
 
     def select_writer(self) -> 'PrescriptionQuerySet':
-        return self.select_related('writer')
+        return self.select_related('writer__user')
+
+    def prefetch_doctor_file(self):
+        return self.prefetch_related('doctor_files')
 
     def prefetch_file_prescription_with_files(self) -> 'PrescriptionQuerySet':
         return self.prefetch_related(Prefetch('file_prescriptions',
@@ -83,7 +87,7 @@ Prescription
 
 class Prescription(BasePrescription):
     writer = models.ForeignKey(Doctor, on_delete=models.DO_NOTHING)
-    patient = models.ForeignKey(Patient, on_delete=models.DO_NOTHING)
+    patient = models.ForeignKey(Patient, on_delete=models.DO_NOTHING, related_name='prescriptions')
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)
 
@@ -92,7 +96,7 @@ class Prescription(BasePrescription):
     # def __str__(self):
     #     return f'{self.writer.get_full_name()}-{self.patient.get_full_name()}-{str(self.created_at)}'
 
-    def get_writer_name(self):
+    def get_writer_name(self) -> str:
         return self.writer.get_full_name()
 
 
@@ -154,7 +158,6 @@ class FilePrescription(BasePrescription):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='file_prescriptions')
     day_number = models.IntegerField()
     active = models.BooleanField(default=True)
-    checked = models.BooleanField(default=False)  # 환자가 파일 업로드할 때 True, 의사가 FilePrescription 생성할 때 False
     uploaded = models.BooleanField(default=False)
 
     objects = FilePrescriptionManager()

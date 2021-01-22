@@ -21,12 +21,12 @@ PATIENT_QUERY_FIELDS = (f'uploader__patient__{field}' for field in UPLOADER_QUER
 
 
 class BaseFileQuerySetMixin:
-    def shallow_delete(self: Union[DoctorFileQuerySet, PatientFileQuerySet]) -> str:
+    def shallow_delete(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> str:
         obj_name_list = [str(obj_name) for obj_name in self]
         self.update(deleted=True)
         return f'finish shallow delete [{obj_name_list}]'
 
-    def hard_delete(self: Union[DoctorFileQuerySet, PatientFileQuerySet]) -> str:
+    def hard_delete(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> str:
         obj_name_list = []
         for file in self:
             obj_name_list.append(str(self))
@@ -34,7 +34,7 @@ class BaseFileQuerySetMixin:
         super().delete()
         return f'finish hard delete [{obj_name_list}]'
 
-    def filter_normal_list(self: Union[DoctorFileQuerySet, PatientFileQuerySet]) -> Type[QuerySet]:
+    def filter_normal_list(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> Type[QuerySet]:
         return self.filter(status='NORMAL')
 
 
@@ -84,6 +84,9 @@ class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
         # 접속자가 환자일 경우 환자(current_user.id)가 올린 파일 제외
         return self.filter(prescription__writer_id=current_user.id)
 
+    def filter_patient(self, doctor_id: int):
+        return self.filter(uploader__patient__doctor_id=doctor_id)
+
 
 class DoctorFileManager(models.Manager):
     def get_queryset(self) -> DoctorFileQuerySet:
@@ -97,7 +100,7 @@ class DoctorFileManager(models.Manager):
 
 
 class DoctorFile(BaseFile):
-    prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING)
+    prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, related_name='doctor_files')
 
     objects = DoctorFileManager()
 
@@ -109,8 +112,8 @@ class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
     def filter_checked_list(self) -> 'PatientFileQuerySet':
         return self.filter(checked=True)
 
-    def filter_uploader(self, user) -> 'PatientFileQuerySet':
-        return self.filter(uploader=user)
+    def filter_uploader(self, user_id) -> 'PatientFileQuerySet':
+        return self.filter(uploader_id=user_id)
 
     def select_patient(self) -> 'PatientFileQuerySet':
         return self.select_related('uploader__patient')

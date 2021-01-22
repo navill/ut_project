@@ -96,6 +96,9 @@ class DoctorSerializer(RelatedDoctorSerializer):
     class Meta(RelatedDoctorSerializer.Meta):
         fields = RelatedDoctorSerializer.Meta.fields + ['major_name', 'address', 'phone', 'description']
 
+    def get_major_name(self, instance):
+        return str(instance.major.name)
+
 
 class DoctorListSerializer(RawDoctorSerializer):
     full_name = serializers.SerializerMethodField()
@@ -206,10 +209,16 @@ class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializ
 
 
 # serializer relation은 core app에서 처리할 예정
-class SimpleRelatedDoctorSerializer(DoctorListSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+class CoreDoctorSerializer(DoctorSerializer):
+    patients = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta(DoctorSerializer.Meta):
+        fields = DoctorSerializer.Meta.fields + ['patients']
 
 
-class SimpleRelatedPatientSerializer(PatientListSerailizer):
+class CorePatientSerializer(PatientSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
+
+    class Meta(PatientSerializer.Meta):
+        fields = PatientSerializer.Meta.fields

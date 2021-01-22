@@ -44,7 +44,7 @@ class DoctorUploadedFileListAPIView(ListAPIView):
     def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
         queryset = super().get_queryset()
-        queryset = queryset.filter(uploader__patient__doctor_id=user.id)
+        queryset = queryset.filter_patient(user.id)
         return queryset
 
 
@@ -56,8 +56,8 @@ class DoctorUploadedFileUpdateAPIView(RetrieveUpdateAPIView):
 
     def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
-        queryset = super().get_queryset().filter_unchecked_list()
-        queryset = queryset.filter(uploader__patient__doctor_id=user.id)
+        queryset = super().get_queryset()
+        queryset = queryset.filter_patient(user.id)
         return queryset
 
     def put(self, request, *args, **kwargs):
@@ -93,7 +93,7 @@ class PatientUploadedFileListAPIView(ListAPIView):
 
     def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
-        return super().get_queryset().filter(uploader_id=user.id).filter_unchecked_list()
+        return super().get_queryset().filter_uploader(uploader_id=user.id).filter_unchecked_list()
 
 
 class DoctorFileDownloadAPIView(RetrieveAPIView):

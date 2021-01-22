@@ -60,7 +60,7 @@ class DoctorFileSerializer(_BaseFileSerializer):
 
     class Meta:
         model = DoctorFile
-        fields = ['url', 'id', 'download_url', 'prescription', 'file', 'uploader', 'created_at']
+        fields = ['url', 'download_url', 'prescription', 'file', 'uploader', 'created_at']
 
 
 class DoctorFlieRetrieveSerializer(DoctorFileSerializer):
@@ -128,7 +128,7 @@ DataFile(related Patient) Serializer
 
 
 class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self) -> Optional[Type[QuerySet]]:
+    def get_queryset(self) -> Optional[Type['QuerySet']]:
         request = self.context.get('request', None)
         queryset = super().get_queryset()
         if not request or not queryset:

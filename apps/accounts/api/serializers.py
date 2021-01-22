@@ -1,6 +1,4 @@
-from __future__ import annotations
-
-from typing import Union, Dict, Any, AnyStr, NoReturn
+from typing import Union, Dict, AnyStr, NoReturn
 
 from django.contrib.auth import get_user_model
 from django.db import transaction

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Union, TYPE_CHECKING, Tuple, Dict, List
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Dict, Any, Optional, Type, TYPE_CHECKING
 
 from django.contrib.auth import get_user_model

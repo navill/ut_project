@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Dict, AnyStr
 
 from django.contrib.auth import get_user_model

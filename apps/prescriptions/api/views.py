@@ -1,7 +1,7 @@
 from typing import Optional, Type
 
 from django.db.models import QuerySet
-from rest_framework.generics import RetrieveUpdateAPIView, ListCreateAPIView, ListAPIView, RetrieveAPIView, \
+from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView, \
     CreateAPIView
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
@@ -9,7 +9,7 @@ from prescriptions.api import serializers
 from prescriptions.models import Prescription, FilePrescription
 
 
-class PrescriptionListCreateAPIView(ListCreateAPIView):
+class PrescriptionListAPIView(ListAPIView):
     queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
     serializer_class = serializers.PrescriptionSerializer
     permission_classes = [IsDoctor | IsPatient]
@@ -26,6 +26,12 @@ class PrescriptionListCreateAPIView(ListCreateAPIView):
             return queryset.filter_patient(patient_id=user.id)
         else:
             return queryset if user.is_superuser else None
+
+
+class PrescriptionCreateAPIView(CreateAPIView):
+    serializer_class = serializers.PrescriptionCreateSerializer
+    # permission_classes = [IsDoctor | IsPatient]
+    permission_classes = []
 
 
 class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):

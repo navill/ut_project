@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from accounts.models import Patient, Doctor, DEFER_PATIENT_FIELDS, DEFER_DOCTOR_FIELDS
+from files.api.utils import directory_path
 from prescriptions.api.utils import get_defer_fields_set, concatenate_name
 
 
@@ -88,6 +89,8 @@ Prescription
 class Prescription(BasePrescription):
     writer = models.ForeignKey(Doctor, on_delete=models.DO_NOTHING)
     patient = models.ForeignKey(Patient, on_delete=models.DO_NOTHING, related_name='prescriptions')
+    # files = models.FileField(upload_to=directory_path, null=True)
+
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)
 

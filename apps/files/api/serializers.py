@@ -88,6 +88,26 @@ class DoctorFileUploadSerializer(DoctorFileSerializer):
         return file_object
 
 
+class DoctorFileInPrescriptionSerializer(serializers.ModelSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='files:doctor-file-retrieve',
+        lookup_field='id',
+        read_only=True
+    )
+
+    download_url = serializers.HyperlinkedIdentityField(
+        view_name='files:doctor-file-download',
+        lookup_field='id',
+        read_only=True
+    )
+    # prescription = serializers.PrimaryKeyRelatedField(read_only=True)
+    file = serializers.FileField(use_url=False)
+
+    class Meta:
+        model = DoctorFile
+        fields = ['url', 'download_url','file', 'created_at']
+
+
 class DoctorFileDownloadSerializer(DoctorFileSerializer):
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields

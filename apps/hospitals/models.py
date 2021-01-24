@@ -62,7 +62,11 @@ class Department(models.Model):
 
 
 class MajorQuerySet(models.QuerySet):
-    pass
+    def select_all(self) -> 'MajorQuerySet':
+        return self.select_related('department__medical_center')
+
+    def prefetch_all(self) -> 'MajorQuerySet':
+        return self.prefetch_related('doctor_major')
 
 
 class MajorManager(models.Manager):
@@ -71,10 +75,13 @@ class MajorManager(models.Manager):
         # .prefetch_related(Prefetch('department__medical_center', queryset=MedicalCenter.objects.all()))
 
     def select_all(self) -> MajorQuerySet:
-        return self.get_queryset().select_related('department__medical_center')
+        return self.get_queryset().select_all()
 
     def prefetch_all(self) -> MajorQuerySet:
-        return self.get_queryset().prefetch_related('doctor')
+        return self.get_queryset().prefetch_all()
+
+    def related_all(self) -> MajorQuerySet:
+        return self.get_queryset().select_all().prefetch_all()
 
 
 class Major(models.Model):

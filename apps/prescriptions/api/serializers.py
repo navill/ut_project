@@ -116,6 +116,9 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
         for file in request_files:
             DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
 
+    def to_representation(self, instance):
+        return super(PrescriptionCreateSerializer, self).to_representation(instance)
+
 
 class FilePrescriptionSerializer(serializers.ModelSerializer):
     # url = serializers.HyperlinkedIdentityField(
@@ -146,12 +149,19 @@ class FilePrescriptionListSerializer(FilePrescriptionSerializer):
 
 class FilePrescriptionCreateSerializer(FilePrescriptionSerializer):
     prescription = serializers.PrimaryKeyRelatedField(queryset=Prescription.objects.select_all())
+    active = serializers.BooleanField(read_only=True)
+    uploaded = serializers.BooleanField(read_only=True)
+    checked = serializers.BooleanField(read_only=True)
 
     class Meta(FilePrescriptionSerializer.Meta):
         fields = FilePrescriptionSerializer.Meta.fields
 
 
 class FilePrescriptionRetrieveUpdateSerializer(FilePrescriptionSerializer):
+    active = serializers.BooleanField()
+    uploaded = serializers.BooleanField()
+    checked = serializers.BooleanField()
+
     class Meta(FilePrescriptionSerializer.Meta):
         fields = FilePrescriptionSerializer.Meta.fields
 

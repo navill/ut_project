@@ -192,13 +192,22 @@ class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
     def select_all(self) -> 'PatientQuerySet':
         return self.select_related('user').select_related('doctor')
 
+    def prefetch_prescription(self) -> 'PatientQuerySet':
+        return self.prefetch_related('prescriptions__writer').prefetch_related('prescriptions__patient').prefetch_related('prescriptions__doctor_files')
+
+    def prefetch_all(self):
+        return self.prefetch_prescription()
+
 
 class PatientManager(models.Manager):
     def get_queryset(self) -> PatientQuerySet:
         return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name()).filter_user_active()
 
     def select_all(self) -> PatientQuerySet:
-        return self.get_queryset().select_related('user').select_related('doctor')
+        return self.get_queryset().select_related('user').select_related('doctor__user')
+
+    def prefetch_all(self):
+        return self.get_queryset().prefetch_all()
 
 
 class Patient(AccountsModel):

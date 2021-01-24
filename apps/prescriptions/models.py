@@ -4,7 +4,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from accounts.models import Patient, Doctor, DEFER_PATIENT_FIELDS, DEFER_DOCTOR_FIELDS
-from files.api.utils import directory_path
 from prescriptions.api.utils import get_defer_fields_set, concatenate_name
 
 

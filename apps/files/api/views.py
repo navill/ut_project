@@ -1,9 +1,11 @@
+import json
 from typing import Type
 
 from django.db.models import QuerySet
 from django.http import FileResponse
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner
 from files.api.mixins import QuerySetMixin
@@ -13,6 +15,7 @@ from files.api.serializers import PatientFileUploadSerializer, DoctorFileUploadS
     PatientFlieRetrieveSerializer, DoctorFileDownloadSerializer, PatientFileDownloadSerializer
 from files.api.utils import Downloader
 from files.models import DoctorFile, PatientFile
+from prescriptions.models import Prescription, FilePrescription
 
 
 class DoctorFileListAPIView(QuerySetMixin, ListAPIView):
@@ -29,10 +32,28 @@ class DoctorFileRetrieveAPIView(RetrieveAPIView):
 
 
 class DoctorFileUploadAPIView(QuerySetMixin, CreateAPIView):
+    """
+    {
+        "prescription": "prescription id"
+    }
+    """
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = DoctorFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser)
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        doc_values = self.__doc__
+        default_values = json.loads(doc_values)
+        prescriptions = Prescription.objects.select_all().filter_writer(writer_id=user.id).values('id',
+                                                                                                  'status',
+                                                                                                  'writer_name',
+                                                                                                  'patient_name',
+                                                                                                  'created_at')
+        default_values['prescription'] = prescriptions
+
+        return Response(default_values)
 
 
 class DoctorUploadedFileListAPIView(ListAPIView):
@@ -78,10 +99,26 @@ class PatientFileRetrieveAPIView(RetrieveAPIView):
 
 
 class PatientFileUploadAPIView(CreateAPIView):
+    """
+    {
+        "file_prescription": "select 'id'"
+    }
+    """
     permission_classes = [IsPatient]
     serializer_class = PatientFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser)
-    lookup_field = 'id'
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        doc_values = self.__doc__
+        default_values = json.loads(doc_values)
+        prescription = Prescription.objects.filter(patient_id=user.id).last()
+        file_prescriptions = FilePrescription.objects. \
+            filter(prescription_id=prescription.id). \
+            filter(active=True, uploaded=False). \
+            values('id', 'created_at', 'day_number')
+        default_values['file_prescription'] = file_prescriptions
+        return Response(file_prescriptions)
 
 
 class PatientUploadedFileListAPIView(ListAPIView):

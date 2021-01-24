@@ -1,3 +1,4 @@
+import json
 from typing import Type
 
 from django.db.models import QuerySet
@@ -13,8 +14,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
 from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser
-from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer
-from accounts.models import Doctor, Patient
+from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer, DoctorSignUpSerializer
+from accounts.models import Doctor, Patient, Gender
+from hospitals.models import Major
 
 
 class AccountsTokenPairView(TokenObtainPairView):
@@ -51,9 +53,22 @@ class TokenLogoutView(APIView):
 
 
 class DoctorSignUpAPIView(CreateAPIView):
+    """
+    {
+    "major": "select 'id'"
+    }
+    """
     queryset = Doctor.objects.select_all()
-    serializer_class = serializers.DoctorSignUpSerializer
+    serializer_class = DoctorSignUpSerializer
     permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        doc_values = self.__doc__
+        default_values = json.loads(doc_values)
+        major = Major.objects.related_all().values('id', 'department__medical_center__name', 'department', 'name')
+        default_values['gender'] = Gender.choices
+        default_values['major'] = major
+        return Response(default_values)
 
 
 class DoctorListAPIView(ListAPIView):
@@ -70,10 +85,23 @@ class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):
 
 
 class PatientSignUpAPIView(CreateAPIView):
+    """
+    {
+        "doctors": "select 'user_id'"
+    }
+    """
     queryset = Patient.objects.select_all()
     serializer_class = serializers.PatientSignUpSerializer
     permission_classes = [AllowAny]
     lookup_field = 'pk'
+
+    def get(self, request, *args, **kwargs):
+        doc_values = self.__doc__
+        default_values = json.loads(doc_values)
+        doctors = Doctor.objects.all().values('user_id', 'full_name', 'major__name')
+        default_values['gender'] = Gender.choices
+        default_values['doctor'] = doctors
+        return Response(default_values)
 
 
 class PatientListAPIView(ListAPIView):

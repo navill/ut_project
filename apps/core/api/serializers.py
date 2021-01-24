@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from accounts.api.serializers import (DoctorSerializer, PatientSerializer, CoreDoctorSerializer, CorePatientSerializer)
+from accounts.api.serializers import (PatientSerializer, CoreDoctorSerializer, CorePatientSerializer)
 from files.api.serializers import DoctorFileSerializer, PatientFileSerializer
 from prescriptions.api.serializers import (PrescriptionSerializer, FilePrescriptionSerializer)
 

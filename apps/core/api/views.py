@@ -20,7 +20,7 @@ class DoctorNestedPatients(RetrieveAPIView):
 
 
 class PatientNestedPrescriptions(RetrieveAPIView):
-    queryset = Patient.objects.select_all()
+    queryset = Patient.objects.select_all().prefetch_all()
     permission_classes = []
     authentication_classes = []
     serializer_class = PatientNestedPrescriptionSerializer

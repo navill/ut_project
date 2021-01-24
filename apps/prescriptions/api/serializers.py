@@ -30,10 +30,8 @@ class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 
 class DefaultPrescriptionSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='prescriptions:detail-update',
-        lookup_field='pk'
-    )
+    url = serializers.HyperlinkedIdentityField(view_name='prescriptions:detail-update',
+                                               lookup_field='pk')
     writer = serializers.PrimaryKeyRelatedField(read_only=True)
     patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.select_all())
     description = serializers.CharField()
@@ -65,13 +63,15 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
         fields = DefaultPrescriptionSerializer.Meta.fields + ['writer_name', 'patient_name', 'doctor_files',
                                                               'start_date', 'end_date', 'status', 'checked', 'url']
 
-    def get_writer_name(self, instance: Prescription) -> str:
+    def get_writer_name(self,
+                        instance: Prescription) -> str:
         if hasattr(instance, 'writer_name'):
             return instance.writer_name
         # queryset에 writer_name이 없을 경우
         return instance.writer.get_full_name()
 
-    def get_patient_name(self, instance: Prescription) -> str:
+    def get_patient_name(self,
+                         instance: Prescription) -> str:
         if hasattr(instance, 'patient_name'):
             return instance.patient_name
         return instance.patient.get_full_name()
@@ -86,23 +86,25 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
                                              write_only=True, target_field='doctor_id')
     doctor_files = DoctorFileInPrescriptionSerializer(many=True, read_only=True)
-    upload_files = serializers.ListField(child=serializers.FileField(), write_only=True)
+    upload_doctor_files = serializers.ListField(child=serializers.FileField(), write_only=True)
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     checked = serializers.BooleanField(default=False)
 
     class Meta(DefaultPrescriptionSerializer.Meta):
         fields = DefaultPrescriptionSerializer.Meta.fields + ['doctor_files', 'start_date', 'end_date', 'status',
-                                                              'checked', 'url'] + ['upload_files']
+                                                              'checked', 'url', 'upload_doctor_files']
 
     @transaction.atomic
-    def create(self, validated_data: Dict[str, Any]):
-        files = validated_data.pop('upload_files')
+    def create(self,
+               validated_data: Dict[str, Any]):
+        files = validated_data.pop('upload_doctor_files')
         prescription = self.create_prescription(validated_data)
         self.create_doctor_files(prescription.writer_id, prescription.id, files)
         return prescription
 
-    def create_prescription(self, validated_data: Dict[str, Any]) -> Prescription:
+    def create_prescription(self,
+                            validated_data: Dict[str, Any]) -> Prescription:
         writer = validated_data.pop('writer').doctor
         return Prescription.objects.create(writer=writer, **validated_data)
 

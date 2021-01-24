@@ -105,7 +105,7 @@ class DoctorFileInPrescriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorFile
-        fields = ['url', 'download_url','file', 'created_at']
+        fields = ['url', 'download_url', 'file', 'created_at']
 
 
 class DoctorFileDownloadSerializer(DoctorFileSerializer):

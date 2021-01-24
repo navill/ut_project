@@ -1,37 +1,31 @@
-from typing import Type, Optional, Dict, Any
+from typing import Type, Optional, Dict, Any, TYPE_CHECKING, NoReturn
 
 from django.db import transaction
-from django.db.models import QuerySet
-from django.utils.datastructures import MultiValueDict
 from rest_framework import serializers
+from rest_framework.fields import CurrentUserDefault
 
+from accounts.api.serializers import RawDoctorSerializer
 from accounts.models import Patient
 from files.api.serializers import PatientUploadedFileListSerializer, DoctorFileInPrescriptionSerializer
 from files.models import DoctorFile
 from prescriptions.models import Prescription, HealthStatus, FilePrescription
 
-
-class CurrentDoctorDefault:
-    requires_context = True
-
-    def __call__(self, serializer_field):
-        return serializer_field.context['request'].user.doctor
-
-    def __repr__(self):
-        return '%s()' % self.__class__.__name__
+if TYPE_CHECKING:
+    from django.core.files.uploadedfile import InMemoryUploadedFile
+    from django.db.models import QuerySet
 
 
 class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    def __init__(self, related_id: str = None, **kwargs):
+    def __init__(self, target_field: str = None, **kwargs):
         super().__init__(**kwargs)
-        self.related_id = related_id
+        self.target_field = target_field
 
-    def get_queryset(self) -> Optional[Type[QuerySet]]:
+    def get_queryset(self) -> Optional[Type['QuerySet']]:
         request = self.context.get('request', None)
         if not request:
             return None
 
-        query = {self.related_id: request.user.id}
+        query = {self.target_field: request.user.id}
         return super().get_queryset().filter(**query)
 
 
@@ -56,9 +50,10 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
         view_name='prescriptions:prescription-detail-update',
         lookup_field='pk'
     )
-    writer = serializers.HiddenField(default=CurrentDoctorDefault())
+    # writer = serializers.HiddenField(default=CurrentUserDefault())
+    writer = RawDoctorSerializer(read_only=True)
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
-                                             write_only=True, related_id='doctor_id')
+                                             write_only=True, target_field='doctor_id')
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     checked = serializers.BooleanField(default=False)
@@ -81,80 +76,43 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
             return instance.patient_name
         return instance.patient.get_full_name()
 
-    # def create(self, validated_data: Dict[str, Any]) -> Prescription:
-    #     validated_data['writer'] = validated_data['writer'].doctor
-    #     files = validated_data.pop('files')
-    #     prescription_obj = super().create(validated_data)
-    #     MyModel.objects.filter(pk=obj.pk).update(val=F('val') + 1)
-    #     for file in files:
-    #         photo = Prescription.objects.create(image=img, blogs=blogs, **validated_data)
-    #     return photo
-    #     return
-    # def create(self, validated_data: Dict[str, Any]) -> Optional[Type[DoctorFile]]:
-    #     writer = validated_data.get('writer').doctor
-    #     uploader = writer
-    #     prescription = validated_data.get('prescription', None)
-    #     files = validated_data.pop('files', None)
-    #     file_object = None
-    #
-    #     uploader_id, prescription_id = (uploader.id, prescription.id) \
-    #         if isinstance(uploader, User) and isinstance(prescription, Prescription) \
-    #         else (uploader, prescription)
-    #     for file in files:
-    #         file_object = DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id,
-    #                                                 file=file, **validated_data)
-    #     return file_object
-
-
-class TempDictField(serializers.DictField):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def to_representation(self, value):
-        for key, value in value.items():
-            print(key, value)
-        dict_value = {
-            str(key): self.child.to_representation(val) if val is not None else None
-            for key, val in value.items()
-        }
-
-        return dict_value
-
 
 class PrescriptionCreateSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-detail-update',
         lookup_field='pk'
     )
-    writer = serializers.HiddenField(default=CurrentDoctorDefault())
+    writer = serializers.HiddenField(default=CurrentUserDefault())
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
-                                             write_only=True, related_id='doctor_id')
-    # doctor_files = serializers.DictField(child=DoctorFileInPrescriptionSerializer(many=True))
+                                             write_only=True, target_field='doctor_id')
     doctor_files = DoctorFileInPrescriptionSerializer(many=True, read_only=True)
+    upload_files = serializers.ListField(child=serializers.FileField(), write_only=True)
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     checked = serializers.BooleanField(default=False)
 
     class Meta(DefaultPrescriptionSerializer.Meta):
         fields = DefaultPrescriptionSerializer.Meta.fields + ['doctor_files', 'start_date', 'end_date', 'status',
-                                                              'checked', 'url']
+                                                              'checked', 'url'] + ['upload_files']
 
     @transaction.atomic
     def create(self, validated_data: Dict[str, Any]):
-        writer = validated_data.pop('writer')
-        request_files = self.context['request'].FILES
-        files = self._validate_file_fieldname(request_files)
-
-        prescription = Prescription.objects.create(writer=writer, **validated_data)
-        for file in files:
-            DoctorFile.objects.create(uploader_id=writer.user_id, prescription_id=prescription.id, file=file)
+        files = validated_data.pop('upload_files')
+        prescription = self.create_prescription(validated_data)
+        self.create_doctor_files(prescription.writer_id, prescription.id, files)
         return prescription
 
-    def _validate_file_fieldname(self, file_keys: MultiValueDict):
-        for key in file_keys.keys():
-            if 'upload_file' not in key:
-                raise ValueError("file field name is not 'upload_file'")
-        return file_keys
+    def create_prescription(self, validated_data: Dict[str, Any]) -> Prescription:
+        writer = validated_data.pop('writer').doctor
+        return Prescription.objects.create(writer=writer, **validated_data)
+
+    def create_doctor_files(self,
+                            writer_id: int,
+                            prescription_id: int,
+                            request_files: 'InMemoryUploadedFile') -> NoReturn:
+        uploader_id = writer_id
+        for file in request_files:
+            DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
 
 
 class FilePrescriptionSerializer(serializers.ModelSerializer):

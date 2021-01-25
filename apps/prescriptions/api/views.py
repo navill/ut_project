@@ -39,7 +39,7 @@ class PrescriptionCreateAPIView(CreateAPIView):
     {
         "patient": "select 'user_id'",
         "status": "select 'status'",
-        "upload_doctor_files": []
+        "upload_doctor_files": "List type File field"
     }
     """
     queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
@@ -94,7 +94,7 @@ class FilePrescriptionCreateAPIView(CreateAPIView):
     """
     queryset = FilePrescription.objects.all()
     serializer_class = FilePrescriptionCreateSerializer
-    permission_classes = [IsDoctor | IsPatient]
+    permission_classes = [IsDoctor]
 
     def get(self, request, *args, **kwargs):
         user = self.request.user

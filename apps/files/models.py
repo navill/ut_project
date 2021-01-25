@@ -146,8 +146,7 @@ class PatientFile(BaseFile):
 
 
 @receiver(post_save, sender=PatientFile)
-def create_patient_file(sender,
-                        **kwargs: Dict[str, Any]):
+def post_save_patient_file(sender, **kwargs: Dict[str, Any]):
     instance = kwargs['instance']
     file_prescription = instance.file_prescription
     if not file_prescription.uploaded:

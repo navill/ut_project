@@ -1,9 +1,9 @@
-from rest_framework.generics import ListAPIView, RetrieveUpdateAPIView, RetrieveAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, RetrieveAPIView, ListAPIView
 
 from accounts.models import Doctor, Patient
+from core.api.core_serializers import CoreFilePrescriptionSerializer
 from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PatientNestedPrescriptionSerializer,
-                                  DoctorUpdateSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
                                   FilePrescriptionNestedPatientFileSerializer)
 from prescriptions.models import Prescription, FilePrescription
@@ -14,7 +14,7 @@ from prescriptions.models import Prescription, FilePrescription
 class DoctorNestedPatients(RetrieveAPIView):
     queryset = Doctor.objects.select_all()
     permission_classes = []
-    authentication_classes = []
+    # authentication_classes = []
     serializer_class = DoctorNestedPatientSerializer
     lookup_field = 'pk'
 
@@ -22,23 +22,23 @@ class DoctorNestedPatients(RetrieveAPIView):
 class PatientNestedPrescriptions(RetrieveAPIView):
     queryset = Patient.objects.select_all().prefetch_all()
     permission_classes = []
-    authentication_classes = []
+    # authentication_classes = []
     serializer_class = PatientNestedPrescriptionSerializer
     lookup_field = 'pk'
 
 
-class DoctorUpdate(RetrieveUpdateAPIView):
-    queryset = Doctor.objects.select_all()
-    permission_classes = []
-    authentication_classes = []
-    serializer_class = DoctorUpdateSerializer
-    lookup_field = 'pk'
+# class DoctorUpdate(RetrieveUpdateAPIView):
+#     queryset = Doctor.objects.select_all()
+#     permission_classes = []
+#     # authentication_classes = []
+#     serializer_class = DoctorUpdateSerializer
+#     lookup_field = 'pk'
 
 
 class PrescriptionNestedFilePrescriptions(RetrieveAPIView):
     queryset = Prescription.objects.select_all()
     permission_classes = []
-    authentication_classes = []
+    # authentication_classes = []
     serializer_class = PrescriptionNestedFilePrescriptionSerializer
     lookup_field = 'pk'
 
@@ -46,8 +46,17 @@ class PrescriptionNestedFilePrescriptions(RetrieveAPIView):
 class FilePrescriptionNestedPatientFiles(RetrieveAPIView):
     queryset = FilePrescription.objects.select_all()
     permission_classes = []
-    authentication_classes = []
+    # authentication_classes = []
     serializer_class = FilePrescriptionNestedPatientFileSerializer
     lookup_field = 'pk'
 
-# patient - main
+
+class PatientFileHistoryInFilePrescription(ListAPIView):
+    queryset = FilePrescription.objects.nested_all().filter_new_upload()
+    permission_classes = []
+    # authentication_classes = []
+    serializer_class = CoreFilePrescriptionSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(prescription__writer_id=self.request.user.id)

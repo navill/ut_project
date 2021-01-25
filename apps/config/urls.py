@@ -12,7 +12,7 @@ urlpatterns = [
     path('hospitals/', include('hospitals.api.urls', namespace='hospitals')),
     path('datafiles/', include('files.api.urls', namespace='files')),
 
-    path('core-api/', include('core.api.urls', namespace='core')),
+    path('core-api/', include('core.api.urls', namespace='core-api')),
 
     path('token', AccountsTokenPairView.as_view(), name='token-login'),
     path('token/refresh', AccountsTokenRefreshView.as_view(), name='token-refresh'),

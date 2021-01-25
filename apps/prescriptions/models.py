@@ -51,6 +51,9 @@ class PrescriptionQuerySet(models.QuerySet):
     def prefetch_doctor_file(self):
         return self.prefetch_related('doctor_files')
 
+    def prefetch_file_prescription(self):
+        return self.prefetch_related('file_prescriptions')
+
     def prefetch_file_prescription_with_files(self) -> 'PrescriptionQuerySet':
         return self.prefetch_related(Prefetch('file_prescriptions',
                                               queryset=FilePrescription.objects.prefetch_related('patient_files')
@@ -63,6 +66,9 @@ class PrescriptionManager(models.Manager):
             annotate(user=F('writer_id'),
                      writer_name=concatenate_name('writer'),
                      patient_name=concatenate_name('patient'))
+
+    def prefetch_file_prescription(self):
+        return self.get_queryset().prefetch_file_prescription()
 
     def select_all(self) -> 'PrescriptionQuerySet':
         return self.get_queryset(). \
@@ -98,6 +104,9 @@ class Prescription(BasePrescription):
     # def __str__(self):
     #     return f'{self.writer.get_full_name()}-{self.patient.get_full_name()}-{str(self.created_at)}'
 
+    class Meta:
+        ordering = ['-id']
+
     def get_writer_name(self) -> str:
         return self.writer.get_full_name()
 
@@ -112,8 +121,11 @@ def create_file_prescription(sender, **kwargs):
         return None
 
     bulk_list = (FilePrescription(prescription_id=instance.id, day_number=day_number + 1)
-                 for day_number in range((end_date - start_date).days))
+                 for day_number in reversed(range((end_date - start_date).days)))
     FilePrescription.objects.bulk_create(bulk_list)
+
+    # for day_number in range((end_date - start_date).days):
+    #     FilePrescription.objects.create(prescription_id=instance.id, day_number=day_number + 1)
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
@@ -122,6 +134,15 @@ class FilePrescriptionQuerySet(models.QuerySet):
 
     def filter_patient(self, patient_id: int) -> 'FilePrescriptionQuerySet':
         return self.filter(patient_id=patient_id)
+
+    def filter_uploaded(self):
+        return self.filter(uploaded=True)
+
+    def filter_not_checked(self):
+        return self.filter(checked=False)
+
+    def filter_new_upload(self):
+        return self.filter_uploaded().filter_not_checked()
 
     def defer_option_fields(self) -> 'FilePrescriptionQuerySet':
         deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
@@ -140,13 +161,16 @@ class FilePrescriptionManager(models.Manager):
         return FilePrescriptionQuerySet(self.model, using=self._db). \
             annotate(user=F('prescription__writer_id'),
                      writer_name=concatenate_name('prescription__writer'),
-                     patient=concatenate_name('prescription__patient'))
+                     patient=concatenate_name('prescription__patient')).order_by('day_number')
 
     def prefetch_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().prefetch_all()
 
     def select_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().select_all()
+
+    def nested_all(self):
+        return self.get_queryset().select_all().prefetch_all()
 
 
 """
@@ -164,5 +188,9 @@ class FilePrescription(BasePrescription):
 
     objects = FilePrescriptionManager()
 
+    class Meta:
+        # order_with_respect_to = 'prescription'
+        ordering = ['day_number']
+
     def __str__(self) -> str:
-        return f'{self.prescription.start_date}: {self.day_number}일'
+        return f'{self.prescription.id}-{self.prescription.start_date}: {self.day_number}일'

@@ -209,16 +209,12 @@ class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializ
 
 
 # serializer relation은 core app에서 처리할 예정
-class CoreDoctorSerializer(DoctorSerializer):
-    patients = serializers.PrimaryKeyRelatedField(read_only=True)
 
-    class Meta(DoctorSerializer.Meta):
-        fields = DoctorSerializer.Meta.fields + ['patients']
-
-
-class CorePatientSerializer(PatientSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
-
-    class Meta(PatientSerializer.Meta):
-        fields = PatientSerializer.Meta.fields
+#
+#
+# class CorePatientSerializer(PatientSerializer):
+#     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+#     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.all())
+#
+#     class Meta(PatientSerializer.Meta):
+#         fields = PatientSerializer.Meta.fields

@@ -193,9 +193,10 @@ class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
         return self.select_related('user').select_related('doctor')
 
     def prefetch_prescription(self) -> 'PatientQuerySet':
-        return self.prefetch_related('prescriptions__writer').prefetch_related('prescriptions__patient').prefetch_related('prescriptions__doctor_files')
+        return self.prefetch_related('prescriptions__writer').prefetch_related(
+            'prescriptions__patient').prefetch_related('prescriptions__doctor_files')
 
-    def prefetch_all(self):
+    def prefetch_all(self) -> 'PatientQuerySet':
         return self.prefetch_prescription()
 
 

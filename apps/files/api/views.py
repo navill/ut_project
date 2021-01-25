@@ -24,7 +24,7 @@ class DoctorFileListAPIView(QuerySetMixin, ListAPIView):
     serializer_class = DoctorFileListSerializer
 
 
-class DoctorFileRetrieveAPIView(RetrieveAPIView):
+class DoctorFileRetrieveAPIView(RetrieveUpdateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsOwner | IsDoctor]
     serializer_class = DoctorFlieRetrieveSerializer
@@ -91,7 +91,7 @@ class PatientFileListAPIView(QuerySetMixin, ListAPIView):
     serializer_class = PatientFileListSerializer
 
 
-class PatientFileRetrieveAPIView(RetrieveAPIView):
+class PatientFileRetrieveAPIView(RetrieveUpdateAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsOwner | IsDoctor]
     serializer_class = PatientFlieRetrieveSerializer
@@ -135,7 +135,7 @@ class PatientUploadedFileListAPIView(ListAPIView):
 
 class DoctorFileDownloadAPIView(RetrieveAPIView):
     queryset = DoctorFile.objects.all()
-    permission_classes = [IsOwner | IsDoctor]
+    permission_classes = [IsDoctor]
     serializer_class = DoctorFileDownloadSerializer
     lookup_field = 'id'
 
@@ -147,7 +147,7 @@ class DoctorFileDownloadAPIView(RetrieveAPIView):
 
 class PatientFileDownloadAPIView(RetrieveAPIView):
     queryset = PatientFile.objects.all()
-    permission_classes = [IsOwner]
+    permission_classes = [IsOwner | IsDoctor]
     serializer_class = PatientFileDownloadSerializer
     lookup_field = 'id'
 

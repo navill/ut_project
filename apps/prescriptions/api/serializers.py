@@ -117,9 +117,6 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
         for file in request_files:
             DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
 
-    def to_representation(self, instance: Prescription):
-        return super(PrescriptionCreateSerializer, self).to_representation(instance)
-
 
 class FilePrescriptionSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
@@ -133,13 +130,14 @@ class FilePrescriptionSerializer(serializers.ModelSerializer):
     deleted = serializers.BooleanField(read_only=True)
     prescription = serializers.PrimaryKeyRelatedField(read_only=True)
     day_number = serializers.IntegerField(read_only=True)
+    day = serializers.DateField(read_only=True)
     active = serializers.BooleanField()
     uploaded = serializers.BooleanField()
     checked = serializers.BooleanField()
 
     class Meta:
         model = FilePrescription
-        fields = ['url', 'id', 'prescription', 'description', 'status', 'day_number', 'deleted', 'active',
+        fields = ['url', 'id', 'prescription', 'description', 'status', 'day_number', 'day', 'deleted', 'active',
                   'uploaded', 'checked', 'created_at', 'updated_at']
 
 
@@ -158,8 +156,8 @@ class FilePrescriptionCreateSerializer(FilePrescriptionSerializer):
 
 
 class FilePrescriptionRetrieveUpdateSerializer(FilePrescriptionSerializer):
-    active = serializers.BooleanField()
-    uploaded = serializers.BooleanField()
+    active = serializers.BooleanField(read_only=True)
+    uploaded = serializers.BooleanField(read_only=True)
     checked = serializers.BooleanField()
 
     class Meta(FilePrescriptionSerializer.Meta):

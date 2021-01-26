@@ -1,5 +1,3 @@
-from rest_framework import serializers
-
 from accounts.api.serializers import (PatientSerializer)
 from core.api.core_serializers import CorePatientSerializer, CoreDoctorSerializer, CorePrescriptionSerializer, \
     CoreFilePrescriptionSerializer, CoreDoctorFileSerializer, \
@@ -16,20 +14,31 @@ doctor main
 - [GET]/patients
 - [GET]/doctors/<int:pk>
 
-#1 - [GET]/doctors/<int:pk>/patients/<int:pk>/prescriptions
+#1 - [GET]/patients/<int:patient_id>/prescriptions
 - [GET]/patients/<int:pk>
 - [GET]/prescriptions
 
-#2 - [GET]/prescription-nested-files/<int:pk>/file-prescriptions
+#2 - [GET]/prescription-nested-files/<int:prescription_id>/file-prescriptions
 - [GET]/prescriptions/<int:pk>
 - [GET]/datafiles/doctor-files
 - [GET]/prescriptions/file-pres
 
-#3 - [GET]…/prescriptions/<int:pk>/file-pres/<int:pk>/patient-files
+#3 - [GET]/file-prescription/<int:pk>/patient-files
 
-doctor update
-[PATCH]…/doctors/<int:pk>
+#4 - [GET]…/file-prescriptions/new-uploaded-file
 
+
+Doctor Retrieve & Update
+[GET, PUT]/doctors/<int:pk>
+
+DoctorFile Retreive & Update
+[GET, PUT]/datafiles/doctor-files/<uuid:pk>
+
+Prescription Retrieve & Update
+[GET, PUT]/prescriptions/<int:pk>
+
+FilePrescription Retreive & Update
+[GET, PUT]/prescriptions/file-pres/<int:pk>
 
 """
 
@@ -77,3 +86,8 @@ class FilePrescriptionNestedPatientFileSerializer(CoreFilePrescriptionSerializer
 
     class Meta(CoreFilePrescriptionSerializer.Meta):
         fields = CoreFilePrescriptionSerializer.Meta.fields + ['prescription', 'patient_files']
+
+
+class ExpiredFilePrescriptionSerializer(CoreFilePrescriptionSerializer):
+    class Meta(CoreFilePrescriptionSerializer.Meta):
+        fields = CoreFilePrescriptionSerializer.Meta.fields

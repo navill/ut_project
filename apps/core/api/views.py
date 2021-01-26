@@ -7,7 +7,7 @@ from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PatientNestedPrescriptionSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
                                   FilePrescriptionNestedPatientFileSerializer,
-                                  ExpiredFilePrescriptionSerializer)
+                                  )
 from prescriptions.api.mixins import HistoryMixin
 from prescriptions.models import Prescription, FilePrescription
 
@@ -57,7 +57,7 @@ class UploadedPatientFileHistory(HistoryMixin, ListAPIView):
 class ExpiredFilePrescriptionHistory(HistoryMixin, ListAPIView):
     queryset = FilePrescription.objects.nested_all()
     permission_classes = [IsDoctor]
-    serializer_class = ExpiredFilePrescriptionSerializer
+    serializer_class = CoreFilePrescriptionSerializer
 
     def get_queryset(self):
         queryset = self.get_mixin_queryset()

@@ -268,9 +268,10 @@ def django_db_setup(django_db_setup, django_db_blocker):
         path_list = [
             os.path.join(BASE_DIR, 'fixtures/hospitals_fixture.json'),
             os.path.join(BASE_DIR, 'fixtures/accounts_fixture.json'),
-            os.path.join(BASE_DIR, 'fixtures/prescription_fixture.json')
+            os.path.join(BASE_DIR, 'fixtures/prescriptions_fixture.json'),
+            # os.path.join(BASE_DIR, 'fixtures/datafiles_fixture.json')
+
         ]
-        # os.path.join(BASE_DIR, 'fixtures/datafiles_fixture.json')
 
         for path in path_list:
             call_command('loaddata', path)

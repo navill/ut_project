@@ -1,7 +1,13 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Dict, Any, NoReturn
+
+from django.db import transaction
+
+from files.models import DoctorFile
+from prescriptions.models import Prescription
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+    from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 class HistoryMixin:
@@ -17,3 +23,23 @@ class CurrentUserRelatedFieldMixin:
             return None
         query = {attribute_name: request.user}
         return queryset.filter(**query)
+
+
+class PrescriptionSerializerMixin:
+    @transaction.atomic
+    def create(self, validated_data: Dict[str, Any]):
+        files = validated_data.pop('upload_doctor_files')
+        prescription = self._create_prescription(validated_data)
+        self._create_doctor_files(prescription.writer_id, prescription.id, files)
+        return prescription
+
+    def _create_prescription(self, validated_data: Dict[str, Any]) -> 'Prescription':
+        writer = validated_data.pop('writer').doctor
+        return Prescription.objects.create(writer=writer, **validated_data)
+
+    def _create_doctor_files(self, writer_id: int,
+                             prescription_id: int,
+                             request_files: 'InMemoryUploadedFile') -> NoReturn:
+        uploader_id = writer_id
+        for file in request_files:
+            DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)

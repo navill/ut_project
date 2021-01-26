@@ -1,12 +1,13 @@
 import uuid
-from typing import Type, Dict, Any, Union
+from typing import Dict, Any
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import F, QuerySet
+from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from files.api.mixins import BaseFileQuerySetMixin
 from files.api.utils import delete_file, concatenate_name, directory_path
 from prescriptions.models import Prescription, FilePrescription
 
@@ -18,24 +19,6 @@ PRESCRIPTION_QUERY_FIELD = ('prescription__id',)
 
 DOCTOR_QUERY_FIELDS = (f'uploader__doctor__{field}' for field in UPLOADER_QUERY_FIELDS)
 PATIENT_QUERY_FIELDS = (f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS)
-
-
-class BaseFileQuerySetMixin:
-    def shallow_delete(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> str:
-        obj_name_list = [str(obj_name) for obj_name in self]
-        self.update(deleted=True)
-        return f'finish shallow delete [{obj_name_list}]'
-
-    def hard_delete(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> str:
-        obj_name_list = []
-        for file in self:
-            obj_name_list.append(str(self))
-            file.delete_file()
-        super().delete()
-        return f'finish hard delete [{obj_name_list}]'
-
-    def filter_normal_list(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> Type[QuerySet]:
-        return self.filter(status='NORMAL')
 
 
 class BaseFile(models.Model):
@@ -92,7 +75,8 @@ class DoctorFileManager(models.Manager):
     def get_queryset(self) -> DoctorFileQuerySet:
         return DoctorFileQuerySet(self.model, using=self._db). \
             annotate(user=F('uploader_id'),
-                     uploader_doctor_name=concatenate_name('uploader__doctor')). \
+                     uploader_doctor_name=concatenate_name('uploader__doctor'),
+                     patient_user_id=F('uploader__doctor__patients')). \
             order_by('-created_at')
 
     def select_all(self) -> DoctorFileQuerySet:
@@ -132,7 +116,8 @@ class PatientFileManager(models.Manager):
     def get_queryset(self) -> PatientFileQuerySet:
         return PatientFileQuerySet(self.model, using=self._db). \
             annotate(user=F('uploader_id'),
-                     uploader_patient_name=concatenate_name('uploader__patient')). \
+                     uploader_patient_name=concatenate_name('uploader__patient'),
+                     doctor_user_id=F('uploader__patient__doctor_id')). \
             order_by('-created_at')
 
     def select_all(self) -> PatientFileQuerySet:

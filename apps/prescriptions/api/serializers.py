@@ -1,17 +1,15 @@
-from typing import Type, Optional, Dict, Any, TYPE_CHECKING, NoReturn
+from typing import Type, Optional, TYPE_CHECKING
 
-from django.db import transaction
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
 from accounts.api.serializers import RawDoctorSerializer
 from accounts.models import Patient
 from files.api.serializers import PatientUploadedFileListSerializer, DoctorFileInPrescriptionSerializer
-from files.models import DoctorFile
+from prescriptions.api.mixins import PrescriptionSerializerMixin
 from prescriptions.models import Prescription, HealthStatus, FilePrescription
 
 if TYPE_CHECKING:
-    from django.core.files.uploadedfile import InMemoryUploadedFile
     from django.db.models import QuerySet
 
 
@@ -48,14 +46,12 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
         view_name='prescriptions:prescription-detail-update',
         lookup_field='pk'
     )
-    # writer = serializers.HiddenField(default=CurrentUserDefault())
     writer = RawDoctorSerializer(read_only=True)
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
                                              write_only=True, target_field='doctor_id')
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     checked = serializers.BooleanField(default=False)
-    # doctor_files = serializers.PrimaryKeyRelatedField(queryset=DoctorFile.objects.select_all())
 
     writer_name = serializers.SerializerMethodField(read_only=True)
     patient_name = serializers.SerializerMethodField(read_only=True)
@@ -64,21 +60,19 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
         fields = DefaultPrescriptionSerializer.Meta.fields + ['writer_name', 'patient_name',
                                                               'start_date', 'end_date', 'status', 'checked', 'url']
 
-    def get_writer_name(self,
-                        instance: Prescription) -> str:
+    def get_writer_name(self, instance: Prescription) -> str:
         if hasattr(instance, 'writer_name'):
             return instance.writer_name
         # queryset에 writer_name이 없을 경우
         return instance.writer.get_full_name()
 
-    def get_patient_name(self,
-                         instance: Prescription) -> str:
+    def get_patient_name(self, instance: Prescription) -> str:
         if hasattr(instance, 'patient_name'):
             return instance.patient_name
         return instance.patient.get_full_name()
 
 
-class PrescriptionCreateSerializer(serializers.ModelSerializer):
+class PrescriptionCreateSerializer(PrescriptionSerializerMixin, serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-detail-update',
         lookup_field='pk'
@@ -96,29 +90,8 @@ class PrescriptionCreateSerializer(serializers.ModelSerializer):
         fields = DefaultPrescriptionSerializer.Meta.fields + ['doctor_files', 'start_date', 'end_date', 'status',
                                                               'checked', 'url', 'upload_doctor_files']
 
-    @transaction.atomic
-    def create(self,
-               validated_data: Dict[str, Any]):
-        files = validated_data.pop('upload_doctor_files')
-        prescription = self.create_prescription(validated_data)
-        self.create_doctor_files(prescription.writer_id, prescription.id, files)
-        return prescription
 
-    def create_prescription(self,
-                            validated_data: Dict[str, Any]) -> Prescription:
-        writer = validated_data.pop('writer').doctor
-        return Prescription.objects.create(writer=writer, **validated_data)
-
-    def create_doctor_files(self,
-                            writer_id: int,
-                            prescription_id: int,
-                            request_files: 'InMemoryUploadedFile') -> NoReturn:
-        uploader_id = writer_id
-        for file in request_files:
-            DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
-
-
-class FilePrescriptionSerializer(serializers.ModelSerializer):
+class FilePrescriptionSerializer(PrescriptionSerializerMixin, serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:file-prescription-detail-update',
         lookup_field='pk'

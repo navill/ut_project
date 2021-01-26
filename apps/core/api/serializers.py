@@ -86,8 +86,3 @@ class FilePrescriptionNestedPatientFileSerializer(CoreFilePrescriptionSerializer
 
     class Meta(CoreFilePrescriptionSerializer.Meta):
         fields = CoreFilePrescriptionSerializer.Meta.fields + ['prescription', 'patient_files']
-
-
-class ExpiredFilePrescriptionSerializer(CoreFilePrescriptionSerializer):
-    class Meta(CoreFilePrescriptionSerializer.Meta):
-        fields = CoreFilePrescriptionSerializer.Meta.fields

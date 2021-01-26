@@ -105,14 +105,5 @@
         "name": "\ub0b4\uacfc",
         "call": "010-3345-2234"
     }
-},
-{
-    "model": "hospitals.major",
-    "pk": 5,
-    "fields": {
-        "department": 1,
-        "name": "\ud14c\uc2a4\ud2b8 \uc804\uacf5",
-        "call": "010-12344"
-    }
 }
 ]

@@ -51,3 +51,8 @@ class RelatedPatientReadOnly(RootPermission):
             user_patient = request.user.patient
             return bool(obj.patient == user_patient)
         return False
+
+
+class WithRelated(RootPermission):
+    def has_object_permission(self, request, view, obj):
+        return self.is_related(request, obj)

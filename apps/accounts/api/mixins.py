@@ -67,3 +67,13 @@ class PermissionBundleMethodMixin:
 
     def has_group(self, request, group_name: str) -> bool:
         return hasattr(request.user, group_name)
+
+    def is_related(self, request, obj) -> bool:
+        user = request.user
+        value = None
+        if user.is_patient:
+            value = 'doctor_user_id'
+        elif user.is_doctor:
+            value = 'patient_user_id'
+
+        return hasattr(obj, value)

@@ -157,7 +157,8 @@ class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
 class DoctorManager(models.Manager):
     def get_queryset(self) -> DoctorQuerySet:
         return DoctorQuerySet(self.model, using=self._db). \
-            annotate(full_name=concatenate_name())
+            annotate(full_name=concatenate_name(),
+                     patient_user_id=F('patients__user_id'))
 
     def select_all(self) -> DoctorQuerySet:
         return self.select_related('user').select_related('major').filter_user_active()
@@ -202,7 +203,8 @@ class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
 
 class PatientManager(models.Manager):
     def get_queryset(self) -> PatientQuerySet:
-        return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name()).filter_user_active()
+        return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name(),
+                                                                    doctor_user_id=F('doctor_id')).filter_user_active()
 
     def select_all(self) -> PatientQuerySet:
         return self.get_queryset().select_related('user').select_related('doctor__user')

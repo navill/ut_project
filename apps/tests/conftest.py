@@ -16,7 +16,7 @@ from tests.constants import *
 @pytest.fixture(scope='function')
 def doctor_with_group(major):
     user = User.objects.create_user(**USER_DOCTOR)
-    doctor = Doctor.objects.create(user=user, major=major, **DOCTOR)
+    doctor = Doctor.objects.create(user_id=user.id, major=major, **DOCTOR)
     group, created = Group.objects.get_or_create(name='doctor')
     user.groups.add(group)
     return doctor
@@ -29,7 +29,7 @@ def doctors_with_group(major):
     for i in range(5):
         user = User.objects.create_user(email=f'doctor{i}@test.com', password='test1234')
         user.groups.add(group)
-        Doctor.objects.create(user=user,
+        Doctor.objects.create(user_id=user.id,
                               first_name=f'의사{i}',
                               last_name=f'성{i}',
                               address='광주어딘가..',
@@ -43,7 +43,7 @@ def doctors_with_group(major):
 @pytest.fixture(scope='function')
 def patient_with_group(doctor_with_group):
     user = User.objects.create_user(**USER_PATIENT)
-    patient = Patient.objects.create(user=user, doctor=doctor_with_group, **PATIENT)
+    patient = Patient.objects.create(user_id=user.id, doctor=doctor_with_group, **PATIENT)
     group, created = Group.objects.get_or_create(name='patient')
     user.groups.add(group)
     return patient
@@ -57,7 +57,7 @@ def patients_with_group(doctor_with_group):
         user = User.objects.create_user(email=f'patient{i}@test.com', password='test1234')
         user.groups.add(group)
 
-        Patient.objects.create(user=user,
+        Patient.objects.create(user_id=user.id,
                                doctor=doctor_with_group,
                                first_name=f'환자{i}',
                                last_name=f'성{i}',
@@ -262,16 +262,16 @@ def patient_client_with_token_auth(api_client, get_token_from_patient):
 # #         file.hard_delete()
 
 
-@pytest.fixture(scope='session')
-def django_db_setup(django_db_setup, django_db_blocker):
-    with django_db_blocker.unblock():
-        path_list = [
-            os.path.join(BASE_DIR, 'fixtures/hospitals_fixture.json'),
-            os.path.join(BASE_DIR, 'fixtures/accounts_fixture.json'),
-            os.path.join(BASE_DIR, 'fixtures/prescriptions_fixture.json'),
-            # os.path.join(BASE_DIR, 'fixtures/datafiles_fixture.json')
-
-        ]
-
-        for path in path_list:
-            call_command('loaddata', path)
+# @pytest.fixture(scope='session')
+# def django_db_setup(django_db_setup, django_db_blocker):
+#     with django_db_blocker.unblock():
+#         path_list = [
+#             os.path.join(BASE_DIR, 'fixtures/hospitals_fixture.json'),
+#             os.path.join(BASE_DIR, 'fixtures/accounts_fixture.json'),
+#             os.path.join(BASE_DIR, 'fixtures/prescriptions_fixture.json'),
+#             os.path.join(BASE_DIR, 'fixtures/datafiles_fixture.json')
+#
+#         ]
+#
+#         for path in path_list:
+#             call_command('loaddata','--natural-foreign','--naturla-primary', path)

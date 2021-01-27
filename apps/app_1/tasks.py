@@ -30,7 +30,7 @@ def xsum(numbers):
 @app.task(bind=True)
 def test_task(self, value=None, user_id=None):
     user = User.objects.get(id=user_id)
-    obj = CeleryTestModel.objects.create(user=user, host=self.request.hostname)
+    obj = CeleryTestModel.objects.create(user_id=user.id, host=self.request.hostname)
 
     # task
     while True:

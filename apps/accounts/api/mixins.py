@@ -19,7 +19,7 @@ class UserCreateMixin:
         try:
             with transaction.atomic():
                 baseuser = User.objects.create_user(**user_data)
-                user = self.Meta.model.objects.create(user=baseuser, **validated_data)
+                user = self.Meta.model.objects.create(user_id=baseuser.id, **validated_data)
                 user_pair = CreatedUserPair(user=user, baseuser=baseuser)
                 director = PostProcessingUserDirector(created_user=user_pair)
                 director.build_user_group_and_permission()
@@ -77,3 +77,5 @@ class PermissionBundleMethodMixin:
             value = 'patient_user_id'
 
         return hasattr(obj, value)
+
+

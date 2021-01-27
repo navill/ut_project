@@ -55,10 +55,10 @@ class BaseFile(models.Model):
 
 class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
     def select_doctor(self) -> 'DoctorFileQuerySet':
-        return self.select_related('uploader__doctor')
+        return self.annotate(uploader_doctor_name=concatenate_name('uploader__doctor'))
 
     def select_prescription(self) -> 'DoctorFileQuerySet':
-        return self.select_related('prescription')
+        return self.annotate(patient_user_id=F('prescription__patient_id'))
 
     def select_all(self) -> 'DoctorFileQuerySet':
         return self.select_doctor().select_prescription()
@@ -74,10 +74,7 @@ class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
 class DoctorFileManager(models.Manager):
     def get_queryset(self) -> DoctorFileQuerySet:
         return DoctorFileQuerySet(self.model, using=self._db). \
-            annotate(user=F('uploader_id'),
-                     uploader_doctor_name=concatenate_name('uploader__doctor'),
-                     patient_user_id=F('uploader__doctor__patients')). \
-            order_by('-created_at')
+            annotate(user=F('uploader_id')).order_by('-created_at')
 
     def select_all(self) -> DoctorFileQuerySet:
         return self.get_queryset().select_all()
@@ -100,10 +97,12 @@ class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
         return self.filter(uploader_id=user_id)
 
     def select_patient(self) -> 'PatientFileQuerySet':
-        return self.select_related('uploader__patient')
+        # return self.select_related('uploader__patient')
+        return self.annotate(uploader_patient_name=concatenate_name('uploader__patient'))
 
     def select_doctor(self) -> 'PatientFileQuerySet':
-        return self.select_related('prescription__doctor')
+        # return self.select_related('prescription__doctor')
+        return self.annotate(doctor_user_id=F('uploader__patient__doctor_id'))
 
     def select_file_prescription(self) -> 'PatientFileQuerySet':
         return self.select_related('file_prescription')
@@ -115,10 +114,7 @@ class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
 class PatientFileManager(models.Manager):
     def get_queryset(self) -> PatientFileQuerySet:
         return PatientFileQuerySet(self.model, using=self._db). \
-            annotate(user=F('uploader_id'),
-                     uploader_patient_name=concatenate_name('uploader__patient'),
-                     doctor_user_id=F('uploader__patient__doctor_id')). \
-            order_by('-created_at')
+            annotate(user=F('uploader_id')).order_by('-created_at')
 
     def select_all(self) -> PatientFileQuerySet:
         return self.get_queryset().select_all()

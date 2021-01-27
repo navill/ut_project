@@ -7,22 +7,9 @@
         "city": "\uc11c\uc6b8\ud2b9\ubcc4\uc2dc",
         "name": "\uc11c\uc6b8\ubcd1\uc6d0",
         "address": "\uc11c\uc6b8\uc5b4\ub518\uac00",
-        "postal_code": "123-1234",
-        "main_call": "02-1234-1234",
-        "sub_call": "02-234-4566"
-    }
-},
-{
-    "model": "hospitals.medicalcenter",
-    "pk": 2,
-    "fields": {
-        "country": "\ub300\ud55c\ubbfc\uad6d",
-        "city": "\uad11\uc8fc\uad11\uc5ed\uc2dc",
-        "name": "\uad11\uc8fc\ubcd1\uc6d0",
-        "address": "\uad11\uc8fc\uc5b4\ub518\uac00",
-        "postal_code": "223-442",
-        "main_call": "062-123-1234",
-        "sub_call": "026-1234-1234"
+        "postal_code": "123-123",
+        "main_call": "02-1111-1111",
+        "sub_call": "02-1111-1112"
     }
 },
 {
@@ -31,43 +18,7 @@
     "fields": {
         "medical_center": 1,
         "name": "\uc815\uc2e0\uc758\ud559\uacfc",
-        "call": "02-3445-5345"
-    }
-},
-{
-    "model": "hospitals.department",
-    "pk": 2,
-    "fields": {
-        "medical_center": 1,
-        "name": "\ud749\ubd80\uc678\uacfc",
-        "call": "02-3445-5344"
-    }
-},
-{
-    "model": "hospitals.department",
-    "pk": 3,
-    "fields": {
-        "medical_center": 2,
-        "name": "\uc815\uc2e0\uc758\ud559\uacfc",
-        "call": "02-3435-3456"
-    }
-},
-{
-    "model": "hospitals.department",
-    "pk": 4,
-    "fields": {
-        "medical_center": 2,
-        "name": "\ub0b4\uacfc",
-        "call": "02-3435-3453"
-    }
-},
-{
-    "model": "hospitals.department",
-    "pk": 5,
-    "fields": {
-        "medical_center": 1,
-        "name": "\ud14c\uc2a4\ud2b8 \ubd80\uc11c",
-        "call": "010-111111"
+        "call": "02-1111-1112"
     }
 },
 {
@@ -76,34 +27,7 @@
     "fields": {
         "department": 1,
         "name": "\uc815\uc2e0\uc758\ud559",
-        "call": "010-3345-2234"
-    }
-},
-{
-    "model": "hospitals.major",
-    "pk": 2,
-    "fields": {
-        "department": 2,
-        "name": "\ud749\ubd80\uc678\uacfc",
-        "call": "010-3345-2234"
-    }
-},
-{
-    "model": "hospitals.major",
-    "pk": 3,
-    "fields": {
-        "department": 3,
-        "name": "\uc815\uc2e0\uc758\ud559",
-        "call": "010-3345-2234"
-    }
-},
-{
-    "model": "hospitals.major",
-    "pk": 4,
-    "fields": {
-        "department": 4,
-        "name": "\ub0b4\uacfc",
-        "call": "010-3345-2234"
+        "call": "02-1111-1113"
     }
 }
 ]

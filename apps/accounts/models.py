@@ -3,11 +3,10 @@ from typing import Union, TYPE_CHECKING, Tuple, Dict, List
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.db.models.functions import Concat
 from django.urls import reverse
 
-from accounts.mixins.form_mixins import CommonUserQuerySetMixin
 from hospitals.models import Major
 
 if TYPE_CHECKING:
@@ -17,6 +16,24 @@ DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
 DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
 DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
 DEFER_PATIENT_FIELDS = ('emergency_call', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
+
+
+class CommonUserQuerySetMixin:
+    def filter_user_active(self):
+        return self.filter(user__is_active=True)
+
+    def filt_doctor(self):
+        return self.filter(Q(is_doctor=True) & Q(is_patient=False))
+
+    def filt_patient(self):
+        return self.filter(Q(is_doctor=False) & Q(is_patient=True))
+
+    def ordered(self, value: str = None):
+        default = '-user__created_at'
+        if self.model.__name__ in ['patient', 'doctor']:
+            default = '-created_at'
+        value = default if value is None else value
+        return self.order_by(value)
 
 
 def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str]:
@@ -153,21 +170,29 @@ class DoctorQuerySet(CommonUserQuerySetMixin, models.QuerySet):
         deferred_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
         return self.defer(*DEFER_DOCTOR_FIELDS, *deferred_user_fields, *fields)
 
+    def prefetch_all(self):
+        return self.prefetch_related('patients')
+
+    def select_all(self):
+        return self.select_related('major')
+
 
 class DoctorManager(models.Manager):
     def get_queryset(self) -> DoctorQuerySet:
         return DoctorQuerySet(self.model, using=self._db). \
-            annotate(full_name=concatenate_name(),
-                     patient_user_id=F('patients__user_id'))
+            annotate(full_name=concatenate_name()).filter_user_active()
 
     def select_all(self) -> DoctorQuerySet:
-        return self.select_related('user').select_related('major').filter_user_active()
+        return self.get_queryset().select_all()
+
+    def prefetch_all(self) -> DoctorQuerySet:
+        return self.get_queryset().prefetch_all()
+
+    def related_all(self) -> DoctorQuerySet:
+        return self.select_all().prefetch_all()
 
     def non_related_all(self) -> DoctorQuerySet:
         return self.defer('user', 'major')
-
-    def with_patients(self) -> DoctorQuerySet:
-        return self.all().prefetch_related('patients')
 
 
 class Doctor(AccountsModel):
@@ -190,12 +215,12 @@ class PatientQuerySet(CommonUserQuerySetMixin, models.QuerySet):
         defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
 
-    def select_all(self) -> 'PatientQuerySet':
-        return self.select_related('user').select_related('doctor')
-
     def prefetch_prescription(self) -> 'PatientQuerySet':
         return self.prefetch_related('prescriptions__writer').prefetch_related(
             'prescriptions__patient').prefetch_related('prescriptions__doctor_files')
+
+    def select_all(self) -> 'PatientQuerySet':
+        return self.select_related('user').select_related('doctor')
 
     def prefetch_all(self) -> 'PatientQuerySet':
         return self.prefetch_prescription()
@@ -211,6 +236,9 @@ class PatientManager(models.Manager):
 
     def prefetch_all(self):
         return self.get_queryset().prefetch_all()
+
+    def related_all(self):
+        return self.select_all().prefetch_all()
 
 
 class Patient(AccountsModel):

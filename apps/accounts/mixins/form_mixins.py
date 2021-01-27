@@ -25,7 +25,7 @@ class UserSaveMixin:
         cleaned_data = self._get_fields_excluding_baseuser()  # StaffUser.department
         self._add_user_to_group(user=user, groupname=user_type)
 
-        user_class.objects.create(user=user, **cleaned_data)
+        user_class.objects.create(user_id=user.id, **cleaned_data)
 
     def _get_type(self) -> str:
         return self.__class__.__name__.split('SignUpForm')[0]
@@ -41,22 +41,6 @@ class UserSaveMixin:
         user.groups.add(group)
 
 
-class CommonUserQuerySetMixin:
-    def filter_user_active(self):
-        return self.filter(user__is_active=True)
-
-    def filt_doctor(self):
-        return self.filter(Q(is_doctor=True) & Q(is_patient=False))
-
-    def filt_patient(self):
-        return self.filter(Q(is_doctor=False) & Q(is_patient=True))
-
-    def ordered(self, value: str = None):
-        default = '-user__created_at'
-        if self.model.__name__ in ['patient', 'doctor']:
-            default = '-created_at'
-        value = default if value is None else value
-        return self.order_by(value)
 
     # def defer_fields(self, *fields: Union[tuple, list]):
     #     return self.defer(*fields)

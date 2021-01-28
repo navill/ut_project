@@ -1,7 +1,14 @@
-from accounts.api.serializers import (PatientSerializer)
-from core.api.core_serializers import CorePatientSerializer, CoreDoctorSerializer, CorePrescriptionSerializer, \
-    CoreFilePrescriptionSerializer, CoreDoctorFileSerializer, \
-    CorePatientFileSerializer
+from typing import TYPE_CHECKING
+
+from core.api.core_serializers import (CoreDoctorSerializer,
+                                       CorePatientSerializer,
+                                       CorePrescriptionSerializer,
+                                       CoreFilePrescriptionSerializer,
+                                       CoreDoctorFileSerializer,
+                                       CorePatientFileSerializer)
+
+if TYPE_CHECKING:
+    pass
 
 """
 login
@@ -25,8 +32,9 @@ doctor main
 
 #3 - [GET]/file-prescription/<int:pk>/patient-files
 
-#4 - [GET]…/file-prescriptions/new-uploaded-file
+#4 - [GET]/histroies/new-uploaded-file
 
+#5 - [GET]/histories/expired-upload-date
 
 Doctor Retrieve & Update
 [GET, PUT]/doctors/<int:pk>
@@ -51,16 +59,17 @@ class DoctorNestedPatientSerializer(CoreDoctorSerializer):
         fields = CoreDoctorSerializer.Meta.fields + ['patients']
 
 
+##################
+
 # 1: 의사가 작성한 환자의 소견서 리스트 + 소견서에 업로드된 파일
 class PatientNestedPrescriptionSerializer(CorePatientSerializer):
     prescriptions = CorePrescriptionSerializer(many=True)
 
-    class Meta(PatientSerializer.Meta):
-        fields = PatientSerializer.Meta.fields + ['prescriptions']
+    class Meta(CorePatientSerializer.Meta):
+        fields = CorePatientSerializer.Meta.fields + ['prescriptions']
 
 
 ###################
-
 
 class PrescriptionNestedDoctorFileSerializer(CorePrescriptionSerializer):
     doctor_files = CoreDoctorFileSerializer(many=True)
@@ -86,3 +95,17 @@ class FilePrescriptionNestedPatientFileSerializer(CoreFilePrescriptionSerializer
 
     class Meta(CoreFilePrescriptionSerializer.Meta):
         fields = CoreFilePrescriptionSerializer.Meta.fields + ['prescription', 'patient_files']
+
+
+##################
+
+# 4 /histroies/new-uploaded-file
+class UploadedPatientFileHistorySerializer(CoreFilePrescriptionSerializer):
+    pass
+
+
+##################
+
+# 5 /histories/expired-upload-date
+class ExpiredFilePrescriptionHistorySerializer(CoreFilePrescriptionSerializer):
+    pass

@@ -43,3 +43,6 @@ class PrescriptionSerializerMixin:
         uploader_id = writer_id
         for file in request_files:
             DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
+
+
+# class QuerySetMixin:

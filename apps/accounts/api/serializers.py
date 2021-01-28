@@ -8,7 +8,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 from rest_framework_simplejwt.tokens import Token
 
 from accounts.api.authentications import CustomRefreshToken
-from accounts.api.mixins import UserCreateMixin, RefreshBlacklistMixin
+from accounts.api.mixins import SignupSerializerMixin, RefreshBlacklistMixin
 from accounts.models import Doctor, Patient, Gender
 from hospitals.models import Major
 
@@ -119,7 +119,7 @@ class DoctorRetrieveSerializer(RawDoctorSerializer):
         fields = RawDoctorSerializer.Meta.fields + ['address', 'phone', 'description']
 
 
-class DoctorSignUpSerializer(UserCreateMixin, DoctorSerializer):
+class DoctorSignUpSerializer(SignupSerializerMixin, DoctorSerializer):
     user = BaseUserSignUpSerializer()
     major = serializers.PrimaryKeyRelatedField(queryset=Major.objects.all())
     gender = serializers.ChoiceField(choices=Gender.choices)
@@ -171,7 +171,7 @@ class PatientListSerailizer(RawPatientSerializer):
         fields = RawPatientSerializer.Meta.fields + ['full_name', 'age', 'doctor_name']
 
 
-class PatientSignUpSerializer(UserCreateMixin, PatientSerializer):
+class PatientSignUpSerializer(SignupSerializerMixin, PatientSerializer):
     user = BaseUserSignUpSerializer()
     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.select_all())
     gender = serializers.ChoiceField(choices=Gender.choices)

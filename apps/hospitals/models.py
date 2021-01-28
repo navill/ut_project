@@ -68,6 +68,9 @@ class MajorQuerySet(models.QuerySet):
     def prefetch_all(self) -> 'MajorQuerySet':
         return self.prefetch_related('doctor_major')
 
+    def nested_all(self):
+        return self.select_all().prefetch_all()
+
 
 class MajorManager(models.Manager):
     def get_queryset(self) -> MajorQuerySet:
@@ -80,8 +83,8 @@ class MajorManager(models.Manager):
     def prefetch_all(self) -> MajorQuerySet:
         return self.get_queryset().prefetch_all()
 
-    def related_all(self) -> MajorQuerySet:
-        return self.get_queryset().select_all().prefetch_all()
+    def nested_all(self) -> MajorQuerySet:
+        return self.get_queryset().nested_all()
 
 
 class Major(models.Model):

@@ -34,7 +34,7 @@ class DoctorListView(DoctorRequiredMixin, ListView):
     user_type = 'doctor'
 
     def get_queryset(self):
-        queryset = super().get_queryset().ordered()
+        queryset = super().get_queryset().order_by('-user__created_at')
         return queryset
 
 
@@ -87,7 +87,7 @@ class PatientListView(UserRequiredMixin, ListView):
     user_type = 'patient'
 
     def get_queryset(self):
-        queryset = super().get_queryset().ordered()
+        queryset = super().get_queryset().order_by('-user__created_at')
         return queryset
 
 

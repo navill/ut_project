@@ -43,14 +43,14 @@ class BaseFile(models.Model):
         obj_name = str(self)
         self.deleted = True
         self.save()
-        return f'finish shallow delete [{obj_name}]'
+        return f'shallow delete [{obj_name}]'
 
     def hard_delete(self) -> str:
         obj_name = str(self)
         if self.file:
             delete_file(self.file.path)
         super().delete()
-        return f'finish hard delete [{obj_name}]'
+        return f'hard delete [{obj_name}]'
 
 
 class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):

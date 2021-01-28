@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Union, NoReturn
+from typing import TYPE_CHECKING, Union, NoReturn, Type
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
@@ -52,27 +52,35 @@ class GroupPermissionInterface(metaclass=ABCMeta):
 
 
 class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
-    def __init__(self):
-        self.target_user = None
-        self.permissions = None
+    def __init__(self, pair_user: 'CreatedUserPair' = None, permissions: 'Permission' = None):
+        self.pair_user = pair_user
+        self.permissions = permissions
+
+    def build(self):
+        self.set_permissions_for_models()
+        if self.pair_user and self.permissions:
+            self.add_user_to_model_group()
+            self.grant_permission_to_baseuser()
+        else:
+            raise Exception
 
     def set_permissions_for_models(self) -> NoReturn:
         queries = self._create_content_type_queries()
         self.permissions = Permission.objects.filter(queries)
 
     def add_user_to_model_group(self) -> NoReturn:
-        group, created = Group.objects.get_or_create(name=self.target_user.model_name)
+        group, created = Group.objects.get_or_create(name=self.pair_user.model_name)
 
         if created and self.permissions.exists():
             group.permissions.set(self.permissions)
 
-        self.target_user.baseuser.groups.add(group)
+        self.pair_user.baseuser.groups.add(group)
 
     def grant_permission_to_baseuser(self) -> NoReturn:
-        self.target_user.baseuser.user_permissions.set(self.permissions)
+        self.pair_user.baseuser.user_permissions.set(self.permissions)
 
     def _create_content_type_queries(self) -> Q:
-        queries = self._create_queries_using_model_name(self.target_user.model_name)
+        queries = self._create_queries_using_model_name(self.pair_user.model_name)
         content_type_query = Q()
         content_types = ContentType.objects.filter(queries, app_label='accounts')
 
@@ -91,18 +99,9 @@ class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
 
 
 class PostProcessingUserDirector:
-    def __init__(self, created_user: CreatedUserPair):
-        self.created_user = created_user
-        self.builder = GroupPermissionBuilder()
+    def __init__(self, user: Union['Doctor', 'Patient'] = None, baseuser: 'User' = None):
+        self.created_user = CreatedUserPair(user=user, baseuser=baseuser)
 
     def build_user_group_and_permission(self) -> NoReturn:
-        self.builder.target_user = self.created_user
-        self.builder.set_permissions_for_models()
-        self.builder.add_user_to_model_group()
-        self.builder.grant_permission_to_baseuser()
-
-    # def construct_builder(self):
-    #     self.builder.target_user = self.created_user
-    #     self.builder.set_permissions_for_models()
-    #     self.builder.add_user_to_model_group()
-    #     self.builder.grant_permission_to_baseuser()
+        builder = GroupPermissionBuilder(pair_user=self.created_user)
+        builder.build()

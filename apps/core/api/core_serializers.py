@@ -23,6 +23,9 @@ class CorePatientSerializer(PatientSerializer):
 class CoreDoctorFileSerializer(DoctorFileSerializer):
     # doctor detail_(update)url
     # doctor delete_url
+    # detail_url = serializers.HyperlinkedIdentityField(
+    #     view_name=''
+    # )
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields
 

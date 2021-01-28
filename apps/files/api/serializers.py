@@ -18,9 +18,14 @@ class BasedCurrentUserPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField)
     def get_queryset(self):
         request = self.context.get('request', None)
         queryset = super().get_queryset()
-        if not request or not queryset:
-            return None
         return queryset.filter(user=request.user.id)
+
+
+class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self) -> Optional[Type['QuerySet']]:
+        request = self.context.get('request', None)
+        queryset = super().get_queryset()
+        return queryset.filter(prescription__patient_id=request.user.id)
 
 
 """
@@ -150,15 +155,6 @@ DataFile(related Patient) Serializer
 """
 
 
-class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self) -> Optional[Type['QuerySet']]:
-        request = self.context.get('request', None)
-        queryset = super().get_queryset()
-        if not request or not queryset:
-            return None
-        return queryset.filter(prescription__patient_id=request.user.id)
-
-
 class PatientFileSerializer(_BaseFileSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='files:patient-file-retrieve',
@@ -186,6 +182,8 @@ class PatientFlieRetrieveSerializer(PatientFileSerializer):
 
 class PatientFileUploadSerializer(PatientFileSerializer):
     uploader = serializers.HiddenField(default=CurrentUserDefault())
+    file_prescription = CurrentPatientPrimaryKeyRelatedField(
+        queryset=FilePrescription.objects.select_all().filter(uploaded=False))
 
     class Meta(PatientFileSerializer.Meta):
         fields = PatientFileSerializer.Meta.fields + ['file']
@@ -193,7 +191,6 @@ class PatientFileUploadSerializer(PatientFileSerializer):
     def create(self, validated_data: Dict[str, Any]) -> Optional[PatientFile]:
         uploader = validated_data.get('uploader', None)
         file_prescription = validated_data.get('file_prescription', None)
-        print(validated_data)
         self._validate_relation(file_prescription, uploader)
 
         if uploader and file_prescription:

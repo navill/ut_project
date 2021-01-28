@@ -5,7 +5,7 @@ from django.db import transaction
 from rest_framework import permissions
 from rest_framework_simplejwt.settings import api_settings
 
-from accounts.api.utils import CreatedUserPair, PostProcessingUserDirector
+from accounts.api.utils import PostProcessingUserDirector
 
 if TYPE_CHECKING:
     from accounts.api.authentications import CustomRefreshToken
@@ -13,17 +13,15 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
-class UserCreateMixin:
+class SignupSerializerMixin:
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         try:
             with transaction.atomic():
                 baseuser = User.objects.create_user(**user_data)
                 user = self.Meta.model.objects.create(user_id=baseuser.id, **validated_data)
-                user_pair = CreatedUserPair(user=user, baseuser=baseuser)
-                director = PostProcessingUserDirector(created_user=user_pair)
+                director = PostProcessingUserDirector(user=user, baseuser=baseuser)
                 director.build_user_group_and_permission()
-
         except Exception:
             raise
         return user
@@ -77,5 +75,3 @@ class PermissionBundleMethodMixin:
             value = 'patient_user_id'
 
         return hasattr(obj, value)
-
-

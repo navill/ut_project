@@ -1,4 +1,5 @@
 import datetime
+from typing import Dict, Any
 
 from django.db import models
 from django.db.models import F, Prefetch
@@ -50,16 +51,22 @@ class PrescriptionQuerySet(models.QuerySet):
     def select_writer(self) -> 'PrescriptionQuerySet':
         return self.select_related('writer__user')
 
-    def prefetch_doctor_file(self):
+    def select_all(self) -> 'PrescriptionQuerySet':
+        return self.select_patient().select_writer()
+
+    def prefetch_doctor_file(self) -> 'PrescriptionQuerySet':
         return self.prefetch_related('doctor_files')
 
-    def prefetch_file_prescription(self):
+    def prefetch_file_prescription(self) -> 'PrescriptionQuerySet':
         return self.prefetch_related('file_prescriptions')
 
     def prefetch_file_prescription_with_files(self) -> 'PrescriptionQuerySet':
         return self.prefetch_related(Prefetch('file_prescriptions',
                                               queryset=FilePrescription.objects.prefetch_related('patient_files')
                                               ))
+
+    def prefetch_all(self) -> 'PrescriptionQuerySet':
+        return self.prefetch_file_prescription_with_files()
 
 
 class PrescriptionManager(models.Manager):
@@ -70,21 +77,14 @@ class PrescriptionManager(models.Manager):
                      patient_name=concatenate_name('patient'),
                      patient_user_id=F('patient_id'))
 
-    def prefetch_file_prescription(self):
+    def prefetch_file_prescription(self) -> 'PrescriptionQuerySet':
         return self.get_queryset().prefetch_file_prescription()
 
     def select_all(self) -> 'PrescriptionQuerySet':
-        return self.get_queryset(). \
-            select_writer(). \
-            select_patient(). \
-            order_by('-created_at'). \
-            filter(deleted=False)
+        return self.get_queryset().select_all().order_by('-created_at').filter(deleted=False)
 
     def nested_all(self) -> 'PrescriptionQuerySet':
-        return self.get_queryset(). \
-            select_writer(). \
-            select_patient(). \
-            prefetch_file_prescription_with_files(). \
+        return self.get_queryset().select_all().prefetch_file_prescription_with_files(). \
             filter(deleted=False)
 
 
@@ -97,15 +97,10 @@ Prescription
 class Prescription(BasePrescription):
     writer = models.ForeignKey(Doctor, on_delete=models.DO_NOTHING)
     patient = models.ForeignKey(Patient, on_delete=models.DO_NOTHING, related_name='prescriptions')
-    # files = models.FileField(upload_to=directory_path, null=True)
-
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)
 
     objects = PrescriptionManager()
-
-    # def __str__(self):
-    #     return f'{self.writer.get_full_name()}-{self.patient.get_full_name()}-{str(self.created_at)}'
 
     class Meta:
         ordering = ['-id']
@@ -113,9 +108,12 @@ class Prescription(BasePrescription):
     def get_writer_name(self) -> str:
         return self.writer.get_full_name()
 
+    def __str__(self) -> str:
+        return f'{self.patient.get_full_name()}-{str(self.created_at)}'
+
 
 @receiver(post_save, sender=Prescription)
-def create_file_prescription(sender, **kwargs):
+def create_file_prescription(sender, **kwargs: Dict[str, Any]):
     instance = kwargs['instance']
     start_date = instance.start_date
     end_date = instance.end_date
@@ -136,37 +134,46 @@ def create_file_prescription(sender, **kwargs):
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
-    def filter_writer(self, writer_id: int) -> 'FilePrescriptionQuerySet':
-        return self.filter(writer_id=writer_id)
-
-    def filter_patient(self, patient_id: int) -> 'FilePrescriptionQuerySet':
-        return self.filter(patient_id=patient_id)
-
-    def filter_uploaded(self):
-        return self.filter(uploaded=True)
-
-    def filter_not_checked(self):
-        return self.filter(checked=False)
-
-    def filter_new_uploaded_file(self):
-        return self.filter_uploaded().filter_not_checked()
-
-    def filter_upload_date_expired(self):
-        return self.filter_not_checked().filter(day__lt=datetime.date.today())
-
-    def filter_prescription_writer(self, user_id):
-        return self.filter(prescription__writer_id=user_id)
-
     def defer_option_fields(self) -> 'FilePrescriptionQuerySet':
         deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
         deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
         return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
-    def prefetch_all(self) -> 'FilePrescriptionQuerySet':
+    # def filter_writer(self, writer_id: int) -> 'FilePrescriptionQuerySet':
+    #     return self.filter(prescription__writer_id=writer_id)
+    #
+    # def filter_patient(self, patient_id: int) -> 'FilePrescriptionQuerySet':
+    #     return self.filter(prescription__patient_id=patient_id)
+
+    def filter_uploaded(self) -> 'FilePrescriptionQuerySet':
+        return self.filter(uploaded=True)
+
+    def filter_not_checked(self) -> 'FilePrescriptionQuerySet':
+        return self.filter(checked=False)
+
+    def filter_new_uploaded_file(self) -> 'FilePrescriptionQuerySet':
+        return self.filter_uploaded().filter_not_checked()
+
+    def filter_upload_date_expired(self) -> 'FilePrescriptionQuerySet':
+        return self.filter_not_checked().filter(day__lt=datetime.date.today())
+
+    def filter_prescription_writer(self, user_id: int) -> 'FilePrescriptionQuerySet':
+        return self.filter(prescription__writer_id=user_id)
+
+    def prefetch_doctor_files(self) -> 'FilePrescriptionQuerySet':
+        return self.prefetch_related('prescription__doctor_files')
+
+    def prefetch_patient_files(self) -> 'FilePrescriptionQuerySet':
         return self.prefetch_related('patient_files')
 
+    def prefetch_all(self) -> 'FilePrescriptionQuerySet':
+        return self.prefetch_patient_files().prefetch_doctor_files()
+
     def select_all(self) -> 'FilePrescriptionQuerySet':
-        return self.select_related('prescription')
+        return self.select_related('prescription__writer')
+
+    def nested_all(self) -> 'FilePrescriptionQuerySet':
+        return self.select_all().prefetch_all()
 
 
 class FilePrescriptionManager(models.Manager):
@@ -181,10 +188,10 @@ class FilePrescriptionManager(models.Manager):
         return self.get_queryset().prefetch_all()
 
     def select_all(self) -> 'FilePrescriptionQuerySet':
-        return self.get_queryset().select_all()
+        return self.get_queryset().select_all()  # prescription-doctorfile, prescription-writer, patient_file
 
-    def nested_all(self):
-        return self.get_queryset().select_all().prefetch_all()
+    def nested_all(self) -> 'FilePrescriptionQuerySet':
+        return self.get_queryset().nested_all()
 
 
 """
@@ -207,12 +214,11 @@ class FilePrescription(BasePrescription):
         ordering = ['-id']
 
     def __str__(self) -> str:
-        # return f'{self.prescription.id}-{self.prescription.start_date}: {self.day_number}일'
-        return f'{self.prescription.id}-{self.day}: {self.day_number}일'
+        return f'prescription_id:{self.prescription.id}-{self.day}: {self.day_number}일'
 
 
 @receiver(post_save, sender=FilePrescription)
-def set_prescription_checked(sender, **kwargs):
+def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
     instance = kwargs['instance']
     checked_queryset = instance.prescription.file_prescriptions.values_list('checked')
 

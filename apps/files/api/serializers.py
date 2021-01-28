@@ -15,7 +15,7 @@ User = get_user_model()
 
 
 class BasedCurrentUserPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self):
+    def get_queryset(self) -> Optional[Type['QuerySet']]:
         request = self.context.get('request', None)
         queryset = super().get_queryset()
         return queryset.filter(user=request.user.id)

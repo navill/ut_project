@@ -23,6 +23,8 @@ class RawAccountSerializer(serializers.ModelSerializer):
     phone = serializers.CharField()
 
     def get_full_name(self, instance: Union[Doctor, Patient]) -> str:
+        if hasattr(instance, 'full_name'):
+            return instance.full_name
         return instance.get_full_name()
 
 
@@ -81,6 +83,9 @@ class RawDoctorSerializer(RawAccountSerializer):
         model = Doctor
         fields = ['url', 'user_id', 'first_name', 'last_name', 'gender']
 
+    def get_major_name(self, instance: Doctor) -> str:
+        return str(instance.major.name)
+
 
 class RelatedDoctorSerializer(RawDoctorSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -97,9 +102,6 @@ class DoctorSerializer(RelatedDoctorSerializer):
         model = Doctor
         fields = RelatedDoctorSerializer.Meta.fields + ['major_name', 'address', 'phone', 'description']
 
-    def get_major_name(self, instance):
-        return str(instance.major.name)
-
 
 class DoctorListSerializer(RawDoctorSerializer):
     full_name = serializers.SerializerMethodField()
@@ -108,9 +110,6 @@ class DoctorListSerializer(RawDoctorSerializer):
     class Meta:
         model = Doctor
         fields = RawDoctorSerializer.Meta.fields + ['full_name', 'major_name']
-
-    def get_major_name(self, instance: Doctor) -> str:
-        return instance.major.name
 
 
 class DoctorRetrieveSerializer(RawDoctorSerializer):
@@ -144,6 +143,8 @@ class RawPatientSerializer(RawAccountSerializer):
         fields = ['url', 'user_id', 'first_name', 'last_name', 'gender']
 
     def get_doctor_name(self, instance: Patient) -> str:
+        if hasattr(instance, 'doctor_name'):
+            return instance.doctor_name
         return instance.doctor.get_full_name()
 
 

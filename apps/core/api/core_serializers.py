@@ -6,8 +6,13 @@ from prescriptions.api.serializers import PrescriptionSerializer, FilePrescripti
 
 
 class CoreDoctorSerializer(DoctorSerializer):
+    detail_url = serializers.HyperlinkedIdentityField(
+        view_name='accounts:doctor-detail-update',
+        lookup_field='pk'
+    )
+
     class Meta(DoctorSerializer.Meta):
-        fields = DoctorSerializer.Meta.fields
+        fields = DoctorSerializer.Meta.fields + ['detail_url']
 
 
 class CorePatientSerializer(PatientSerializer):
@@ -15,17 +20,19 @@ class CorePatientSerializer(PatientSerializer):
         view_name='core-api:patient-with-prescriptions',
         lookup_field='pk'
     )
+    detail_url = serializers.HyperlinkedIdentityField(
+        view_name='accounts:patient-detail-update',
+        lookup_field='pk'
+    )
 
     class Meta(PatientSerializer.Meta):
-        fields = PatientSerializer.Meta.fields
+        fields = PatientSerializer.Meta.fields + ['detail_url']
 
 
 class CoreDoctorFileSerializer(DoctorFileSerializer):
     # doctor detail_(update)url
     # doctor delete_url
-    # detail_url = serializers.HyperlinkedIdentityField(
-    #     view_name=''
-    # )
+
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields
 
@@ -33,6 +40,7 @@ class CoreDoctorFileSerializer(DoctorFileSerializer):
 class CorePatientFileSerializer(PatientFileSerializer):
     # patient detail(update)_url
     # patient delete_url
+
     class Meta(PatientFileSerializer.Meta):
         fields = PatientFileSerializer.Meta.fields
 

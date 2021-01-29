@@ -70,8 +70,8 @@ class PermissionBundleMethodMixin:
         user = request.user
         value = None
         if user.is_patient:
-            value = 'doctor_user_id'
+            value = 'doctor_id'
         elif user.is_doctor:
-            value = 'patient_user_id'
+            value = 'patient_id'
 
         return hasattr(obj, value)

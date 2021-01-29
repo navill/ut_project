@@ -74,8 +74,7 @@ class PrescriptionManager(models.Manager):
         return PrescriptionQuerySet(self.model, using=self._db). \
             annotate(user=F('writer_id'),
                      writer_name=concatenate_name('writer'),
-                     patient_name=concatenate_name('patient'),
-                     patient_user_id=F('patient_id'))
+                     patient_name=concatenate_name('patient'))
 
     def prefetch_file_prescription(self) -> 'PrescriptionQuerySet':
         return self.get_queryset().prefetch_file_prescription()
@@ -180,9 +179,10 @@ class FilePrescriptionManager(models.Manager):
     def get_queryset(self) -> 'FilePrescriptionQuerySet':
         return FilePrescriptionQuerySet(self.model, using=self._db). \
             annotate(user=F('prescription__writer_id'),
+                     doctor_id=F('prescription__writer_id'),  # 중복
+                     patient_id=F('prescription__patient_id'),
                      writer_name=concatenate_name('prescription__writer'),
-                     patient_name=concatenate_name('prescription__patient'),
-                     patient_user_id=F('prescription__patient_id'))
+                     patient_name=concatenate_name('prescription__patient'))
 
     def prefetch_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().prefetch_all()

@@ -58,7 +58,7 @@ class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
         return self.annotate(uploader_doctor_name=concatenate_name('uploader__doctor'))
 
     def select_prescription(self) -> 'DoctorFileQuerySet':
-        return self.annotate(patient_user_id=F('prescription__patient_id'))
+        return self.annotate(patient_id=F('prescription__patient_id'))
 
     def select_all(self) -> 'DoctorFileQuerySet':
         return self.select_doctor().select_prescription()
@@ -102,7 +102,7 @@ class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
 
     def select_doctor(self) -> 'PatientFileQuerySet':
         # return self.select_related('prescription__doctor')
-        return self.annotate(doctor_user_id=F('uploader__patient__doctor_id'))
+        return self.annotate(doctor_id=F('uploader__patient__doctor_id'))
 
     def select_file_prescription(self) -> 'PatientFileQuerySet':
         return self.select_related('file_prescription')

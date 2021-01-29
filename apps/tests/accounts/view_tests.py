@@ -119,8 +119,8 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
     assert response.status_code == 200
     assert url in response.data[0]['url']
     assert response.data[0]['age'] == 30
-    assert response.data[0]['full_name'] == 'firstpatient_lastpatient'
-    assert response.data[0]['doctor_name'] == 'firstdoctor_lastdoctor'
+    assert response.data[0]['full_name'] == 'firstpatientlastpatient'
+    assert response.data[0]['doctor_name'] == 'firstdoctorlastdoctor'
 
     # fail - 인증 x
     api_client.credentials()

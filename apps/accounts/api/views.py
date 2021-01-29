@@ -15,7 +15,7 @@ from accounts.api.authentications import CustomJWTTokenUserAuthentication
 from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer, DoctorSignUpSerializer
 from accounts.models import Doctor, Patient
-from config.utils import InputValueSupporter
+from config.utils.api_utils import InputValueSupporter
 
 
 class AccountsTokenPairView(TokenObtainPairView):
@@ -59,7 +59,7 @@ class DoctorSignUpAPIView(InputValueSupporter, CreateAPIView):
 
 
 class DoctorListAPIView(ListAPIView):
-    queryset = Doctor.objects.nested_all().order_by('-created_at')
+    queryset = Doctor.objects.select_all().order_by('-created_at')
     serializer_class = serializers.DoctorListSerializer
     permission_classes = [IsSuperUser | IsDoctor]
 

@@ -4,10 +4,9 @@ from django.db.models import QuerySet
 from django.http import FileResponse
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser
-from rest_framework.response import Response
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner
-from config.utils import InputValueSupporter
+from config.utils.api_utils import InputValueSupporter
 from files.api.mixins import QuerySetMixin
 from files.api.serializers import (PatientFileUploadSerializer,
                                    DoctorFileUploadSerializer,
@@ -42,6 +41,7 @@ class DoctorFileUploadAPIView(InputValueSupporter, CreateAPIView):
     permission_classes = [IsDoctor]
     serializer_class = DoctorFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser)
+
     fields_to_display = 'prescription',
 
 

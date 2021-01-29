@@ -37,7 +37,7 @@ class IsOwner(RootPermission):
 class CareDoctorReadOnly(RootPermission):
     def has_object_permission(self, request, view, obj):
         if self.is_safe_method(request) and self.has_group(request, 'doctor'):
-            return bool(obj.doctor == request.user.doctor)
+            return bool(obj.doctor_id == request.user.id)
 
 
 class PatientReadOnly(RootPermission):
@@ -48,8 +48,8 @@ class PatientReadOnly(RootPermission):
 class RelatedPatientReadOnly(RootPermission):
     def has_object_permission(self, request, view, obj):
         if self.is_safe_method(request) and self.has_group(request, 'patient'):
-            user_patient = request.user.patient
-            return bool(obj.patient == user_patient)
+            user_patient_id = request.user.id
+            return bool(obj.patient_id == user_patient_id)
         return False
 
 

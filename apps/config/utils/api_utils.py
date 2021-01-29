@@ -7,6 +7,9 @@ class InputValueSupporter:
     fields_to_display: Tuple[str] = None
 
     def get(self, request):
+        if self.fields_to_display is None:
+            raise Exception(f"{self.__class__.__name__} should include a 'fields_to_display' attribute")
+
         default_values = None
         if request.GET.get('default', None) == 'true':
             default_values = self.get_default_input_values(field_names=self.fields_to_display)

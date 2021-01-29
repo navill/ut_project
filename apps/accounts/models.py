@@ -3,10 +3,10 @@ from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import F, Q
-from django.db.models.functions import Concat
+from django.db.models import Q
 from django.urls import reverse
 
+from config.utils.utils import concatenate_name
 from hospitals.models import Major
 
 if TYPE_CHECKING:
@@ -16,6 +16,11 @@ DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
 DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
 DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
 DEFER_PATIENT_FIELDS = ('emergency_call', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
+
+
+def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str]:
+    fields = [f'{parent_field_name}__{field}' for field in fields]
+    return fields
 
 
 class CommonUserQuerySet(models.QuerySet):
@@ -40,16 +45,6 @@ class CommonUserManager(models.Manager):
         return self.get_queryset().select_all().prefetch_all()
 
 
-def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str]:
-    fields = [f'{parent_field_name}__{field}' for field in fields]
-    return fields
-
-
-def concatenate_name() -> Concat:
-    full_name = Concat(F('last_name'), F('first_name'))
-    return full_name
-
-
 class Gender(models.TextChoices):
     male = ('MALE', '남')
     female = ('FEMALE', '여')
@@ -69,7 +64,7 @@ class AccountsModel(models.Model):
         abstract = True
 
     def get_full_name(self) -> str:
-        return f'{self.first_name}_{self.last_name}'
+        return f'{self.first_name} {self.last_name}'
 
 
 class BaseQuerySet(models.QuerySet):
@@ -235,8 +230,10 @@ class PatientQuerySet(CommonUserQuerySet):
 
 class PatientManager(CommonUserManager):
     def get_queryset(self) -> PatientQuerySet:
-        return PatientQuerySet(self.model, using=self._db).annotate(full_name=concatenate_name(),
-                                                                    doctor_user_id=F('doctor_id')).filter_user_active()
+        return PatientQuerySet(self.model, using=self._db). \
+            annotate(full_name=concatenate_name(),
+                     doctor_name=concatenate_name('doctor')). \
+            filter_user_active()
 
 
 class Patient(AccountsModel):

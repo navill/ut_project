@@ -15,7 +15,7 @@ User = get_user_model()
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
     def authenticate(self, request: Request):
         try:
-            user, validated_token = super(CustomJWTTokenUserAuthentication, self).authenticate(request)
+            user, validated_token = super().authenticate(request)
         except TypeError:
             return None
 

@@ -76,21 +76,22 @@ def test_create_patient():
 @pytest.mark.django_db
 def test_patient_queryset(django_assert_num_queries):
     patient = Patient.objects.all().first()
+    print(Patient.objects.all().explain())
     with django_assert_num_queries(3) as captured1:
         print(patient.prescriptions.all())  # query 1
         print(patient.doctor.first_name)  # query 2
         print(patient.user.email)  # query 3
 
     patient = Patient.objects.select_all().first()  # with doctor
-    with django_assert_num_queries(2) as captured2:
+    with django_assert_num_queries(3) as captured2:
         print(patient.prescriptions.all())  # query 1
         print(patient.prescriptions.all())  # query 2
-        print(patient.doctor.first_name)
+        print(patient.doctor.first_name)  # query 3
         print(patient.user.email)
 
     patient = Patient.objects.select_all().prefetch_all().first()  # with doctor, prescriptions
-    with django_assert_num_queries(0) as captured3:
-        print(patient.doctor.first_name)
+    with django_assert_num_queries(1) as captured3:
+        print(patient.doctor.first_name)  # query 1
         print(patient.user.email)
         print(patient.prescriptions.all())
         print(patient.prescriptions.all())

@@ -219,7 +219,7 @@ class PatientQuerySet(CommonUserQuerySet):
             prefetch_related('prescriptions__doctor_files')
 
     def select_all(self) -> 'PatientQuerySet':
-        return self.select_related('doctor')
+        return self.select_related('doctor__major')
 
     def prefetch_all(self) -> 'PatientQuerySet':
         return self.prefetch_prescription()
@@ -239,13 +239,14 @@ class PatientManager(CommonUserManager):
 class Patient(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, related_name='patients')
+    # birth = models.DateField()  # -> annotate를 이용해 age 필드 생성
     age = models.PositiveIntegerField(default=0)
     emergency_call = models.CharField(max_length=14, default='010')
 
     objects = PatientManager()
 
     def __str__(self) -> str:
-        return self.get_full_name()
+        return f'이름: {self.full_name}, 나이: {self.age}, 성별: {self.get_gender_display()}'
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})

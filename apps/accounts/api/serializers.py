@@ -18,7 +18,7 @@ User = get_user_model()
 class RawAccountSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
-    gender = serializers.CharField(read_only=True)
+    gender = serializers.CharField(source='get_gender_display', read_only=True)
     address = serializers.CharField()
     phone = serializers.CharField()
 
@@ -29,7 +29,6 @@ class RawAccountSerializer(serializers.ModelSerializer):
 
 
 # BaseUser
-
 class DefaultBaseUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
 
@@ -89,10 +88,11 @@ class RawDoctorSerializer(RawAccountSerializer):
 
 class RelatedDoctorSerializer(RawDoctorSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
-    major = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    # major = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta(RawDoctorSerializer.Meta):
-        fields = RawDoctorSerializer.Meta.fields + ['user', 'major']
+        fields = RawDoctorSerializer.Meta.fields + ['major']
 
 
 class DoctorSerializer(RelatedDoctorSerializer):
@@ -137,23 +137,21 @@ class RawPatientSerializer(RawAccountSerializer):
         lookup_field='pk',
         read_only=True
     )
+    gender = serializers.CharField(source='get_gender_display', read_only=True)
 
     class Meta:
         model = Patient
-        fields = ['url', 'user_id', 'first_name', 'last_name', 'gender']
+        fields = ['url', 'user_id', 'first_name', 'last_name', 'gender', 'age']
 
     def get_doctor_name(self, instance: Patient) -> str:
-        if hasattr(instance, 'doctor_name'):
-            return instance.doctor_name
-        return instance.doctor.get_full_name()
+        return str(instance.doctor) if hasattr(instance, 'doctor_name') else instance.doctor_name
 
 
 class RelatedPatientSerializer(RawPatientSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)
-    doctor = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta(RawPatientSerializer.Meta):
-        fields = RawPatientSerializer.Meta.fields + ['user', 'doctor']
+        fields = RawPatientSerializer.Meta.fields + ['doctor']
 
 
 class PatientSerializer(RelatedPatientSerializer):

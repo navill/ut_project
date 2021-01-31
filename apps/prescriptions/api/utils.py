@@ -4,10 +4,6 @@ from django.db.models import F, QuerySet
 from django.db.models.functions import Concat
 from rest_framework.generics import ListAPIView
 
-PRESCRIPTION_MODELS = {
-    'prescription': 'prescription__'
-}
-
 
 class CommonListAPIView(ListAPIView):
     def get_queryset(self) -> Type[QuerySet]:

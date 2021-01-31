@@ -11,19 +11,6 @@ from prescriptions.api.serializers import (PrescriptionSerializer,
                                            NestedPrescriptionSerializer)
 from prescriptions.api.utils import CommonListAPIView
 from prescriptions.models import Prescription, FilePrescription
-from rest_framework.generics import RetrieveUpdateAPIView, RetrieveAPIView, CreateAPIView
-
-from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
-from config.utils.api_utils import InputValueSupporter
-from prescriptions.api import serializers
-from prescriptions.api.serializers import (PrescriptionSerializer,
-                                           PrescriptionCreateSerializer,
-                                           FilePrescriptionListSerializer,
-                                           FilePrescriptionCreateSerializer,
-                                           FilePrescriptionRetrieveUpdateSerializer,
-                                           NestedPrescriptionSerializer)
-from prescriptions.api.utils import CommonListAPIView
-from prescriptions.models import Prescription, FilePrescription
 
 
 class PrescriptionListAPIView(CommonListAPIView):

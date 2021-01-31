@@ -1,8 +1,13 @@
 from rest_framework import serializers
 
-from accounts.api.serializers import DoctorSerializer, PatientSerializer
+from accounts.api.serializers import DoctorSerializer, PatientSerializer, RawDoctorSerializer, RawPatientSerializer
 from files.api.serializers import PatientFileSerializer, DoctorFileSerializer
 from prescriptions.api.serializers import PrescriptionSerializer, FilePrescriptionSerializer
+
+
+class CoreRawDoctorSerializer(RawDoctorSerializer):
+    class Meta(RawDoctorSerializer.Meta):
+        fields = RawDoctorSerializer.Meta.fields
 
 
 class CoreDoctorSerializer(DoctorSerializer):
@@ -13,6 +18,16 @@ class CoreDoctorSerializer(DoctorSerializer):
 
     class Meta(DoctorSerializer.Meta):
         fields = DoctorSerializer.Meta.fields + ['detail_url']
+
+
+class CoreRawPatientSerializer(RawPatientSerializer):
+    core_url = serializers.HyperlinkedIdentityField(
+        view_name='core-api:patient-with-prescriptions',
+        lookup_field='pk'
+    )
+
+    class Meta(RawPatientSerializer.Meta):
+        fields = RawPatientSerializer.Meta.fields + ['core_url']
 
 
 class CorePatientSerializer(PatientSerializer):

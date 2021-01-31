@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Union, NoReturn, Type
+from typing import TYPE_CHECKING, Union, NoReturn
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
@@ -16,20 +16,23 @@ class CreatedUserPair:
     def __init__(self, user: Union['Patient', 'Doctor'], baseuser: User):
         self.user = user
         self.baseuser = baseuser
-        self._model_name = None
+        self._user_model_name = None
 
         if self.validate_user():
-            self.model_name = user
+            self.user_model_name = user
         else:
             raise ValueError('invalid user')
 
     @property
-    def model_name(self) -> str:
-        return self._model_name
+    def user_model_name(self) -> str:
+        return self._user_model_name
 
-    @model_name.setter
-    def model_name(self, user: Union['Patient', 'Doctor']) -> NoReturn:
-        self._model_name = user.__class__.__name__.lower()
+    @user_model_name.setter
+    def user_model_name(self, user: Union['Patient', 'Doctor']) -> NoReturn:
+        model_name = user.__class__.__name__.lower()
+        if model_name not in ('patient, doctor',):
+            raise AttributeError()
+        self._user_model_name = model_name
 
     def validate_user(self) -> bool:
         if not isinstance(self.baseuser, User):

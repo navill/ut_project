@@ -61,14 +61,9 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
                                                               'start_date', 'end_date', 'status', 'checked', 'url']
 
     def get_writer_name(self, instance: Prescription) -> str:
-        if hasattr(instance, 'writer_name'):
-            return instance.writer_name
-        # queryset에 writer_name이 없을 경우
         return instance.writer.get_full_name()
 
     def get_patient_name(self, instance: Prescription) -> str:
-        if hasattr(instance, 'patient_name'):
-            return instance.patient_name
         return instance.patient.get_full_name()
 
 

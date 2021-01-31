@@ -1,6 +1,6 @@
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
-from accounts.api.permissions import IsDoctor, IsOwner
+from accounts.api.permissions import IsDoctor, IsOwner, IsPatient
 from accounts.models import Doctor, Patient
 from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PatientNestedPrescriptionSerializer,
@@ -44,20 +44,43 @@ class FilePrescriptionNestedPatientFiles(RetrieveAPIView):
 
 # doctor - history
 class UploadedPatientFileHistory(HistoryMixin, ListAPIView):
-    queryset = FilePrescription.objects.nested_all()
+    queryset = FilePrescription.objects.nested_all().filter_new_uploaded_file()
     permission_classes = [IsDoctor]
     serializer_class = UploadedPatientFileHistorySerializer
 
-    def get_queryset(self):
-        queryset = self.get_mixin_queryset()
-        return queryset.filter_new_uploaded_file()
-
 
 class ExpiredFilePrescriptionHistory(HistoryMixin, ListAPIView):
-    queryset = FilePrescription.objects.nested_all()
+    queryset = FilePrescription.objects.nested_all().filter_upload_date_expired()
     permission_classes = [IsDoctor]
     serializer_class = ExpiredFilePrescriptionHistorySerializer
 
-    def get_queryset(self):
-        queryset = self.get_mixin_queryset()
-        return queryset.filter_upload_date_expired()
+
+# Patient - main
+class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의사 정보 포함
+    queryset = Patient.objects.all()
+    permission_classes = [IsPatient]
+    serializer_class = None
+    lookup_field = 'pk'
+
+
+class PrescriptionsRelatedPatient(RetrieveAPIView):  # 환자와 관련된 소견서 + 의사 파일 + FilePrescriptionList
+    queryset = Prescription.objects.all()
+    permission_classes = [IsPatient]
+    serializer_class = None
+    lookup_field = 'pk'
+
+
+class FilePrescriptionList(RetrieveAPIView):  # Detail FilePrescription + PatietFile
+    queryset = FilePrescription.objects.all()
+    permission_classes = [IsPatient]
+    serializer_class = None
+    lookup_field = 'pk'
+
+
+# patient - history
+class ChecekdFilePrescription(ListAPIView):  # 환자가 올린 파일을 의사가 확인(check)한 리스트
+    pass
+
+
+class UploadFilePrescription(ListAPIView):  # 환자가 파일을 업로드해야하는 날짜(FilePrescriptionList)
+    pass

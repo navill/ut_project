@@ -15,7 +15,7 @@ urlpatterns = [
          name='file-prescription-detail'),
 
     # doctor-main histories
-    path('histroies/new-uploaded-file', views.UploadedPatientFileHistory.as_view(),
+    path('histories/new-uploaded-file', views.UploadedPatientFileHistory.as_view(),
          name='new-patient-file'),
     path('histories/expired-upload-date', views.ExpiredFilePrescriptionHistory.as_view(),
          name='expired-date'),  #

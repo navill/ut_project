@@ -5,7 +5,7 @@ from core.api.core_serializers import (CoreDoctorSerializer,
                                        CorePrescriptionSerializer,
                                        CoreFilePrescriptionSerializer,
                                        CoreDoctorFileSerializer,
-                                       CorePatientFileSerializer)
+                                       CorePatientFileSerializer, CoreRawPatientSerializer)
 
 if TYPE_CHECKING:
     pass
@@ -53,7 +53,7 @@ FilePrescription Retreive & Update
 
 # 0: 의사 메인페이지(의사 정보 및 담당 환자 리스트)
 class DoctorNestedPatientSerializer(CoreDoctorSerializer):
-    patients = CorePatientSerializer(many=True)
+    patients = CoreRawPatientSerializer(many=True)
 
     class Meta(CoreDoctorSerializer.Meta):
         fields = CoreDoctorSerializer.Meta.fields + ['patients']

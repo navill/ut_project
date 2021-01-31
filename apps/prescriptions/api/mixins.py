@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class HistoryMixin:
-    def get_mixin_queryset(self):
+    def get_queryset(self):
         return super().get_queryset().filter_prescription_writer(self.request.user.id)
 
 
@@ -44,5 +44,3 @@ class PrescriptionSerializerMixin:
         for file in request_files:
             DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
 
-
-# class QuerySetMixin:

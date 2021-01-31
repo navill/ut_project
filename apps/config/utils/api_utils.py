@@ -1,5 +1,6 @@
 from typing import Tuple
 
+from rest_framework import serializers
 from rest_framework.response import Response
 
 
@@ -12,14 +13,16 @@ class InputValueSupporter:
 
         default_values = None
         if request.GET.get('default', None) == 'true':
-            default_values = self.get_default_input_values(field_names=self.fields_to_display)
+            default_values = self.get_default_input_values(fields_to_display=self.fields_to_display)
         return Response(default_values)
 
-    def get_default_input_values(self, field_names: Tuple[str]):
+    def get_default_input_values(self, fields_to_display: Tuple[str]):
         fields = self.get_serializer().fields
         default_values = {}
-        for field_name in field_names:
-            choices_list = ({field_id: field_value} for field_id, field_value in fields[field_name].choices.items())
-            default_values[field_name] = choices_list
+        for field in fields_to_display:
+            if not hasattr(fields[field], 'choices'):
+                raise AttributeError(f"'{field}' field is not choices field")
+            choices_list = ({field_id: field_value} for field_id, field_value in fields[field].choices.items())
+            default_values[field] = choices_list
 
         return default_values

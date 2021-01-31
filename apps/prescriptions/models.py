@@ -20,7 +20,7 @@ class HealthStatus(models.TextChoices):
 class BasePrescription(models.Model):
     description = models.TextField()
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
-    checked = models.BooleanField(default=False)  # 환자가 파일 업로드할 때 True, 의사가 FilePrescription 생성할 때 False
+    checked = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -36,9 +36,6 @@ class PrescriptionQuerySet(models.QuerySet):
 
     def filter_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
         return self.filter(patient_id=patient_id)
-
-    def join_uploader(self, query_word: str) -> 'PrescriptionQuerySet':
-        return self.select_related(query_word)
 
     def defer_option_fields(self) -> 'PrescriptionQuerySet':
         deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
@@ -105,10 +102,10 @@ class Prescription(BasePrescription):
         ordering = ['-id']
 
     def get_writer_name(self) -> str:
-        return self.writer.get_full_name()
+        return self.writer.full_name
 
     def __str__(self) -> str:
-        return f'{self.patient.get_full_name()}-{str(self.created_at)}'
+        return f'{self.patient.full_name}-{str(self.created_at)}'
 
 
 @receiver(post_save, sender=Prescription)
@@ -128,9 +125,6 @@ def create_file_prescription(sender, **kwargs: Dict[str, Any]):
         for day_number in range((end_date - start_date).days))
     FilePrescription.objects.bulk_create(bulk_list)
 
-    # for day_number in range((end_date - start_date).days):
-    #     FilePrescription.objects.create(prescription_id=instance.id, day_number=day_number + 1)
-
 
 class FilePrescriptionQuerySet(models.QuerySet):
     def defer_option_fields(self) -> 'FilePrescriptionQuerySet':
@@ -138,14 +132,14 @@ class FilePrescriptionQuerySet(models.QuerySet):
         deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
         return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
-    # def filter_writer(self, writer_id: int) -> 'FilePrescriptionQuerySet':
-    #     return self.filter(prescription__writer_id=writer_id)
-    #
-    # def filter_patient(self, patient_id: int) -> 'FilePrescriptionQuerySet':
-    #     return self.filter(prescription__patient_id=patient_id)
-
     def filter_uploaded(self) -> 'FilePrescriptionQuerySet':
         return self.filter(uploaded=True)
+
+    def filter_not_uploaded(self) -> 'FilePrescriptionQuerySet':
+        return self.filter(uploaded=False)
+
+    def filter_checked(self) -> 'FilePrescriptionQuerySet':
+        return self.filter(checked=True)
 
     def filter_not_checked(self) -> 'FilePrescriptionQuerySet':
         return self.filter(checked=False)
@@ -154,7 +148,7 @@ class FilePrescriptionQuerySet(models.QuerySet):
         return self.filter_uploaded().filter_not_checked()
 
     def filter_upload_date_expired(self) -> 'FilePrescriptionQuerySet':
-        return self.filter_not_checked().filter(day__lt=datetime.date.today())
+        return self.filter(day__lt=datetime.date.today()).filter_not_checked().filter_not_uploaded()
 
     def filter_prescription_writer(self, user_id: int) -> 'FilePrescriptionQuerySet':
         return self.filter(prescription__writer_id=user_id)
@@ -200,7 +194,6 @@ FilePrescription
 """
 
 
-# Prescription과 DataFile을 잇는 중계 모델
 class FilePrescription(BasePrescription):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='file_prescriptions')
     day_number = models.IntegerField()

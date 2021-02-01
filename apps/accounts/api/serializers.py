@@ -24,7 +24,8 @@ class RawAccountSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, instance: Union[Doctor, Patient]) -> str:
         if hasattr(instance, 'full_name'):
-            return instance.full_name
+            # return instance.full_name
+            pass
         return instance.get_full_name()
 
 

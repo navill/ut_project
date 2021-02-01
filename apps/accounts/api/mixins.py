@@ -20,6 +20,7 @@ class SignupSerializerMixin:
             with transaction.atomic():
                 baseuser = User.objects.create_user(**user_data)
                 user = self.Meta.model.objects.create(user_id=baseuser.id, **validated_data)
+                print(1, user)
                 director = PostProcessingUserDirector(user=user, baseuser=baseuser)
                 director.build_user_group_and_permission()
         except Exception:

@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CurrentUserDefault
+from rest_framework.serializers import ListSerializer
 
 from files.models import DoctorFile, PatientFile
 from prescriptions.models import Prescription, FilePrescription
@@ -78,6 +79,8 @@ class DoctorFileUploadSerializer(DoctorFileSerializer):
     uploader = serializers.HiddenField(default=CurrentUserDefault())
     prescription = BasedCurrentUserPrimaryKeyRelatedField(
         queryset=Prescription.objects.select_all(), required=True)
+
+    # doctor_upload_files = serializers.ListField(child=serializers.FileField(), write_only=True)
 
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields
@@ -182,21 +185,36 @@ class PatientFlieRetrieveSerializer(PatientFileSerializer):
 
 class PatientFileUploadSerializer(PatientFileSerializer):
     uploader = serializers.HiddenField(default=CurrentUserDefault())
+    patient_upload_files = serializers.ListField(child=serializers.FileField(), write_only=True)
+
     file_prescription = CurrentPatientPrimaryKeyRelatedField(
         queryset=FilePrescription.objects.select_all().filter(uploaded=False))
 
     class Meta(PatientFileSerializer.Meta):
-        fields = PatientFileSerializer.Meta.fields + ['file']
+        fields = PatientFileSerializer.Meta.fields + ['file', 'patient_upload_files']
 
     def create(self, validated_data: Dict[str, Any]) -> Optional[PatientFile]:
-        uploader = validated_data.get('uploader', None)
-        file_prescription = validated_data.get('file_prescription', None)
+        uploader = validated_data.pop('uploader', None)
+        file_prescription = validated_data.pop('file_prescription', None)
+        files = validated_data.pop('patient_upload_files', None)
+
+        if files is None:
+            raise ValueError("'doctor_upload_files' field must be not empty")
+
         self._validate_relation(file_prescription, uploader)
 
         if uploader and file_prescription:
-            file_object = PatientFile.objects.create(uploader_id=uploader.id, file_prescription_id=file_prescription.id,
-                                                     **validated_data)
-            return file_object
+            file_list = []
+            for file in files:
+                file_list.append(PatientFile(uploader_id=uploader.id,
+                                             file_prescription_id=file_prescription.id,
+                                             file=file,
+                                             **validated_data))
+
+            file_objects = PatientFile.objects.bulk_create(file_list)
+            # file_object = PatientFile.objects.create(uploader_id=uploader.id, file_prescription_id=file_prescription.id,
+            #                                          **validated_data)
+            return file_objects
         return None
 
     def _validate_relation(self, file_prescription, uploader):

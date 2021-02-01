@@ -30,7 +30,8 @@ class CreatedUserPair:
     @user_model_name.setter
     def user_model_name(self, user: Union['Patient', 'Doctor']) -> NoReturn:
         model_name = user.__class__.__name__.lower()
-        if model_name not in ('patient, doctor',):
+        if model_name not in ('patient', 'doctor'):
+            print(model_name)
             raise AttributeError()
         self._user_model_name = model_name
 
@@ -72,7 +73,7 @@ class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
         self.permissions = Permission.objects.filter(queries)
 
     def add_user_to_model_group(self) -> NoReturn:
-        group, created = Group.objects.get_or_create(name=self.pair_user.model_name)
+        group, created = Group.objects.get_or_create(name=self.pair_user.user_model_name)
 
         if created and self.permissions.exists():
             group.permissions.set(self.permissions)
@@ -83,7 +84,7 @@ class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
         self.pair_user.baseuser.user_permissions.set(self.permissions)
 
     def _create_content_type_queries(self) -> Q:
-        queries = self._create_queries_using_model_name(self.pair_user.model_name)
+        queries = self._create_queries_using_model_name(self.pair_user.user_model_name)
         content_type_query = Q()
         content_types = ContentType.objects.filter(queries, app_label='accounts')
 

@@ -28,7 +28,11 @@ class CurrentUserRelatedFieldMixin:
 class PrescriptionSerializerMixin:
     @transaction.atomic
     def create(self, validated_data: Dict[str, Any]):
-        files = validated_data.pop('upload_doctor_files')
+        files = validated_data.pop('doctor_upload_files', None)
+
+        if files is None:
+            raise ValueError("'doctor_upload_files' field must be not empty")
+
         prescription = self._create_prescription(validated_data)
         self._create_doctor_files(prescription.writer_id, prescription.id, files)
         return prescription
@@ -43,4 +47,3 @@ class PrescriptionSerializerMixin:
         uploader_id = writer_id
         for file in request_files:
             DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
-

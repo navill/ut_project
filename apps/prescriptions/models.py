@@ -21,7 +21,7 @@ class BasePrescription(models.Model):
     description = models.TextField()
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
     checked = models.BooleanField(default=False)
-
+    # patient_checked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)

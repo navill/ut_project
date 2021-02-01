@@ -1,7 +1,7 @@
 import pytest
 from rest_framework.reverse import reverse
 
-from accounts.models import Doctor
+from accounts.models import Doctor, Patient
 from tests.conftest import DOCTOR_PARAMETER, PATIENT_PARAMETER
 
 
@@ -114,13 +114,14 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
     # authenticate token
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
     response = api_client.get(url, format='json')
-
+    doctor = Doctor.objects.last()
+    patient = Patient.objects.last()
     # success
     assert response.status_code == 200
     assert url in response.data[0]['url']
     assert response.data[0]['age'] == 30
-    assert response.data[0]['full_name'] == 'firstpatientlastpatient'
-    assert response.data[0]['doctor_name'] == 'firstdoctorlastdoctor'
+    assert response.data[0]['full_name'] == f'{patient.full_name}'
+    assert response.data[0]['doctor_name'] == f'{doctor.major.name}: {doctor.get_full_name()}'
 
     # fail - 인증 x
     api_client.credentials()

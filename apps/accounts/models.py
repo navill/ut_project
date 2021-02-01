@@ -246,7 +246,7 @@ class Patient(AccountsModel):
     objects = PatientManager()
 
     def __str__(self) -> str:
-        return f'이름: {self.full_name}, 나이: {self.age}, 성별: {self.get_gender_display()}'
+        return f'이름: {self.get_full_name()}, 나이: {self.age}, 성별: {self.get_gender_display()}'
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})

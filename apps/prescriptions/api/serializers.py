@@ -76,14 +76,14 @@ class PrescriptionCreateSerializer(PrescriptionSerializerMixin, serializers.Mode
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
                                              write_only=True, target_field='doctor_id')
     doctor_files = DoctorFileInPrescriptionSerializer(many=True, read_only=True)
-    upload_doctor_files = serializers.ListField(child=serializers.FileField(), write_only=True)
+    doctor_upload_files = serializers.ListField(child=serializers.FileField(), write_only=True)
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     checked = serializers.BooleanField(default=False)
 
     class Meta(DefaultPrescriptionSerializer.Meta):
         fields = DefaultPrescriptionSerializer.Meta.fields + ['doctor_files', 'start_date', 'end_date', 'status',
-                                                              'checked', 'url', 'upload_doctor_files']
+                                                              'checked', 'url', 'doctor_upload_files']
 
 
 class FilePrescriptionSerializer(PrescriptionSerializerMixin, serializers.ModelSerializer):

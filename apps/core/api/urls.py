@@ -2,7 +2,7 @@ from django.urls import path
 
 from core.api import views
 
-app_name = 'api'
+app_name = 'core'
 urlpatterns = [
     # doctor-main
     path('doctors/<int:pk>/patients', views.DoctorNestedPatients.as_view(),

@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'hospitals',
     'prescriptions',
     'app_1',
+    'core',
     'files',
     # third party
     'crispy_forms',

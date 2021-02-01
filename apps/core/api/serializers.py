@@ -47,7 +47,6 @@ Prescription Retrieve & Update
 
 FilePrescription Retreive & Update
 [GET, PUT]/prescriptions/file-pres/<int:pk>
-
 """
 
 

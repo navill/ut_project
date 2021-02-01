@@ -1,5 +1,8 @@
+import sys
+
 from django.db.models import F, Value
 from django.db.models.functions import Concat
+from django.utils.timezone import now
 
 
 def concatenate_name(target_field: str = None) -> Concat:
@@ -10,3 +13,18 @@ def concatenate_name(target_field: str = None) -> Concat:
         last_name = f'{target_field}__{last_name}'
     full_name = Concat(F(first_name), Value(' '), F(last_name))
     return full_name
+
+
+def log_request(sender, environ, **kwargs):  # HTTP_USER_AGENT, HTTP_HOST, REMOTE_ADDR
+    if "pytest" not in sys.modules:
+        current_time = now().strftime("%Y-%m-%dT%H:%M:%S")
+        method = environ['REQUEST_METHOD']
+        host = environ['HTTP_HOST']
+        path = environ['PATH_INFO']
+        query = environ['QUERY_STRING']
+        client_ip = environ['REMOTE_ADDR']
+        client_agent = environ['HTTP_USER_AGENT']
+        query = '?' + query if query else ''
+
+        # todo: logger - system level
+        print(f'[{current_time}][{method}] {host}{path}{query} | IP_addr:{client_ip} | Agent: {client_agent}')

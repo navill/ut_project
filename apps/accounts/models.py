@@ -3,7 +3,7 @@ from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.urls import reverse
 
 from config.utils.utils import concatenate_name
@@ -208,21 +208,31 @@ class PatientQuerySet(CommonUserQuerySet):
         defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
 
+    def prefetch_prescription(self, prefetch: 'Prefetch' = None):
+        if prefetch:
+            return self.prefetch_related(prefetch)
+        return self.prefetch_related('prescriptions')
+
     def prefetch_prescription_with_writer(self):
         return self.prefetch_related('prescriptions__writer')
 
     def prefetch_prescription_with_patient(self):
         return self.prefetch_related('prescriptions__patient')
 
-    def prefetch_prescription(self) -> 'PatientQuerySet':
-        return self.prefetch_prescription_with_writer().prefetch_prescription_with_patient(). \
-            prefetch_related('prescriptions__doctor_files')
+    def prefetch_prescription_with_doctor_file(self) -> 'PatientQuerySet':
+        return self.prefetch_related('prescriptions__doctor_files')
+
+    def prefetch_prescription_with_with_file_prescriptions(self) -> 'PatientQuerySet':
+        return self.prefetch_related('prescriptions__file_prescriptions')
 
     def select_all(self) -> 'PatientQuerySet':
         return self.select_related('doctor__major')
 
     def prefetch_all(self) -> 'PatientQuerySet':
-        return self.prefetch_prescription()
+        return self.prefetch_prescription_with_writer(). \
+            prefetch_prescription_with_patient(). \
+            prefetch_prescription_with_doctor_file(). \
+            prefetch_prescription_with_with_file_prescriptions()
 
     def nested_all(self):
         return self.select_all().prefetch_all()

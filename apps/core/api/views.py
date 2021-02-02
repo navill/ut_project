@@ -7,7 +7,9 @@ from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
                                   FilePrescriptionNestedPatientFileSerializer,
                                   ExpiredFilePrescriptionHistorySerializer,
-                                  UploadedPatientFileHistorySerializer,
+                                  UploadedPatientFileHistorySerializer, PatientWithDoctorSerializer,
+                                  PrescriptionsRelatedPatientSerializer, FilePrescriptionsSerializer,
+                                  PatientMainSerializer,
                                   )
 from prescriptions.api.mixins import HistoryMixin
 from prescriptions.models import Prescription, FilePrescription
@@ -57,23 +59,33 @@ class ExpiredFilePrescriptionHistory(HistoryMixin, ListAPIView):
 
 # Patient - main
 class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의사 정보 포함
-    queryset = Patient.objects.all()
-    permission_classes = [IsPatient]
-    serializer_class = None
+    queryset = Patient.objects.select_all()
+    # permission_classes = [IsPatient]
+    permission_classes = []
+    serializer_class = PatientWithDoctorSerializer
     lookup_field = 'pk'
 
 
 class PrescriptionsRelatedPatient(RetrieveAPIView):  # 환자와 관련된 소견서 + 의사 파일 + FilePrescriptionList
-    queryset = Prescription.objects.all()
-    permission_classes = [IsPatient]
-    serializer_class = None
+    queryset = Prescription.objects.select_all()
+    # permission_classes = [IsPatient]
+    permission_classes = []
+    serializer_class = PrescriptionsRelatedPatientSerializer
     lookup_field = 'pk'
 
 
-class FilePrescriptionList(RetrieveAPIView):  # Detail FilePrescription + PatietFile
-    queryset = FilePrescription.objects.all()
-    permission_classes = [IsPatient]
-    serializer_class = None
+class FilePrescriptionList(ListAPIView):  # Detail FilePrescription + PatietFile
+    queryset = FilePrescription.objects.select_all()
+    # permission_classes = [IsPatient]
+    permission_classes = []
+    serializer_class = FilePrescriptionsSerializer
+    # lookup_field = 'pk'
+
+
+class PatientMain(RetrieveAPIView):
+    queryset = Patient.objects.select_all().prefetch_all()
+    permission_classes = []
+    serializer_class = PatientMainSerializer
     lookup_field = 'pk'
 
 

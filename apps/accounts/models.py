@@ -3,7 +3,7 @@ from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, F, Max
 from django.urls import reverse
 
 from config.utils.utils import concatenate_name
@@ -196,25 +196,32 @@ class Doctor(AccountsModel):
     objects = DoctorManager()
 
     def __str__(self) -> str:
-        return f'{self.major.name}: {self.get_full_name()}'
+        return f'{self.get_full_name()}'
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:doctor-detail-update', kwargs={'pk': self.pk})
 
 
 class PatientQuerySet(CommonUserQuerySet):
-    def defer_option_fields(self, *fields: str) -> 'PatientQuerySet':
+    def defer_option_fields(self, *fields: Tuple[str, ...]) -> 'PatientQuerySet':
         defer_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
         defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
 
-    def prefetch_prescription(self, prefetch: 'Prefetch' = None):
+    def prefetch_prescription(self, prefetch: 'Prefetch' = None) -> 'PatientQuerySet':
         if prefetch:
-            return self.prefetch_related(prefetch)
-        return self.prefetch_related('prescriptions')
+            query = self.prefetch_related(prefetch)
+        else:
+            query = self.prefetch_related('prescriptions')
+        return query
 
-    def prefetch_prescription_with_writer(self):
-        return self.prefetch_related('prescriptions__writer')
+    def with_latest_prescription(self) -> 'PatientQuerySet':
+        return self.annotate(latest_prescription_id=Max('prescriptions__id'))
+
+    def prefetch_prescription_with_writer(self) -> 'PatientQuerySet':
+        from prescriptions.models import Prescription
+
+        return self.prefetch_related(Prefetch('prescriptions__writer', queryset=Prescription.objects.select_all()))
 
     def prefetch_prescription_with_patient(self):
         return self.prefetch_related('prescriptions__patient')
@@ -222,7 +229,7 @@ class PatientQuerySet(CommonUserQuerySet):
     def prefetch_prescription_with_doctor_file(self) -> 'PatientQuerySet':
         return self.prefetch_related('prescriptions__doctor_files')
 
-    def prefetch_prescription_with_with_file_prescriptions(self) -> 'PatientQuerySet':
+    def prefetch_prescription_with_file_prescriptions(self) -> 'PatientQuerySet':
         return self.prefetch_related('prescriptions__file_prescriptions')
 
     def select_all(self) -> 'PatientQuerySet':
@@ -232,7 +239,7 @@ class PatientQuerySet(CommonUserQuerySet):
         return self.prefetch_prescription_with_writer(). \
             prefetch_prescription_with_patient(). \
             prefetch_prescription_with_doctor_file(). \
-            prefetch_prescription_with_with_file_prescriptions()
+            prefetch_prescription_with_file_prescriptions()
 
     def nested_all(self):
         return self.select_all().prefetch_all()

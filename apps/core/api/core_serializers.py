@@ -1,8 +1,16 @@
 from rest_framework import serializers
 
-from accounts.api.serializers import DoctorSerializer, PatientSerializer, RawDoctorSerializer, RawPatientSerializer
+from accounts.api.serializers import (DoctorSerializer,
+                                      PatientSerializer,
+                                      RawDoctorSerializer,
+                                      RawPatientSerializer,
+                                      OriginalDoctorSerializer,
+                                      OriginalPatientSerializer)
 from files.api.serializers import PatientFileSerializer, DoctorFileSerializer
-from prescriptions.api.serializers import PrescriptionSerializer, FilePrescriptionSerializer
+from prescriptions.api.serializers import (PrescriptionSerializer,
+                                           FilePrescriptionSerializer,
+                                           OriginalPrescriptionSerializer,
+                                           OriginalFilePrescriptionSerializer)
 
 
 class CoreRawDoctorSerializer(RawDoctorSerializer):
@@ -80,3 +88,35 @@ class CoreFilePrescriptionSerializer(FilePrescriptionSerializer):
 
     class Meta(FilePrescriptionSerializer.Meta):
         fields = FilePrescriptionSerializer.Meta.fields + ['core_url']
+
+
+# 아직 사용 x
+class CoreDoctorListSerializer(OriginalDoctorSerializer):
+    class Meta(OriginalDoctorSerializer.Meta):
+        fields = OriginalDoctorSerializer.Meta.fields
+
+
+# 의사 메인페이지
+# - 환자 리스트 -> core prescriptions
+class CorePatientListSerializer(OriginalPatientSerializer):
+    class Meta(OriginalPatientSerializer.Meta):
+        fields = OriginalPatientSerializer.Meta.fields
+
+
+# 의사 메인 페이지
+# - 선택된 환자의 소견서 리스트 (소견서 선택-> file prescription list)
+# 환자 메인 페이지
+# - 로그인한 환자의 소견서 리스트 (소견서 선택 -> file prescription list)
+class CorePrescriptionListSerializer(OriginalPrescriptionSerializer):
+    class Meta(OriginalPrescriptionSerializer.Meta):
+        fields = OriginalPrescriptionSerializer.Meta.fields
+
+
+# 의사 메인 페이지
+# - 선택된 소견서의 FilePrescription 리스트 (FilePrescription 선택 -> PatientFile 리스트)
+# 환자 메인 페이지
+# - 선택된 소견서의 FilePrescription 리스트 (FilePrescription 선택 -> PatientFile 리스트)
+# - 환자가 파일을 업로드 해야할 FilePrescription 리스트 (FilePrescription 선택 -> PatientFile 업로드 페이지 or detail 페이지)
+class CoreFilePrescriptionListSerializer(OriginalFilePrescriptionSerializer):
+    class Meta(OriginalFilePrescriptionSerializer.Meta):
+        fields = OriginalFilePrescriptionSerializer.Meta.fields

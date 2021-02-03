@@ -72,6 +72,14 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
 
 
 # Doctor
+class OriginalDoctorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Doctor
+        # __all__
+        fields = ['user', 'major', 'first_name', 'last_name',
+                  'gender', 'address', 'phone', 'age', 'description', 'created_at', 'updated_at']
+
+
 class RawDoctorSerializer(RawAccountSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='accounts:doctor-detail-update',
@@ -131,6 +139,13 @@ class DoctorSignUpSerializer(SignupSerializerMixin, DoctorSerializer):
 
 
 # Patient
+class OriginalPatientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Patient
+        # __all__
+        fields = ['user', 'doctor', 'first_name', 'last_name',
+                  'gender', 'address', 'phone', 'age', 'emergency_call', 'created_at', 'updated_at']
+
 
 class RawPatientSerializer(RawAccountSerializer):
     url = serializers.HyperlinkedIdentityField(

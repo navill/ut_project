@@ -1,6 +1,6 @@
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
-from accounts.api.permissions import IsDoctor, IsOwner, IsPatient
+from accounts.api.permissions import IsDoctor, IsOwner
 from accounts.models import Doctor, Patient
 from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PatientNestedPrescriptionSerializer,
@@ -83,16 +83,19 @@ class FilePrescriptionList(ListAPIView):  # Detail FilePrescription + PatietFile
 
 
 class PatientMain(RetrieveAPIView):
-    queryset = Patient.objects.select_all().prefetch_all()
+    queryset = Patient.objects.select_all().prefetch_prescription().with_latest_prescription()
+    # queryset = Patient.objects.all()
     permission_classes = []
     serializer_class = PatientMainSerializer
     lookup_field = 'pk'
 
 
 # patient - history
-class ChecekdFilePrescription(ListAPIView):  # 환자가 올린 파일을 의사가 확인(check)한 리스트
+class ChecekdFilePrescription(ListAPIView):  # 환자가 올린 파일을 의사가 확인(checked=True)한 리스트
     pass
 
-
-class UploadFilePrescription(ListAPIView):  # 환자가 파일을 업로드해야하는 날짜(FilePrescriptionList)
-    pass
+#
+# class PatientMainSchedule(ListAPIView):  # 환자가 파일을 업로드해야하는 날짜(FilePrescriptionList)
+#     queryset = FilePrescription.objects.all()
+#     permission_classes = []
+#     serializer_class = PatientMainScheduleSerializer

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional, Dict, Any, NoReturn
 
 from django.db import transaction
 
-from files.models import DoctorFile
+from files.models import DoctorFile, PatientFile
 from prescriptions.models import Prescription
 
 if TYPE_CHECKING:
@@ -28,10 +28,11 @@ class CurrentUserRelatedFieldMixin:
 class PrescriptionSerializerMixin:
     @transaction.atomic
     def create(self, validated_data: Dict[str, Any]):
-        files = validated_data.pop('doctor_upload_files', None)
+        field_name = 'doctor_upload_files'
+        files = validated_data.pop(field_name, None)
 
         if files is None:
-            raise ValueError("'doctor_upload_files' field must be not empty")
+            raise ValueError(f"'{field_name}' field must be not empty")
 
         prescription = self._create_prescription(validated_data)
         self._create_doctor_files(prescription.writer_id, prescription.id, files)

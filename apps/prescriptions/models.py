@@ -73,6 +73,9 @@ class PrescriptionManager(models.Manager):
                      writer_name=concatenate_name('writer'),
                      patient_name=concatenate_name('patient'))
 
+    def get_raw_queryset(self):
+        return PrescriptionQuerySet(self.model, using=self._db)
+
     def prefetch_file_prescription(self) -> 'PrescriptionQuerySet':
         return self.get_queryset().prefetch_file_prescription()
 

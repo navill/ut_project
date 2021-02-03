@@ -1,21 +1,20 @@
 from typing import TYPE_CHECKING
 
-from django.db.models import Prefetch, F, QuerySet
 from rest_framework import serializers
 
 from accounts.api.serializers import PatientSerializer, DoctorSerializer
-from accounts.models import Patient
 from core.api.core_serializers import (CoreDoctorSerializer,
                                        CorePatientSerializer,
                                        CorePrescriptionSerializer,
                                        CoreFilePrescriptionSerializer,
                                        CoreDoctorFileSerializer,
-                                       CorePatientFileSerializer, CoreRawPatientSerializer)
-from prescriptions.api.serializers import FilePrescriptionSerializer
-from prescriptions.models import Prescription, FilePrescription
+                                       CorePatientFileSerializer,
+                                       CoreRawPatientSerializer,
+                                       CorePrescriptionListSerializer, CoreFilePrescriptionListSerializer)
+from prescriptions.models import FilePrescription
 
 if TYPE_CHECKING:
-    pass
+    from accounts.models import Patient
 
 """
 Doctor Serializer
@@ -95,19 +94,14 @@ class FilePrescriptionsSerializer(CoreFilePrescriptionSerializer):  # file uploa
 
 
 class PatientMainSerializer(PatientWithDoctorSerializer):
-    # in view
-    # queryset = Patient.objects.select_related('prescriptions','file_prescriptions', 'doctor')
-
-    prescriptions = PrescriptionsRelatedPatientSerializer(many=True)
+    prescriptions = CorePrescriptionListSerializer(many=True)
     upload_schedule = serializers.SerializerMethodField()
 
     class Meta(PatientWithDoctorSerializer.Meta):
-        fields = PatientWithDoctorSerializer.Meta.fields + ['prescriptions', 'upload_schedule']
+        fields = PatientWithDoctorSerializer.Meta.fields + ['prescriptions'] + ['upload_schedule']
 
-    def get_upload_schedule(self, instance):
-        # self.context['request'].user
-        prescription = instance.prescriptions.last()
-        # print(prescription_id)
-        # 환자의 마지막 prescription에 등록된 file prescriptions
-        file_prescriptions = FilePrescription.objects.filter(prescription_id=prescription.id)
-        return file_prescriptions.values()
+    def get_upload_schedule(self, instance: 'Patient'):
+        queryset = FilePrescription.objects.filter(prescription_id=instance.latest_prescription_id)
+        serializer_context = {'request': self.context['request']}
+        file_prescriptions = CoreFilePrescriptionListSerializer(queryset, many=True, context=serializer_context)
+        return file_prescriptions.data

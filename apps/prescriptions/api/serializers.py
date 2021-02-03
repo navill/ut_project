@@ -27,21 +27,27 @@ class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         return super().get_queryset().filter(**query)
 
 
-class DefaultPrescriptionSerializer(serializers.ModelSerializer):
-    url = serializers.HyperlinkedIdentityField(view_name='prescriptions:detail-update',
-                                               lookup_field='pk')
-    writer = serializers.PrimaryKeyRelatedField(read_only=True)
-    patient = serializers.PrimaryKeyRelatedField(queryset=Patient.objects.select_all())
-    description = serializers.CharField()
-    created_at = serializers.DateTimeField(read_only=True)
-    updated_at = serializers.DateTimeField(read_only=True)
+class CommonPrescriptionSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
+        fields = ['description', 'status', 'checked', 'created_at', 'updated_at', 'deleted']
+
+
+class OriginalPrescriptionSerializer(CommonPrescriptionSerializer):
+    class Meta:
         model = Prescription
-        fields = ['url', 'id', 'writer', 'patient', 'description', 'created_at', 'updated_at']
+        fields = ['id', 'writer', 'patient', 'start_date', 'end_date'] + CommonPrescriptionSerializer.Meta.fields
 
 
-class PrescriptionSerializer(DefaultPrescriptionSerializer):
+class OriginalFilePrescriptionSerializer(CommonPrescriptionSerializer):
+    class Meta:
+        model = FilePrescription
+        fields = ['id', 'prescription', 'day_number', 'day', 'active',
+                  'uploaded'] + CommonPrescriptionSerializer.Meta.fields
+
+
+class PrescriptionSerializer(OriginalPrescriptionSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-detail-update',
         lookup_field='pk'
@@ -49,22 +55,9 @@ class PrescriptionSerializer(DefaultPrescriptionSerializer):
     writer = RawDoctorSerializer(read_only=True)
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
                                              write_only=True, target_field='doctor_id')
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
-    checked = serializers.BooleanField(default=False)
 
-    writer_name = serializers.SerializerMethodField(read_only=True)
-    patient_name = serializers.SerializerMethodField(read_only=True)
-
-    class Meta(DefaultPrescriptionSerializer.Meta):
-        fields = DefaultPrescriptionSerializer.Meta.fields + ['writer_name', 'patient_name',
-                                                              'start_date', 'end_date', 'status', 'checked', 'url']
-
-    def get_writer_name(self, instance: Prescription) -> str:
-        return instance.writer.get_full_name()
-
-    def get_patient_name(self, instance: Prescription) -> str:
-        return instance.patient.get_full_name()
+    class Meta(OriginalPrescriptionSerializer.Meta):
+        fields = OriginalPrescriptionSerializer.Meta.fields
 
 
 class PrescriptionCreateSerializer(PrescriptionSerializerMixin, serializers.ModelSerializer):
@@ -81,12 +74,11 @@ class PrescriptionCreateSerializer(PrescriptionSerializerMixin, serializers.Mode
     end_date = serializers.DateField()
     checked = serializers.BooleanField(default=False)
 
-    class Meta(DefaultPrescriptionSerializer.Meta):
-        fields = DefaultPrescriptionSerializer.Meta.fields + ['doctor_files', 'start_date', 'end_date', 'status',
-                                                              'checked', 'url', 'doctor_upload_files']
+    class Meta(OriginalPrescriptionSerializer.Meta):
+        fields = ['url'] + OriginalPrescriptionSerializer.Meta.fields + ['doctor_files', 'doctor_upload_files']
 
 
-class FilePrescriptionSerializer(PrescriptionSerializerMixin, serializers.ModelSerializer):
+class FilePrescriptionSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:file-prescription-detail-update',
         lookup_field='pk'

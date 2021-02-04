@@ -1,9 +1,9 @@
-from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type
+from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import Q, Prefetch, F, Max
+from django.db.models import Q, Prefetch, Max
 from django.urls import reverse
 
 from config.utils.utils import concatenate_name
@@ -24,13 +24,13 @@ def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str
 
 
 class CommonUserQuerySet(models.QuerySet):
-    def filter_user_active(self):
+    def filter_user_active(self) -> Type['QuerySet']:
         return self.filter(user__is_active=True)
 
-    def filter_doctor(self):
+    def filter_doctor(self) -> Type['QuerySet']:
         return self.filter(Q(is_doctor=True) & Q(is_patient=False))
 
-    def filter_patient(self):
+    def filter_patient(self) -> Type['QuerySet']:
         return self.filter(Q(is_doctor=False) & Q(is_patient=True))
 
 
@@ -89,6 +89,9 @@ class BaseManager(BaseUserManager):
         # request에서 user에 대한 select_related를 적용해야할 경우 authentication 수정 필요
         return BaseQuerySet(self.model, using=self._db).select_related('doctor').select_related('patient')
 
+    def select_all(self) -> 'BaseQuerySet':
+        return self.get_queryset().select_all()
+
     def create_user(self, email, password, **attributes: Dict[str, str]) -> 'BaseUser':
         if not email:
             raise ValueError('No email has been entered')
@@ -102,10 +105,7 @@ class BaseManager(BaseUserManager):
         self._set_superuser_status(attributes)
         return self.create_user(email=email, password=password, **attributes)
 
-    def select_all(self):
-        return self.get_queryset().select_all()
-
-    def _set_superuser_status(self, attributes):
+    def _set_superuser_status(self, attributes) -> NoReturn:
         attributes.setdefault('is_staff', True)
         attributes.setdefault('is_superuser', True)
         attributes.setdefault('is_active', True)
@@ -143,7 +143,7 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self) -> str:
         return str(self.email)
 
-    def set_token_expired(self, time: int):
+    def set_token_expired(self, time: int) -> NoReturn:
         self.token_expired = time
         self.save()
 
@@ -208,13 +208,6 @@ class PatientQuerySet(CommonUserQuerySet):
         defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
         return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
 
-    def prefetch_prescription(self, prefetch: 'Prefetch' = None) -> 'PatientQuerySet':
-        if prefetch:
-            query = self.prefetch_related(prefetch)
-        else:
-            query = self.prefetch_related('prescriptions')
-        return query
-
     def with_latest_prescription(self) -> 'PatientQuerySet':
         return self.annotate(latest_prescription_id=Max('prescriptions__id'))
 
@@ -223,7 +216,14 @@ class PatientQuerySet(CommonUserQuerySet):
 
         return self.prefetch_related(Prefetch('prescriptions__writer', queryset=Prescription.objects.select_all()))
 
-    def prefetch_prescription_with_patient(self):
+    def prefetch_prescription(self, prefetch: 'Prefetch' = None) -> 'PatientQuerySet':
+        if prefetch:
+            query = self.prefetch_related(prefetch)
+        else:
+            query = self.prefetch_related('prescriptions')
+        return query
+
+    def prefetch_prescription_with_patient(self) -> 'PatientQuerySet':
         return self.prefetch_related('prescriptions__patient')
 
     def prefetch_prescription_with_doctor_file(self) -> 'PatientQuerySet':

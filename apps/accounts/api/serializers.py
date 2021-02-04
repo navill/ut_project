@@ -73,11 +73,13 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
 
 # Doctor
 class OriginalDoctorSerializer(serializers.ModelSerializer):
+    major = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = Doctor
         # __all__
         fields = ['user', 'major', 'first_name', 'last_name',
-                  'gender', 'address', 'phone', 'age', 'description', 'created_at', 'updated_at']
+                  'gender', 'address', 'phone', 'description', 'created_at', 'updated_at']
 
 
 class RawDoctorSerializer(RawAccountSerializer):

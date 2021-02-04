@@ -1,7 +1,9 @@
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
 from accounts.api.permissions import IsDoctor, IsOwner
+from accounts.api.serializers import OriginalDoctorSerializer
 from accounts.models import Doctor, Patient
+from core.api.fields import PatientFields
 from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PatientNestedPrescriptionSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
@@ -66,12 +68,18 @@ class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의�
     lookup_field = 'pk'
 
 
-class PrescriptionsRelatedPatient(RetrieveAPIView):  # 환자와 관련된 소견서 + 의사 파일 + FilePrescriptionList
+class PrescriptionsRelatedPatient(ListAPIView):  # 환자와 관련된 소견서 + 의사 파일 + FilePrescriptionList
     queryset = Prescription.objects.select_all()
     # permission_classes = [IsPatient]
     permission_classes = []
     serializer_class = PrescriptionsRelatedPatientSerializer
     lookup_field = 'pk'
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user_id = self.request.user.id
+        prescriptions = queryset.filter(patient_id=user_id)
+        return prescriptions
 
 
 class FilePrescriptionList(ListAPIView):  # Detail FilePrescription + PatietFile
@@ -83,7 +91,7 @@ class FilePrescriptionList(ListAPIView):  # Detail FilePrescription + PatietFile
 
 
 class PatientMain(RetrieveAPIView):
-    queryset = Patient.objects.select_all().prefetch_prescription().with_latest_prescription()
+    queryset = Patient.objects.select_all().prefetch_prescription().with_latest_prescription().only(*PatientFields.all)
     # queryset = Patient.objects.all()
     permission_classes = []
     serializer_class = PatientMainSerializer

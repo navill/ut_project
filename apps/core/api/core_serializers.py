@@ -6,6 +6,7 @@ from accounts.api.serializers import (DoctorSerializer,
                                       RawPatientSerializer,
                                       OriginalDoctorSerializer,
                                       OriginalPatientSerializer)
+from core.api.fields import DoctorFields, PatientFields, PrescriptionFields, FilePrescriptionFields
 from files.api.serializers import PatientFileSerializer, DoctorFileSerializer
 from prescriptions.api.serializers import (PrescriptionSerializer,
                                            FilePrescriptionSerializer,
@@ -93,14 +94,14 @@ class CoreFilePrescriptionSerializer(FilePrescriptionSerializer):
 # 아직 사용 x
 class CoreDoctorListSerializer(OriginalDoctorSerializer):
     class Meta(OriginalDoctorSerializer.Meta):
-        fields = OriginalDoctorSerializer.Meta.fields
+        fields = DoctorFields.list_field
 
 
 # 의사 메인페이지
 # - 환자 리스트 -> core prescriptions
 class CorePatientListSerializer(OriginalPatientSerializer):
     class Meta(OriginalPatientSerializer.Meta):
-        fields = OriginalPatientSerializer.Meta.fields
+        fields = PatientFields.list_field
 
 
 # 의사 메인 페이지
@@ -109,7 +110,7 @@ class CorePatientListSerializer(OriginalPatientSerializer):
 # - 로그인한 환자의 소견서 리스트 (소견서 선택 -> file prescription list)
 class CorePrescriptionListSerializer(OriginalPrescriptionSerializer):
     class Meta(OriginalPrescriptionSerializer.Meta):
-        fields = OriginalPrescriptionSerializer.Meta.fields
+        fields = PrescriptionFields.list_field
 
 
 # 의사 메인 페이지
@@ -119,4 +120,4 @@ class CorePrescriptionListSerializer(OriginalPrescriptionSerializer):
 # - 환자가 파일을 업로드 해야할 FilePrescription 리스트 (FilePrescription 선택 -> PatientFile 업로드 페이지 or detail 페이지)
 class CoreFilePrescriptionListSerializer(OriginalFilePrescriptionSerializer):
     class Meta(OriginalFilePrescriptionSerializer.Meta):
-        fields = OriginalFilePrescriptionSerializer.Meta.fields
+        fields = FilePrescriptionFields.list_field

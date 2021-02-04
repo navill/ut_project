@@ -24,7 +24,7 @@ urlpatterns = [
 
     # patient-main
     path('test/patient/<int:pk>', views.PatientWithDoctor.as_view()),
-    path('test/prescription/<int:pk>', views.PrescriptionsRelatedPatient.as_view()),
+    path('test/prescriptions', views.PrescriptionsRelatedPatient.as_view()),
     path('test/file-prescription', views.FilePrescriptionList.as_view()),
     path('test/main/<int:pk>', views.PatientMain.as_view()),
 ]

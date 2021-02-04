@@ -1,8 +1,10 @@
+from abc import ABC, ABCMeta
 from typing import TYPE_CHECKING
 
 from rest_framework import serializers
 
-from accounts.api.serializers import PatientSerializer, DoctorSerializer
+from accounts.api.serializers import PatientSerializer, DoctorSerializer, OriginalDoctorSerializer, \
+    OriginalPatientSerializer
 from core.api.core_serializers import (CoreDoctorSerializer,
                                        CorePatientSerializer,
                                        CorePrescriptionSerializer,
@@ -23,7 +25,7 @@ Doctor Serializer
 
 # 0: 의사 메인페이지(의사 정보 및 담당 환자 리스트)
 class DoctorNestedPatientSerializer(CoreDoctorSerializer):
-    patients = CoreRawPatientSerializer(many=True)
+    patients = CorePatientSerializer(many=True)
 
     class Meta(CoreDoctorSerializer.Meta):
         fields = CoreDoctorSerializer.Meta.fields + ['patients']
@@ -76,11 +78,11 @@ Patient Serializer
 """
 
 
-class PatientWithDoctorSerializer(PatientSerializer):  # Patient<pk>, doctor
-    doctor = DoctorSerializer()
+class PatientWithDoctorSerializer(OriginalPatientSerializer):  # Patient<pk>, doctor
+    doctor = OriginalDoctorSerializer()
 
-    class Meta(PatientSerializer.Meta):
-        fields = PatientSerializer.Meta.fields
+    class Meta(OriginalPatientSerializer.Meta):
+        fields = OriginalPatientSerializer.Meta.fields
 
 
 class PrescriptionsRelatedPatientSerializer(CorePrescriptionSerializer):  # prescription list
@@ -88,19 +90,19 @@ class PrescriptionsRelatedPatientSerializer(CorePrescriptionSerializer):  # pres
         fields = CorePrescriptionSerializer.Meta.fields
 
 
-class FilePrescriptionsSerializer(CoreFilePrescriptionSerializer):  # file upload schedules
+class FilePrescriptionsSerializer(CoreFilePrescriptionSerializer):  # upload schedules
     class Meta(CoreFilePrescriptionSerializer.Meta):
         fields = CoreFilePrescriptionSerializer.Meta.fields
 
 
 class PatientMainSerializer(PatientWithDoctorSerializer):
     prescriptions = CorePrescriptionListSerializer(many=True)
-    upload_schedule = serializers.SerializerMethodField()
+    upload_schedules = serializers.SerializerMethodField()
 
     class Meta(PatientWithDoctorSerializer.Meta):
-        fields = PatientWithDoctorSerializer.Meta.fields + ['prescriptions'] + ['upload_schedule']
+        fields = PatientWithDoctorSerializer.Meta.fields + ['prescriptions'] + ['upload_schedules']
 
-    def get_upload_schedule(self, instance: 'Patient'):
+    def get_upload_schedules(self, instance: 'Patient'):
         queryset = FilePrescription.objects.filter(prescription_id=instance.latest_prescription_id)
         serializer_context = {'request': self.context['request']}
         file_prescriptions = CoreFilePrescriptionListSerializer(queryset, many=True, context=serializer_context)

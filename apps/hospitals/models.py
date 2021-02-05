@@ -66,7 +66,7 @@ class MajorQuerySet(models.QuerySet):
         return self.select_related('department__medical_center')
 
     def prefetch_all(self) -> 'MajorQuerySet':
-        return self.prefetch_related('doctor_major')
+        return self.prefetch_related('doctors')
 
     def nested_all(self):
         return self.select_all().prefetch_all()

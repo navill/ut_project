@@ -13,13 +13,6 @@ from prescriptions.models import Prescription, FilePrescription
 
 User = get_user_model()
 
-BASE_QUERY_FIELDS = ('id', 'uploader_id', 'file', 'created_at', 'checked', 'deleted')
-UPLOADER_QUERY_FIELDS = ('user_id', 'first_name', 'last_name')
-PRESCRIPTION_QUERY_FIELD = ('prescription__id',)
-
-DOCTOR_QUERY_FIELDS = (f'uploader__doctor__{field}' for field in UPLOADER_QUERY_FIELDS)
-PATIENT_QUERY_FIELDS = (f'uploader__patient__{field}' for field in UPLOADER_QUERY_FIELDS)
-
 
 class BaseFile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -97,11 +90,9 @@ class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
         return self.filter(uploader_id=user_id)
 
     def select_patient(self) -> 'PatientFileQuerySet':
-        # return self.select_related('uploader__patient')
         return self.annotate(uploader_patient_name=concatenate_name('uploader__patient'))
 
     def select_doctor(self) -> 'PatientFileQuerySet':
-        # return self.select_related('prescription__doctor')
         return self.annotate(doctor_id=F('uploader__patient__doctor_id'))
 
     def select_file_prescription(self) -> 'PatientFileQuerySet':

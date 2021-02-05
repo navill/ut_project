@@ -80,7 +80,7 @@ class PatientSignUpAPIView(InputValueSupporter, CreateAPIView):
 
 
 class PatientListAPIView(ListAPIView):
-    queryset = Patient.objects.select_all().defer_option_fields().order_by('-created_at')
+    queryset = Patient.objects.select_all().order_by('-created_at')
     serializer_class = serializers.PatientListSerailizer
     permission_classes = [IsDoctor]
     lookup_field = 'pk'

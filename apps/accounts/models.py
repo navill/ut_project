@@ -7,15 +7,16 @@ from django.db.models import Q, Prefetch, Max
 from django.urls import reverse
 
 from config.utils.utils import concatenate_name
+from core.api.fields import PatientFields, DoctorFields
 from hospitals.models import Major
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
-DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
-DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
-DEFER_PATIENT_FIELDS = ('emergency_call', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
+# DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
+# DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
+# DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
+# DEFER_PATIENT_FIELDS = ('emergency_call', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
 
 
 def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str]:
@@ -71,17 +72,17 @@ class BaseQuerySet(models.QuerySet):
     def active(self) -> 'BaseQuerySet':
         return self.filter(is_active=True)
 
-    def defer_option_fields(self, *fields: Tuple[str]) -> 'BaseQuerySet':
-        return self.defer(*DEFER_BASEUSER_FIELDS, *fields)
+    # def defer_option_fields(self, *fields: Tuple[str]) -> 'BaseQuerySet':
+    #     return self.defer(*DEFER_BASEUSER_FIELDS, *fields)
 
     def select_all(self) -> 'BaseQuerySet':
         return self.select_related('doctor').select_related('patient')
 
-    def defer_unnecessary_fields(self) -> 'BaseQuerySet':
-        # deferred_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
-        deferred_doctor_fields = get_defer_field_set(parent_field_name='doctor', *DEFER_DOCTOR_FIELDS)
-        deferred_patient_fields = get_defer_field_set(parent_field_name='patient', *DEFER_PATIENT_FIELDS)
-        return self.defer(*DEFER_BASEUSER_FIELDS, *deferred_doctor_fields, *deferred_patient_fields)
+    # def defer_unnecessary_fields(self) -> 'BaseQuerySet':
+    #     # deferred_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
+    #     deferred_doctor_fields = get_defer_field_set(parent_field_name='doctor', *DEFER_DOCTOR_FIELDS)
+    #     deferred_patient_fields = get_defer_field_set(parent_field_name='patient', *DEFER_PATIENT_FIELDS)
+    #     return self.defer(*DEFER_BASEUSER_FIELDS, *deferred_doctor_fields, *deferred_patient_fields)
 
 
 class BaseManager(BaseUserManager):
@@ -164,10 +165,10 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
 
 class DoctorQuerySet(CommonUserQuerySet):
-    def defer_option_fields(self, *fields: str) -> 'DoctorQuerySet':
-        # deferred_user_fields = get_defer_field_set('user', DEFER_BASEUSER_FIELDS)
-        deferred_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
-        return self.defer(*DEFER_DOCTOR_FIELDS, *deferred_user_fields, *fields)
+    # def defer_option_fields(self, *fields: str) -> 'DoctorQuerySet':
+    #     # deferred_user_fields = get_defer_field_set('user', DEFER_BASEUSER_FIELDS)
+    #     deferred_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
+    #     return self.defer(*DEFER_DOCTOR_FIELDS, *deferred_user_fields, *fields)
 
     def prefetch_all(self):
         return self.prefetch_related('patients')
@@ -177,6 +178,15 @@ class DoctorQuerySet(CommonUserQuerySet):
 
     def nested_all(self):
         return self.select_all().prefetch_all()
+
+    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
+    def only_list(self, *others: Tuple[str]):
+        fields = DoctorFields.list_field + others
+        return self.only(*fields)
+
+    def only_detail(self, *others: Tuple[str]):
+        fields = DoctorFields.detail_field + others
+        return self.only(*fields)
 
 
 class DoctorManager(CommonUserManager):
@@ -190,7 +200,7 @@ class DoctorManager(CommonUserManager):
 
 class Doctor(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='doctor_major')
+    major = models.ForeignKey(Major, on_delete=models.CASCADE, related_name='doctors')
     description = models.CharField(max_length=255, default='', blank=True, null=True)
 
     objects = DoctorManager()
@@ -203,10 +213,10 @@ class Doctor(AccountsModel):
 
 
 class PatientQuerySet(CommonUserQuerySet):
-    def defer_option_fields(self, *fields: Tuple[str, ...]) -> 'PatientQuerySet':
-        defer_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
-        defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
-        return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
+    # def defer_option_fields(self, *fields: Tuple[str, ...]) -> 'PatientQuerySet':
+    #     defer_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
+    #     defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
+    #     return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
 
     def with_latest_prescription(self) -> 'PatientQuerySet':
         return self.annotate(latest_prescription_id=Max('prescriptions__id'))
@@ -243,6 +253,15 @@ class PatientQuerySet(CommonUserQuerySet):
 
     def nested_all(self):
         return self.select_all().prefetch_all()
+
+    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
+    def only_list(self, *others: Tuple[str]):
+        fields = PatientFields.list_field + others
+        return self.only(*fields)
+
+    def only_detail(self, *others: Tuple[str]):
+        fields = PatientFields.detail_field + others
+        return self.only(*fields)
 
 
 class PatientManager(CommonUserManager):

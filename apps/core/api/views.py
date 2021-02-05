@@ -1,16 +1,16 @@
+from django.db.models import Prefetch
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
 from accounts.api.permissions import IsDoctor, IsOwner
-from accounts.api.serializers import OriginalDoctorSerializer
 from accounts.models import Doctor, Patient
-from core.api.fields import PatientFields
+from core.api.fields import PatientFields, PrescriptionFields
 from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PatientNestedPrescriptionSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
                                   FilePrescriptionNestedPatientFileSerializer,
                                   ExpiredFilePrescriptionHistorySerializer,
                                   UploadedPatientFileHistorySerializer, PatientWithDoctorSerializer,
-                                  PrescriptionsRelatedPatientSerializer, FilePrescriptionsSerializer,
+                                  PrescriptionListRelatedPatientSerializer, FilePrescriptionsSerializer,
                                   PatientMainSerializer,
                                   )
 from prescriptions.api.mixins import HistoryMixin
@@ -72,7 +72,7 @@ class PrescriptionsRelatedPatient(ListAPIView):  # 환자와 관련된 소견서
     queryset = Prescription.objects.select_all()
     # permission_classes = [IsPatient]
     permission_classes = []
-    serializer_class = PrescriptionsRelatedPatientSerializer
+    serializer_class = PrescriptionListRelatedPatientSerializer
     lookup_field = 'pk'
 
     def get_queryset(self):
@@ -91,7 +91,10 @@ class FilePrescriptionList(ListAPIView):  # Detail FilePrescription + PatietFile
 
 
 class PatientMain(RetrieveAPIView):
-    queryset = Patient.objects.select_all().prefetch_prescription().with_latest_prescription().only(*PatientFields.all)
+    queryset = Patient.objects.select_all(). \
+        prefetch_prescription(Prefetch('prescriptions', queryset=Prescription.objects.all().only_list())). \
+        with_latest_prescription(). \
+        only_detail('updated_at')
     # queryset = Patient.objects.all()
     permission_classes = []
     serializer_class = PatientMainSerializer

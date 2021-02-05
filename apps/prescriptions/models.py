@@ -1,13 +1,14 @@
 import datetime
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 
 from django.db import models
 from django.db.models import F, Prefetch
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from accounts.models import Patient, Doctor, DEFER_PATIENT_FIELDS, DEFER_DOCTOR_FIELDS
-from prescriptions.api.utils import get_defer_fields_set, concatenate_name
+from accounts.models import Patient, Doctor
+from core.api.fields import FilePrescriptionFields, PrescriptionFields
+from prescriptions.api.utils import concatenate_name
 
 
 class HealthStatus(models.TextChoices):
@@ -37,10 +38,10 @@ class PrescriptionQuerySet(models.QuerySet):
     def filter_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
         return self.filter(patient_id=patient_id)
 
-    def defer_option_fields(self) -> 'PrescriptionQuerySet':
-        deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
-        deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
-        return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
+    # def defer_option_fields(self) -> 'PrescriptionQuerySet':
+    #     deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
+    #     deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
+    #     return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
     def select_patient(self) -> 'PrescriptionQuerySet':
         return self.select_related('patient')
@@ -64,6 +65,15 @@ class PrescriptionQuerySet(models.QuerySet):
 
     def prefetch_all(self) -> 'PrescriptionQuerySet':
         return self.prefetch_file_prescription_with_files()
+
+    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
+    def only_list(self, *others: Tuple[str]):
+        fields = PrescriptionFields.list_field + others
+        return self.only(*fields)
+
+    def only_detail(self, *others: Tuple[str]):
+        fields = PrescriptionFields.detail_field + others
+        return self.only(*fields)
 
 
 class PrescriptionManager(models.Manager):
@@ -94,7 +104,7 @@ Prescription
 
 
 class Prescription(BasePrescription):
-    writer = models.ForeignKey(Doctor, on_delete=models.DO_NOTHING)
+    writer = models.ForeignKey(Doctor, on_delete=models.DO_NOTHING, related_name='prescriptions')
     patient = models.ForeignKey(Patient, on_delete=models.DO_NOTHING, related_name='prescriptions')
     start_date = models.DateField(null=True)
     end_date = models.DateField(null=True)
@@ -130,10 +140,10 @@ def create_file_prescription(sender, **kwargs: Dict[str, Any]):
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
-    def defer_option_fields(self) -> 'FilePrescriptionQuerySet':
-        deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
-        deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
-        return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
+    # def defer_option_fields(self) -> 'FilePrescriptionQuerySet':
+    #     deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
+    #     deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
+    #     return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
     def filter_uploaded(self) -> 'FilePrescriptionQuerySet':
         return self.filter(uploaded=True)
@@ -170,6 +180,15 @@ class FilePrescriptionQuerySet(models.QuerySet):
 
     def nested_all(self) -> 'FilePrescriptionQuerySet':
         return self.select_all().prefetch_all()
+
+    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
+    def only_list(self, *others: Tuple[str]):
+        fields = FilePrescriptionFields.list_field + others
+        return self.only(*fields)
+
+    def only_detail(self, *others: Tuple[str]):
+        fields = FilePrescriptionFields.detail_field + others
+        return self.only(*fields)
 
 
 class FilePrescriptionManager(models.Manager):

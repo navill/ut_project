@@ -1,9 +1,8 @@
-from abc import ABC, ABCMeta
 from typing import TYPE_CHECKING
 
 from rest_framework import serializers
 
-from accounts.api.serializers import PatientSerializer, DoctorSerializer, OriginalDoctorSerializer, \
+from accounts.api.serializers import OriginalDoctorSerializer, \
     OriginalPatientSerializer
 from core.api.core_serializers import (CoreDoctorSerializer,
                                        CorePatientSerializer,
@@ -11,7 +10,6 @@ from core.api.core_serializers import (CoreDoctorSerializer,
                                        CoreFilePrescriptionSerializer,
                                        CoreDoctorFileSerializer,
                                        CorePatientFileSerializer,
-                                       CoreRawPatientSerializer,
                                        CorePrescriptionListSerializer, CoreFilePrescriptionListSerializer)
 from prescriptions.models import FilePrescription
 
@@ -85,7 +83,7 @@ class PatientWithDoctorSerializer(OriginalPatientSerializer):  # Patient<pk>, do
         fields = OriginalPatientSerializer.Meta.fields
 
 
-class PrescriptionsRelatedPatientSerializer(CorePrescriptionSerializer):  # prescription list
+class PrescriptionListRelatedPatientSerializer(CorePrescriptionSerializer):  # prescription list
     class Meta(CorePrescriptionSerializer.Meta):
         fields = CorePrescriptionSerializer.Meta.fields
 
@@ -103,7 +101,8 @@ class PatientMainSerializer(PatientWithDoctorSerializer):
         fields = PatientWithDoctorSerializer.Meta.fields + ['prescriptions'] + ['upload_schedules']
 
     def get_upload_schedules(self, instance: 'Patient'):
-        queryset = FilePrescription.objects.filter(prescription_id=instance.latest_prescription_id)
+        queryset = FilePrescription.objects. \
+            filter(prescription_id=instance.latest_prescription_id).only_list()
         serializer_context = {'request': self.context['request']}
         file_prescriptions = CoreFilePrescriptionListSerializer(queryset, many=True, context=serializer_context)
         return file_prescriptions.data

@@ -1,3 +1,4 @@
+import re
 import sys
 
 from django.db.models import F, Value
@@ -28,3 +29,8 @@ def log_request(sender, environ, **kwargs):  # HTTP_USER_AGENT, HTTP_HOST, REMOT
 
         # todo: logger - system level
         print(f'[{current_time}][{method}] {host}{path}{query} | IP_addr:{client_ip} | Agent: {client_agent}')
+
+
+def convert_camel_case_to_snake(camel_str: str) -> str:
+    splitted = re.sub('([A-Z][a-z]+)', r' \1', re.sub('([A-Z]+)', r' \1', camel_str)).split()
+    return '_'.join(splitted).lower() + 's'

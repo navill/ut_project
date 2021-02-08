@@ -6,7 +6,7 @@ from accounts.views import home_views
 
 app_name = 'api'
 urlpatterns = [
-    path('', home_views.home, name='home'),
+    # path('', home_views.home, name='home'),
     path('signup/doctor', DoctorSignUpAPIView.as_view(), name='api-signup-doctor'),
     path('signup/patient', PatientSignUpAPIView.as_view(), name='api-signup-patient'),
     path('doctors', views.DoctorListAPIView.as_view(), name='doctor-list'),

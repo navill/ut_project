@@ -40,8 +40,8 @@ INSTALLED_APPS = [
     'core',
     'files',
     # third party
-    'crispy_forms',
     'rest_framework',
+    'crispy_forms',
     'rest_framework_simplejwt.token_blacklist',
     'django_filters',
     'djcelery',
@@ -132,3 +132,4 @@ REST_FRAMEWORK = {
         'accounts.api.authentications.CustomJWTTokenUserAuthentication',
     ]
 }
+UPDATE_LAST_LOGIN = True

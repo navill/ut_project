@@ -11,6 +11,7 @@ from core.api.core_serializers import (CoreDoctorSerializer,
                                        CoreDoctorFileSerializer,
                                        CorePatientFileSerializer,
                                        CorePrescriptionListSerializer, CoreFilePrescriptionListSerializer)
+from core.api.fields import FilePrescriptionFields, PrescriptionFields, PatientFields
 from prescriptions.models import FilePrescription
 
 if TYPE_CHECKING:
@@ -83,26 +84,31 @@ class PatientWithDoctorSerializer(OriginalPatientSerializer):  # Patient<pk>, do
         fields = OriginalPatientSerializer.Meta.fields
 
 
-class PrescriptionListRelatedPatientSerializer(CorePrescriptionSerializer):  # prescription list
-    class Meta(CorePrescriptionSerializer.Meta):
-        fields = CorePrescriptionSerializer.Meta.fields
+class PrescriptionListForPatientSerializer(CorePrescriptionListSerializer):  # prescription list
+    core_url = serializers.HyperlinkedIdentityField(
+        view_name='core-api:patients:prescription-detail',
+        lookup_field='pk'
+    )
+
+    class Meta(CorePrescriptionListSerializer.Meta):
+        fields = PrescriptionFields.list_field + ('core_url',)
 
 
-class FilePrescriptionsSerializer(CoreFilePrescriptionSerializer):  # upload schedules
+class FilePrescriptionsForPatientSerializer(CoreFilePrescriptionSerializer):  # upload schedules
     class Meta(CoreFilePrescriptionSerializer.Meta):
-        fields = CoreFilePrescriptionSerializer.Meta.fields
+        fields = FilePrescriptionFields.list_field
 
 
 class PatientMainSerializer(PatientWithDoctorSerializer):
-    prescriptions = CorePrescriptionListSerializer(many=True)
+    prescriptions = PrescriptionListForPatientSerializer(many=True)
     upload_schedules = serializers.SerializerMethodField()
 
     class Meta(PatientWithDoctorSerializer.Meta):
-        fields = PatientWithDoctorSerializer.Meta.fields + ['prescriptions'] + ['upload_schedules']
+        fields = PatientFields.detail_field + ('prescriptions', 'upload_schedules')
 
     def get_upload_schedules(self, instance: 'Patient'):
         queryset = FilePrescription.objects. \
             filter(prescription_id=instance.latest_prescription_id).only_list()
         serializer_context = {'request': self.context['request']}
-        file_prescriptions = CoreFilePrescriptionListSerializer(queryset, many=True, context=serializer_context)
+        file_prescriptions = FilePrescriptionsForPatientSerializer(queryset, many=True, context=serializer_context)
         return file_prescriptions.data

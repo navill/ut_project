@@ -13,6 +13,7 @@ from hospitals.models import Major
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
+
 # DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
 # DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
 # DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
@@ -219,7 +220,7 @@ class PatientQuerySet(CommonUserQuerySet):
     #     return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
 
     def with_latest_prescription(self) -> 'PatientQuerySet':
-        return self.annotate(latest_prescription_id=Max('prescriptions__id'))
+        return self.filter(prescriptions__checked=False).annotate(latest_prescription_id=Max('prescriptions__id'))
 
     def prefetch_prescription_with_writer(self) -> 'PatientQuerySet':
         from prescriptions.models import Prescription

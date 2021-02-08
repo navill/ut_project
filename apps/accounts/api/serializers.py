@@ -1,8 +1,11 @@
 from typing import Union, Dict, AnyStr, NoReturn
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import update_last_login
 from django.db import transaction
+from django.urls import reverse
 from rest_framework import serializers
+from rest_framework.settings import api_settings
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import Token
@@ -74,6 +77,7 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
 # Doctor
 class OriginalDoctorSerializer(serializers.ModelSerializer):
     major = serializers.PrimaryKeyRelatedField(read_only=True)
+    gender = serializers.CharField(source='get_gender_display', read_only=True)
 
     class Meta:
         model = Doctor
@@ -142,6 +146,8 @@ class DoctorSignUpSerializer(SignupSerializerMixin, DoctorSerializer):
 
 # Patient
 class OriginalPatientSerializer(serializers.ModelSerializer):
+    gender = serializers.CharField(source='get_gender_display', read_only=True)
+
     class Meta:
         model = Patient
         # __all__
@@ -209,6 +215,17 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
     def get_token(cls, user: User) -> Token:
         token = CustomRefreshToken.for_user(user)
         return token
+
+    def validate(self, attrs):
+        data = super(AccountsTokenSerializer, self).validate(attrs)
+        self._add_next_url(data)
+        return data
+
+    def _add_next_url(self, data: Dict[str, str]):
+        if self.user.is_doctor:
+            data['main_url'] = reverse('core-api:doctors:doctor-detail', kwargs={'pk': self.user.id})
+        elif self.user.is_patient:
+            data['main_url'] = reverse('core-api:patient:main', kwargs={'pk': self.user.id})
 
 
 class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializer):

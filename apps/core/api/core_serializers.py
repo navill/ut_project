@@ -8,6 +8,7 @@ from accounts.api.serializers import (DoctorSerializer,
                                       OriginalPatientSerializer)
 from core.api.fields import DoctorFields, PatientFields, PrescriptionFields, FilePrescriptionFields
 from files.api.serializers import PatientFileSerializer, DoctorFileSerializer
+from hospitals.api.serializers import MajorListSerializer
 from prescriptions.api.serializers import (PrescriptionSerializer,
                                            FilePrescriptionSerializer,
                                            OriginalPrescriptionSerializer,
@@ -30,18 +31,13 @@ class CoreDoctorSerializer(DoctorSerializer):
 
 
 class CoreRawPatientSerializer(RawPatientSerializer):
-    core_url = serializers.HyperlinkedIdentityField(
-        view_name='core-api:patient-with-prescriptions',
-        lookup_field='pk'
-    )
-
     class Meta(RawPatientSerializer.Meta):
-        fields = RawPatientSerializer.Meta.fields + ['core_url']
+        fields = RawPatientSerializer.Meta.fields
 
 
 class CorePatientSerializer(PatientSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='core-api:patient-with-prescriptions',
+    core_url = serializers.HyperlinkedIdentityField(
+        view_name='core-api:doctors:prescription-list',
         lookup_field='pk'
     )
     detail_url = serializers.HyperlinkedIdentityField(
@@ -50,7 +46,7 @@ class CorePatientSerializer(PatientSerializer):
     )
 
     class Meta(PatientSerializer.Meta):
-        fields = PatientSerializer.Meta.fields + ['detail_url']
+        fields = PatientSerializer.Meta.fields + ['detail_url', 'core_url']
 
 
 class CoreDoctorFileSerializer(DoctorFileSerializer):
@@ -93,6 +89,8 @@ class CoreFilePrescriptionSerializer(FilePrescriptionSerializer):
 
 # 아직 사용 x
 class CoreDoctorListSerializer(OriginalDoctorSerializer):
+    major = MajorListSerializer()
+
     class Meta(OriginalDoctorSerializer.Meta):
         fields = DoctorFields.list_field
 
@@ -109,8 +107,14 @@ class CorePatientListSerializer(OriginalPatientSerializer):
 # 환자 메인 페이지
 # - 로그인한 환자의 소견서 리스트 (소견서 선택 -> file prescription list)
 class CorePrescriptionListSerializer(OriginalPrescriptionSerializer):
+    core_url = serializers.HyperlinkedIdentityField(
+        view_name='core-api:prescription-detail',
+        lookup_field='pk'
+    )
+    writer = CoreDoctorListSerializer()
+
     class Meta(OriginalPrescriptionSerializer.Meta):
-        fields = PrescriptionFields.list_field
+        fields = PrescriptionFields.list_field + ('core_url',)
 
 
 # 의사 메인 페이지

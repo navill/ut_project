@@ -47,7 +47,7 @@ class PrescriptionQuerySet(models.QuerySet):
         return self.select_related('patient')
 
     def select_writer(self) -> 'PrescriptionQuerySet':
-        return self.select_related('writer__user')
+        return self.select_related('writer__user').select_related('writer__major')
 
     def select_all(self) -> 'PrescriptionQuerySet':
         return self.select_patient().select_writer()
@@ -115,10 +115,10 @@ class Prescription(BasePrescription):
         ordering = ['-id']
 
     def get_writer_name(self) -> str:
-        return self.writer.full_name
+        return self.writer.get_full_name()
 
     def __str__(self) -> str:
-        return f'{self.patient.full_name}-{str(self.created_at)}'
+        return f'{self.patient.get_full_name()}-{str(self.created_at)}'
 
 
 @receiver(post_save, sender=Prescription)

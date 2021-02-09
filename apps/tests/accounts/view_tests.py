@@ -54,18 +54,22 @@ def test_api_create_token_by_login_with_doctor_info(api_client, doctor_with_grou
     url = reverse('token-login')
     response = api_client.post(url, data={'email': doctor_with_group.user.email, 'password': 'test12345'},
                                format='json')
-
+    doctor = doctor_with_group
     # success
     assert doctor_with_group.user.email == 'doctor@test.com'
     assert response.status_code == 200
     assert 'access' in response.data
     assert 'refresh' in response.data
+    assert response.data['main_url'] == reverse('core-api:doctors:detail', kwargs={'pk': doctor.user_id})
 
     # fail - 유효하지 않은 인증 정보
-    response = api_client.post(url, data={'email': doctor_with_group.user.email, 'password': 'test00000'},
-                               format='json')
+    response = api_client.post(
+        url, data={'email': doctor.user.email, 'password': 'invalidpasswd'}, format='json'
+    )
     assert response.status_code == 401
-    response = api_client.post(url, data={'email': 'unknownuser', 'password': 'test12345'}, format='json')
+    response = api_client.post(
+        url, data={'email': 'unknownuser', 'password': 'test12345'}, format='json'
+    )
     assert response.status_code == 401
 
 
@@ -78,6 +82,7 @@ def test_api_create_token_by_login_with_patient_info(api_client, patient_with_gr
     # success
     assert patient.user.email == 'patient@test.com'
     assert response.status_code == 200
+    assert response.data['main_url'] == reverse('core-api:patients:main', kwargs={'pk': patient.user_id})
 
     # fail - 유효하지 않은 인증 정보
     response = api_client.post(url, data={'email': patient.user.email, 'password': 'test00000'}, format='json')

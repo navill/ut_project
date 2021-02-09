@@ -4,10 +4,12 @@ import uuid
 import pytest
 from django.contrib.auth.models import Group
 from django.core.management import call_command
+from rest_framework.reverse import reverse
 
 from accounts.api.authentications import CustomRefreshToken
 from accounts.models import Doctor, Patient
 from config.settings.base import BASE_DIR
+from files.models import DoctorFile, PatientFile
 from hospitals.models import Major, Department, MedicalCenter
 from prescriptions.models import Prescription
 from tests.constants import *
@@ -188,51 +190,6 @@ def renew_uuid():
     return uuid.uuid4()
 
 
-# @pytest.fixture(scope='function')
-# def data_file_by_doctor(generated_uuid4, prescription, doctor_with_group):
-#     DATAFILE['id'] = generated_uuid4
-#     DATAFILE['prescription'] = prescription
-#     DATAFILE['uploader'] = doctor_with_group.user
-#     instance = DataFile.objects.create(**DATAFILE)
-#     return instance
-#
-#
-# @pytest.fixture(scope='function')
-# def data_file_bundle_by_doctor(prescription, doctor_with_group):
-#     # bulk_data = []
-#     datafile = {
-#         'id': None,
-#         'prescription': prescription,
-#         'uploader': doctor_with_group.user,
-#         'file': MEDIA_ROOT + '/test_file.md',
-#         'checked': True,
-#         'status': HealthStatus.NORMAL
-#     }
-#     for _ in range(5):
-#         datafile['id'] = renew_uuid()
-#         # bulk_data.append(DataFile(**datafile))
-#         DataFile.objects.create(**datafile)
-#     # DataFile.objects.bulk_create(bulk_data)
-#
-#
-# @pytest.fixture(scope='function')
-# def data_file_bundle_by_patient(prescription, patient_with_group):
-#     # bulk_data = []
-#     datafile = {
-#         'id': None,
-#         'prescription': prescription,
-#         'uploader': patient_with_group.user,
-#         'file': MEDIA_ROOT + '/test_file.md',
-#         'checked': False,
-#         'status': HealthStatus.NORMAL
-#     }
-#     for _ in range(5):
-#         datafile['id'] = renew_uuid()
-#         # bulk_data.append(DataFile(**datafile))
-#         DataFile.objects.create(**datafile)
-#     # DataFile.objects.bulk_create(bulk_data)
-
-
 @pytest.fixture(scope='function')
 def data_file_unchecked(data_file_by_doctor):
     data_file_by_doctor.checked = False
@@ -254,24 +211,54 @@ def patient_client_with_token_auth(api_client, get_token_from_patient):
     return api_client
 
 
+@pytest.fixture(scope='function')
+def get_token_with_doctor():
+    doctor = Doctor.objects.first()
+    refresh = CustomRefreshToken.for_user(doctor.user)
+    return doctor, refresh
+
+
+@pytest.fixture(scope='function')
+def get_token_with_patient():
+    patient = Patient.objects.first()
+    refresh = CustomRefreshToken.for_user(patient.user)
+    return patient, refresh
+
+
+@pytest.fixture(scope='function')
+def data_file_bundle_by_doctor(prescription):
+    # bulk_data = []
+    doctor = Doctor.objects.first()
+    uploader_id = doctor.user_id
+    prescription_id = prescription.id
+    file = MEDIA_ROOT + '/test_file.md'
+    datafile = {
+        'id': None,
+        'prescription_id': prescription.id,
+        'uploader_id': doctor.user_id,
+        'file': MEDIA_ROOT + '/test_file.md',
+    }
+    for _ in range(5):
+        datafile['id'] = renew_uuid()
+        # bulk_data.append(DataFile(**datafile))
+        DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
+    # DataFile.objects.bulk_create(bulk_data)
+    return DoctorFile.objects.filter(uploader_id=uploader_id)
+
 # @pytest.fixture(scope='function')
-# def upload_file(db):
-#     upload_file = SimpleUploadedFile("testfile.txt", b"test file", content_type='multipart/form-data')
-#     yield upload_file
-#     for file in DataFile.objects.all():
-# #         file.hard_delete()
-
-
-# @pytest.fixture(scope='session')
-# def django_db_setup(django_db_setup, django_db_blocker):
-#     with django_db_blocker.unblock():
-#         path_list = [
-#             os.path.join(BASE_DIR, 'fixtures/hospitals_fixture.json'),
-#             os.path.join(BASE_DIR, 'fixtures/accounts_fixture.json'),
-#             os.path.join(BASE_DIR, 'fixtures/prescriptions_fixture.json'),
-#             os.path.join(BASE_DIR, 'fixtures/datafiles_fixture.json')
-#
-#         ]
-#
-#         for path in path_list:
-#             call_command('loaddata','--natural-foreign','--naturla-primary', path)
+# def data_file_bundle_by_patient(prescription, patient_with_group):
+#     # bulk_data = []
+#     datafile = {
+#         'id': None,
+#         'prescription': prescription,
+#         'uploader': patient_with_group.user,
+#         'file': MEDIA_ROOT + '/test_file.md',
+#         'checked': False,
+#         'status': HealthStatus.NORMAL
+#     }
+#     for _ in range(5):
+#         datafile['id'] = renew_uuid()
+#         # bulk_data.append(DataFile(**datafile))
+#         PatientFile.objects.create(**datafile)
+#         # DataFile.objects.bulk_create(bulk_data)
+#     return PatientFile.objects.filter(uploader=patient_with_group.user)

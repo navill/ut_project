@@ -42,7 +42,7 @@ class DoctorFileUploadAPIView(InputValueSupporter, CreateAPIView):
     serializer_class = DoctorFileUploadSerializer
     parser_classes = (MultiPartParser, FormParser)
 
-    fields_to_display = 'prescription',
+    fields_to_display = 'prescription'
 
 
 class DoctorUploadedFileListAPIView(ListAPIView):

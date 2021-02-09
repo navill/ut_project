@@ -1,7 +1,8 @@
 from django.db.models import Prefetch
 from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView, CreateAPIView
 
-from accounts.api.permissions import IsDoctor, IsOwner, IsPatient
+from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly
+from accounts.api.serializers import DoctorRetrieveSerializer, PatientRetrieveSerializer
 from accounts.models import Doctor, Patient
 from config.utils.api_utils import InputValueSupporter
 from core.api.serializers import (DoctorNestedPatientSerializer,
@@ -14,11 +15,18 @@ from core.api.serializers import (DoctorNestedPatientSerializer,
                                   PatientMainSerializer, PrescriptionNestedDoctorFileSerializer,
                                   PrescriptionListForPatientSerializer,
                                   )
+from files.api.serializers import DoctorFileUploadSerializer, DoctorFlieRetrieveSerializer, \
+    PatientFlieRetrieveSerializer, PatientFileUploadSerializer
 from files.models import PatientFile, DoctorFile
 from prescriptions.api.mixins import HistoryMixin
-from prescriptions.api.serializers import PrescriptionCreateSerializer
+from prescriptions.api.serializers import PrescriptionCreateSerializer, PrescriptionSerializer, \
+    FilePrescriptionRetrieveUpdateSerializer
 from prescriptions.models import Prescription, FilePrescription
 
+
+# todo(improve): serializer 정리
+# core.serializer: core-url을 포함하는 serializer
+# <app_name>.serializer: 각 앱에 위치한 default serializer
 
 # doctor - main
 class DoctorNestedPatients(RetrieveAPIView):
@@ -122,84 +130,89 @@ class ChecekdFilePrescription(ListAPIView):  # 환자가 올린 파일을 의사
 
 # 210208 추가
 # doctor
-# todo: add doctor detail, patient detail, prescription detail, file prescription detail
-
 # 기존의 기능을 끌어쓰는 것 보다 core-api용 view를 생성
 # => 접근(permission) 처리 용이 및 구조적으로 core-api에서 .../patients/5/detail 이렇게 접근하는 것이 어색해보임
 # 단순히 의사 및 환자에 따라 read & write 구분이 필요할 경우 공통으로 core view를 사용하고 permission으로 접근을 제어할 예정
 class DoctorProfile(RetrieveUpdateAPIView):
     queryset = Doctor.objects.select_all()
-    permission_classes = []  # owner readonly
-    serializer_class = []
+    permission_classes = [IsOwner]  # owner readonly
+    serializer_class = DoctorRetrieveSerializer
     lookup_field = 'pk'
 
 
 class PatientProfile(RetrieveAPIView):
     queryset = Patient.objects.select_all()
-    permission_classes = []  # owner readonly
-    serializer_class = []
+    permission_classes = [CareDoctorReadOnly]  # owner readonly
+    serializer_class = PatientRetrieveSerializer
     lookup_field = 'pk'
 
 
-# class PrescriptionCreate(InputValueSupporter, CreateAPIView):
-#     queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
-#     serializer_class = PrescriptionCreateSerializer
-#     # permission_classes = [IsDoctor]
-#     permission_classes = []
-#     fields_to_display = 'patient', 'status'
+class PrescriptionCreate(InputValueSupporter, CreateAPIView):
+    queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
+    # permission_classes = [IsDoctor]
+    permission_classes = []
+    serializer_class = PrescriptionCreateSerializer
+    fields_to_display = 'patient', 'status'
 
 
 class PrescriptionDetail(RetrieveUpdateAPIView):
     queryset = Prescription.objects.select_all()
-    permission_classes = []  # only owner
-    serializer_class = []
+    permission_classes = [IsDoctor]  # only owner
+    serializer_class = PrescriptionSerializer
     lookup_field = 'pk'
 
 
-class DoctorFileUpload(CreateAPIView):
+class DoctorFileUpload(InputValueSupporter, CreateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = []  # only doctor
-    serializer_class = []
+    serializer_class = DoctorFileUploadSerializer
     lookup_field = 'pk'
+    fields_to_display = 'prescription'
 
 
 class DoctorFileDetail(RetrieveUpdateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = []  # only owner
-    serializer_class = []
-    lookup_field = 'pk'
+    serializer_class = DoctorFlieRetrieveSerializer
+    lookup_field = 'id'
+
+
+class PatientFileDetail(RetrieveAPIView):
+    queryset = PatientFile.objects.select_all()
+    permission_classes = []
+    serializer_class = PatientFlieRetrieveSerializer
+    lookup_field = 'id'
 
 
 class FilePrescriptionDetail(RetrieveUpdateAPIView):
-    queryset = FilePrescription.objects.select_all()
+    queryset = FilePrescription.objects.all()
     permission_classes = []  # only owner
-    serializer_class = []
+    serializer_class = FilePrescriptionRetrieveUpdateSerializer
     lookup_field = 'pk'
 
 
 # patient
-# todo: add patient detail, doctor detail, prescription detail, file prescription detail/upload
 class DoctorProfileForPatient(RetrieveAPIView):
     queryset = Doctor.objects.select_all()
     permission_classes = []  # owner readonly
-    serializer_class = []
+    serializer_class = DoctorRetrieveSerializer
     lookup_field = 'pk'
 
 
 class PatientProfileForPatient(RetrieveUpdateAPIView):
     queryset = Patient.objects.select_all()
     permission_classes = []  # onwer readonly
-    serializer_class = []
+    serializer_class = PatientRetrieveSerializer
     lookup_field = 'pk'
 
 
-class PatientFileUpload(CreateAPIView):
+class PatientFileUpload(CreateAPIView):  # add InputValueSupporter
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
-    serializer_class = []
+    serializer_class = PatientFileUploadSerializer
 
 
-class PatientFileDetail(RetrieveUpdateAPIView):
+class PatientFileDetailForPatient(RetrieveUpdateAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
-    serializer_class = []
+    serializer_class = PatientFlieRetrieveSerializer

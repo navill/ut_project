@@ -72,6 +72,7 @@ class CustomRefreshToken(BlacklistMixin, CustomToken):
     @transaction.atomic
     def for_user(cls, user: User, raise_error: bool = False) -> Token:
         token = super().for_user(user)
+
         access_token_exp = int(token.access_token.payload['exp'])
         if raise_error:
             raise Exception

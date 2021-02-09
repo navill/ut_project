@@ -50,20 +50,20 @@ class OriginalFilePrescriptionSerializer(CommonPrescriptionSerializer):
 class PrescriptionSerializer(OriginalPrescriptionSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-detail-update',
-        lookup_field='pk'
+        lookup_field='pk',
     )
     writer = RawDoctorSerializer(read_only=True)
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
                                              write_only=True, target_field='doctor_id')
 
     class Meta(OriginalPrescriptionSerializer.Meta):
-        fields = OriginalPrescriptionSerializer.Meta.fields
+        fields = OriginalPrescriptionSerializer.Meta.fields + ['url']
 
 
 class PrescriptionCreateSerializer(PrescriptionSerializerMixin, serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-detail-update',
-        lookup_field='pk'
+        lookup_field='pk',
     )
     writer = serializers.HiddenField(default=CurrentUserDefault())
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),

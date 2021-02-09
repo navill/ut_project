@@ -34,8 +34,7 @@ class PrescriptionRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     permission_classes = [IsOwner | RelatedPatientReadOnly]
     lookup_field = 'pk'
 
-    def perform_update(self,
-                       serializer: serializers.PrescriptionSerializer):
+    def perform_update(self, serializer: serializers.PrescriptionSerializer):
         serializer.save()
 
 

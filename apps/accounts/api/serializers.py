@@ -223,9 +223,9 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
 
     def _add_next_url(self, data: Dict[str, str]):
         if self.user.is_doctor:
-            data['main_url'] = reverse('core-api:doctors:doctor-detail', kwargs={'pk': self.user.id})
+            data['main_url'] = reverse('core-api:doctors:detail', kwargs={'pk': self.user.id})
         elif self.user.is_patient:
-            data['main_url'] = reverse('core-api:patient:main', kwargs={'pk': self.user.id})
+            data['main_url'] = reverse('core-api:patients:main', kwargs={'pk': self.user.id})
 
 
 class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializer):

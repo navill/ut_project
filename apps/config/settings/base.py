@@ -132,4 +132,4 @@ REST_FRAMEWORK = {
         'accounts.api.authentications.CustomJWTTokenUserAuthentication',
     ]
 }
-UPDATE_LAST_LOGIN = True
+# UPDATE_LAST_LOGIN = True

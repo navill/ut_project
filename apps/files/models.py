@@ -60,7 +60,7 @@ class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
         # 접속자가 환자일 경우 환자(current_user.id)가 올린 파일 제외
         return self.filter(prescription__writer_id=current_user.id)
 
-    def filter_patient(self, doctor_id: int):
+    def filter_patient(self, doctor_id: int) -> 'DoctorFileQuerySet':
         return self.filter(uploader__patient__doctor_id=doctor_id)
 
 

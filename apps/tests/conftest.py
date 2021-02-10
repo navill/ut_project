@@ -3,6 +3,7 @@ import uuid
 
 import pytest
 from django.contrib.auth.models import Group
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from rest_framework.reverse import reverse
 
@@ -244,6 +245,15 @@ def data_file_bundle_by_doctor(prescription):
         DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
     # DataFile.objects.bulk_create(bulk_data)
     return DoctorFile.objects.filter(uploader_id=uploader_id)
+
+
+@pytest.fixture(scope='function')
+def doctor_file_bundle():
+    upload_file_list = (SimpleUploadedFile(f"testfile{number}.txt", b"test file", content_type='multipart/form-data')
+                        for number in range(3))
+    yield upload_file_list
+
+
 
 # @pytest.fixture(scope='function')
 # def data_file_bundle_by_patient(prescription, patient_with_group):

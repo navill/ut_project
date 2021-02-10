@@ -116,7 +116,7 @@ class FilePrescriptionCreateSerializer(FilePrescriptionSerializer):
 
 
 class FilePrescriptionRetrieveUpdateSerializer(FilePrescriptionSerializer):
-    active = serializers.BooleanField(read_only=True)
+    active = serializers.BooleanField()
     uploaded = serializers.BooleanField(read_only=True)
     checked = serializers.BooleanField()
 

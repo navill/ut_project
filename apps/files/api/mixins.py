@@ -2,6 +2,8 @@ from typing import Type, Union, TYPE_CHECKING
 
 from django.db.models import QuerySet
 
+from files.api.utils import delete_file
+
 if TYPE_CHECKING:
     from files.models import DoctorFileQuerySet, PatientFileQuerySet
 
@@ -26,16 +28,16 @@ class QuerySetMixin:
 
 
 class BaseFileQuerySetMixin:
-    def shallow_delete(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> str:
+    def shallow_delete(self: Type['BaseFileQuerySetMixin']) -> str:
         obj_name_list = [str(obj_name) for obj_name in self]
         self.update(deleted=True)
         return f'finish shallow delete [{obj_name_list}]'
 
-    def hard_delete(self: Union['DoctorFileQuerySet', 'PatientFileQuerySet']) -> str:
+    def hard_delete(self: Type['BaseFileQuerySetMixin']) -> str:
         obj_name_list = []
-        for file in self:
+        for doctor_file in self:
             obj_name_list.append(str(self))
-            file.delete_file()
+            delete_file(doctor_file.file.path)
         super().delete()
         return f'finish hard delete [{obj_name_list}]'
 

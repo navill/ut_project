@@ -150,18 +150,19 @@ class PatientProfile(RetrieveAPIView):
 class PrescriptionCreate(InputValueSupporter, CreateAPIView):
     queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
     # permission_classes = [IsDoctor]
-    permission_classes = []
+    permission_classes = [IsDoctor]
     serializer_class = PrescriptionCreateSerializer
     fields_to_display = 'patient', 'status'
 
 
 class PrescriptionDetail(RetrieveUpdateAPIView):
     queryset = Prescription.objects.select_all()
-    permission_classes = [IsDoctor]  # only owner
+    permission_classes = [IsOwner]  # only owner
     serializer_class = PrescriptionSerializer
     lookup_field = 'pk'
 
 
+# 보류
 class DoctorFileUpload(InputValueSupporter, CreateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = []  # only doctor
@@ -170,6 +171,7 @@ class DoctorFileUpload(InputValueSupporter, CreateAPIView):
     fields_to_display = 'prescription'
 
 
+# 보류
 class DoctorFileDetail(RetrieveUpdateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = []  # only owner
@@ -177,6 +179,7 @@ class DoctorFileDetail(RetrieveUpdateAPIView):
     lookup_field = 'id'
 
 
+# 보류
 class PatientFileDetail(RetrieveAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = []
@@ -186,7 +189,7 @@ class PatientFileDetail(RetrieveAPIView):
 
 class FilePrescriptionDetail(RetrieveUpdateAPIView):
     queryset = FilePrescription.objects.all()
-    permission_classes = []  # only owner
+    permission_classes = [IsOwner]  # only owner
     serializer_class = FilePrescriptionRetrieveUpdateSerializer
     lookup_field = 'pk'
 

@@ -211,7 +211,7 @@ def test_core_api_file_prescription_detail_update(api_client, get_token_with_doc
 
 
 @pytest.mark.django_db
-def test_core_api_doctor_file_create():
+def test_core_api_doctor_profile_detail_for_patient(api_client, get_token_with_doctor, get_token_with_patient):
     pass
 
 

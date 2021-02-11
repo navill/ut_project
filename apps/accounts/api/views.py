@@ -76,7 +76,7 @@ class DoctorListAPIView(ListAPIView):
 
 class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Doctor.objects.select_all()
-    serializer_class = serializers.DoctorRetrieveSerializer
+    serializer_class = serializers.DoctorDetailSerializer
     permission_classes = [IsOwner]
     lookup_field = 'pk'
 
@@ -91,7 +91,7 @@ class PatientSignUpAPIView(InputValueSupporter, CreateAPIView):
 
 class PatientListAPIView(ListAPIView):
     queryset = Patient.objects.select_all().order_by('-created_at')
-    serializer_class = serializers.PatientListSerailizer
+    serializer_class = serializers.PatientListSerializer
     permission_classes = [IsDoctor]
     lookup_field = 'pk'
 
@@ -103,6 +103,6 @@ class PatientListAPIView(ListAPIView):
 
 class PatientRetrieveUpdateAPIView(RetrieveUpdateAPIView):
     queryset = Patient.objects.select_all()
-    serializer_class = serializers.PatientRetrieveSerializer
+    serializer_class = serializers.PatientDetailSerializer
     permission_classes = [CareDoctorReadOnly | IsOwner]
     lookup_field = 'pk'

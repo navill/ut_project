@@ -256,12 +256,12 @@ class PatientQuerySet(CommonUserQuerySet):
         return self.select_all().prefetch_all()
 
     # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
-    def only_list(self, *others: Tuple[str]):
-        fields = PatientFields.list_field + others
+    def only_list(self, *others: List[str]):
+        fields = PatientFields.list_field + list(others)
         return self.only(*fields)
 
-    def only_detail(self, *others: Tuple[str]):
-        fields = PatientFields.detail_field + others
+    def only_detail(self, *others: List[str]):
+        fields = PatientFields.detail_field + list(others)
         return self.only(*fields)
 
 

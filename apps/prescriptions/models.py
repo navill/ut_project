@@ -1,5 +1,5 @@
 import datetime
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, List
 
 from django.db import models
 from django.db.models import F, Prefetch
@@ -67,12 +67,12 @@ class PrescriptionQuerySet(models.QuerySet):
         return self.prefetch_file_prescription_with_files()
 
     # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
-    def only_list(self, *others: Tuple[str]):
-        fields = PrescriptionFields.list_field + others
+    def only_list(self, *others: List[str]):
+        fields = PrescriptionFields.list_field + list(others)
         return self.only(*fields)
 
-    def only_detail(self, *others: Tuple[str]):
-        fields = PrescriptionFields.detail_field + others
+    def only_detail(self, *others: List[str]):
+        fields = PrescriptionFields.detail_field + list(others)
         return self.only(*fields)
 
 
@@ -182,11 +182,11 @@ class FilePrescriptionQuerySet(models.QuerySet):
         return self.select_all().prefetch_all()
 
     # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
-    def only_list(self, *others: Tuple[str]):
+    def only_list(self, *others: List[str]):
         fields = FilePrescriptionFields.list_field + others
         return self.only(*fields)
 
-    def only_detail(self, *others: Tuple[str]):
+    def only_detail(self, *others: List[str]):
         fields = FilePrescriptionFields.detail_field + others
         return self.only(*fields)
 

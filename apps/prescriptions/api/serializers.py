@@ -3,8 +3,8 @@ from typing import Type, Optional, TYPE_CHECKING
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
-from accounts.api.serializers import RawDoctorSerializer
 from accounts.models import Patient
+from core.api.fields import PrescriptionFields, FilePrescriptionFields
 from files.api.serializers import PatientUploadedFileListSerializer, DoctorFileInPrescriptionSerializer
 from prescriptions.api.mixins import PrescriptionSerializerMixin
 from prescriptions.models import Prescription, HealthStatus, FilePrescription
@@ -47,12 +47,23 @@ class OriginalFilePrescriptionSerializer(CommonPrescriptionSerializer):
                   'uploaded'] + CommonPrescriptionSerializer.Meta.fields
 
 
+class PrescriptionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = PrescriptionFields.list_field
+
+
+class PrescriptionDetailSerializer(PrescriptionListSerializer):
+    class Meta(PrescriptionListSerializer.Meta):
+        fields = PrescriptionFields.detail_field
+
+
 class PrescriptionSerializer(OriginalPrescriptionSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-detail-update',
         lookup_field='pk',
     )
-    writer = RawDoctorSerializer(read_only=True)
+    writer = serializers.PrimaryKeyRelatedField(read_only=True)
     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
                                              write_only=True, target_field='doctor_id')
 
@@ -101,8 +112,16 @@ class FilePrescriptionSerializer(serializers.ModelSerializer):
                   'uploaded', 'checked', 'created_at', 'updated_at']
 
 
-class FilePrescriptionListSerializer(FilePrescriptionSerializer):
-    pass
+class FilePrescriptionListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FilePrescription
+        fields = FilePrescriptionFields.list_field
+
+
+class FilePrescriptionDetailSerializer(FilePrescriptionListSerializer):
+    class Meta:
+        model = FilePrescription
+        fields = FilePrescriptionFields.detail_field
 
 
 class FilePrescriptionCreateSerializer(FilePrescriptionSerializer):

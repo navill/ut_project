@@ -6,20 +6,20 @@ app_name = 'core'
 urlpatterns = [
     # doctor
     path('doctors/', include(([path('<int:pk>/patients',  # 0
-                                    views.DoctorNestedPatients.as_view(),
+                                    views.DoctorWithPatients.as_view(),
                                     name='detail'),
 
                                path('patients/<int:pk>/prescriptions',  # 1
-                                    views.PatientNestedPrescriptions.as_view(),
+                                    views.PatientWithPrescriptions.as_view(),
                                     name='prescription-list'),
 
                                path('prescription-nested-files/<int:pk>/file-prescriptions',  # 2
-                                    views.PrescriptionNestedFilePrescriptions.as_view(),
-                                    name='prescription-detail'),
+                                    views.PrescriptionWithFilePrescriptions.as_view(),
+                                    name='prescription-file'),
 
                                path('file-prescriptions/<int:pk>/patient-files',  # 3
-                                    views.FilePrescriptionNestedPatientFiles.as_view(),
-                                    name='file-prescription-list'),
+                                    views.FilePrescriptionWithPatientFiles.as_view(),
+                                    name='file-prescription-with-patient-file'),
 
                                # main - detail
                                path('<int:pk>/detail',

@@ -2,11 +2,11 @@ from django.db.models import Prefetch
 from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView, CreateAPIView
 
 from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly
-from accounts.api.serializers import DoctorRetrieveSerializer, PatientRetrieveSerializer
+from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerializer
 from accounts.models import Doctor, Patient
 from config.utils.api_utils import InputValueSupporter
-from core.api.serializers import (DoctorNestedPatientSerializer,
-                                  PatientNestedPrescriptionSerializer,
+from core.api.serializers import (DoctorWithPatientSerializer,
+                                  PatientWithPrescriptionSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
                                   FilePrescriptionNestedPatientFileSerializer,
                                   ExpiredFilePrescriptionHistorySerializer,
@@ -29,28 +29,28 @@ from prescriptions.models import Prescription, FilePrescription
 # <app_name>.serializer: 각 앱에 위치한 default serializer
 
 # doctor - main
-class DoctorNestedPatients(RetrieveAPIView):
+class DoctorWithPatients(RetrieveAPIView):
     queryset = Doctor.objects.select_all()
     permission_classes = [IsOwner]
-    serializer_class = DoctorNestedPatientSerializer
+    serializer_class = DoctorWithPatientSerializer
     lookup_field = 'pk'
 
 
-class PatientNestedPrescriptions(RetrieveAPIView):
+class PatientWithPrescriptions(RetrieveAPIView):
     queryset = Patient.objects.select_all().prefetch_prescription_with_writer()
     permission_classes = [IsDoctor]
-    serializer_class = PatientNestedPrescriptionSerializer
+    serializer_class = PatientWithPrescriptionSerializer
     lookup_field = 'pk'
 
 
-class PrescriptionNestedFilePrescriptions(RetrieveAPIView):
+class PrescriptionWithFilePrescriptions(RetrieveAPIView):
     queryset = Prescription.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = PrescriptionNestedFilePrescriptionSerializer
     lookup_field = 'pk'
 
 
-class FilePrescriptionNestedPatientFiles(RetrieveAPIView):
+class FilePrescriptionWithPatientFiles(RetrieveAPIView):
     queryset = FilePrescription.objects.nested_all()
     permission_classes = [IsDoctor]
     serializer_class = FilePrescriptionNestedPatientFileSerializer
@@ -136,14 +136,14 @@ class ChecekdFilePrescription(ListAPIView):  # 환자가 올린 파일을 의사
 class DoctorProfile(RetrieveUpdateAPIView):
     queryset = Doctor.objects.select_all()
     permission_classes = [IsOwner]  # owner readonly
-    serializer_class = DoctorRetrieveSerializer
+    serializer_class = DoctorDetailSerializer
     lookup_field = 'pk'
 
 
 class PatientProfile(RetrieveAPIView):
     queryset = Patient.objects.select_all()
     permission_classes = [CareDoctorReadOnly]  # owner readonly
-    serializer_class = PatientRetrieveSerializer
+    serializer_class = PatientDetailSerializer
     lookup_field = 'pk'
 
 
@@ -198,14 +198,14 @@ class FilePrescriptionDetail(RetrieveUpdateAPIView):
 class DoctorProfileForPatient(RetrieveAPIView):
     queryset = Doctor.objects.select_all()
     permission_classes = []  # owner readonly
-    serializer_class = DoctorRetrieveSerializer
+    serializer_class = DoctorDetailSerializer
     lookup_field = 'pk'
 
 
 class PatientProfileForPatient(RetrieveUpdateAPIView):
     queryset = Patient.objects.select_all()
     permission_classes = []  # onwer readonly
-    serializer_class = PatientRetrieveSerializer
+    serializer_class = PatientDetailSerializer
     lookup_field = 'pk'
 
 

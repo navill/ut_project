@@ -13,12 +13,13 @@ from rest_framework_simplejwt.tokens import Token
 from accounts.api.authentications import CustomRefreshToken
 from accounts.api.mixins import SignupSerializerMixin, RefreshBlacklistMixin
 from accounts.models import Doctor, Patient, Gender
+from core.api.fields import DoctorFields, PatientFields
 from hospitals.models import Major
 
 User = get_user_model()
 
 
-class RawAccountSerializer(serializers.ModelSerializer):
+class AccountSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
     gender = serializers.CharField(source='get_gender_display', read_only=True)
@@ -33,17 +34,12 @@ class RawAccountSerializer(serializers.ModelSerializer):
 
 
 # BaseUser
-class DefaultBaseUserSerializer(serializers.ModelSerializer):
+class BaseUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(read_only=True)
 
     class Meta:
         model = User
         fields = ['id', 'email']
-
-
-class BaseUserSerializer(DefaultBaseUserSerializer):
-    class Meta(DefaultBaseUserSerializer.Meta):
-        fields = DefaultBaseUserSerializer.Meta.fields
 
 
 class BaseUserSignUpSerializer(BaseUserSerializer):
@@ -75,139 +71,162 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
 
 
 # Doctor
-class OriginalDoctorSerializer(serializers.ModelSerializer):
-    major = serializers.PrimaryKeyRelatedField(read_only=True)
-    gender = serializers.CharField(source='get_gender_display', read_only=True)
-
-    class Meta:
-        model = Doctor
-        # __all__
-        fields = ['user', 'major', 'first_name', 'last_name',
-                  'gender', 'address', 'phone', 'description', 'created_at', 'updated_at']
-
-
-class RawDoctorSerializer(RawAccountSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='accounts:doctor-detail-update',
-        lookup_field='pk',
-        read_only=True
-    )
-
-    class Meta:
-        model = Doctor
-        fields = ['url', 'user_id', 'first_name', 'last_name', 'gender']
-
-    def get_major_name(self, instance: Doctor) -> str:
-        return str(instance.major.name)
-
-
-class RelatedDoctorSerializer(RawDoctorSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-
+class DoctorListSerializer(AccountSerializer):
     # major = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta(RawDoctorSerializer.Meta):
-        fields = RawDoctorSerializer.Meta.fields + ['major']
-
-
-class DoctorSerializer(RelatedDoctorSerializer):
-    major_name = serializers.SerializerMethodField()
+    major = serializers.CharField(source='major.name', read_only=True)
 
     class Meta:
         model = Doctor
-        fields = RelatedDoctorSerializer.Meta.fields + ['major_name', 'address', 'phone', 'description']
+        fields = DoctorFields.list_field
 
 
-class DoctorListSerializer(RawDoctorSerializer):
-    full_name = serializers.SerializerMethodField()
-    major_name = serializers.SerializerMethodField()
-
+class DoctorDetailSerializer(DoctorListSerializer):
     class Meta:
         model = Doctor
-        fields = RawDoctorSerializer.Meta.fields + ['full_name', 'major_name']
+        fields = DoctorFields.detail_field
 
 
-class DoctorRetrieveSerializer(RawDoctorSerializer):
-    class Meta:
-        model = Doctor
-        fields = RawDoctorSerializer.Meta.fields + ['address', 'phone', 'description']
+# class RawDoctorSerializer(RawAccountSerializer):
+#     url = serializers.HyperlinkedIdentityField(
+#         view_name='accounts:doctor-detail-update',
+#         lookup_field='pk',
+#         read_only=True
+#     )
+#
+#     class Meta:
+#         model = Doctor
+#         fields = ['url', 'user_id', 'first_name', 'last_name', 'gender']
+#
+#     def get_major_name(self, instance: Doctor) -> str:
+#         return str(instance.major.name)
 
 
-class DoctorSignUpSerializer(SignupSerializerMixin, DoctorSerializer):
+# class RelatedDoctorSerializer(RawDoctorSerializer):
+#     user = serializers.PrimaryKeyRelatedField(read_only=True)
+#
+#     # major = serializers.PrimaryKeyRelatedField(read_only=True)
+#
+#     class Meta(RawDoctorSerializer.Meta):
+#         fields = RawDoctorSerializer.Meta.fields + ['major']
+
+
+# class DoctorSerializer(RelatedDoctorSerializer):
+#     major_name = serializers.SerializerMethodField()
+#
+#     class Meta:
+#         model = Doctor
+#         fields = RelatedDoctorSerializer.Meta.fields + ['major_name', 'address', 'phone', 'description']
+
+
+# class DoctorListSerializer(RawDoctorSerializer):
+#     full_name = serializers.SerializerMethodField()
+#     major_name = serializers.SerializerMethodField()
+#
+#     class Meta:
+#         model = Doctor
+#         fields = RawDoctorSerializer.Meta.fields + ['full_name', 'major_name']
+#
+#
+# class DoctorRetrieveSerializer(RawDoctorSerializer):
+#     class Meta:
+#         model = Doctor
+#         fields = RawDoctorSerializer.Meta.fields + ['address', 'phone', 'description']
+
+
+class DoctorSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer):
     user = BaseUserSignUpSerializer()
     major = serializers.PrimaryKeyRelatedField(queryset=Major.objects.all())
     gender = serializers.ChoiceField(choices=Gender.choices)
     first_name = serializers.CharField()
     last_name = serializers.CharField()
 
-    class Meta(DoctorSerializer.Meta):
+    class Meta:
+        model = Doctor
         fields = ['url', 'gender', 'user', 'first_name', 'last_name', 'address', 'phone', 'description', 'major']
 
 
 # Patient
-class OriginalPatientSerializer(serializers.ModelSerializer):
-    gender = serializers.CharField(source='get_gender_display', read_only=True)
-
-    class Meta:
-        model = Patient
-        # __all__
-        fields = ['user', 'doctor', 'first_name', 'last_name',
-                  'gender', 'address', 'phone', 'age', 'emergency_call', 'created_at', 'updated_at']
-
-
-class RawPatientSerializer(RawAccountSerializer):
+class PatientListSerializer(AccountSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='accounts:patient-detail-update',
         lookup_field='pk',
         read_only=True
     )
-    gender = serializers.CharField(source='get_gender_display', read_only=True)
 
     class Meta:
         model = Patient
-        fields = ['url', 'user_id', 'first_name', 'last_name', 'gender', 'age']
-
-    def get_doctor_name(self, instance: Patient) -> str:
-        return str(instance.doctor) if hasattr(instance, 'doctor_name') else instance.doctor_name
+        fields = ['url'] + PatientFields.list_field
 
 
-class RelatedPatientSerializer(RawPatientSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    class Meta(RawPatientSerializer.Meta):
-        fields = RawPatientSerializer.Meta.fields + ['doctor']
-
-
-class PatientSerializer(RelatedPatientSerializer):
-    doctor_name = serializers.SerializerMethodField()
-
-    class Meta(RelatedPatientSerializer.Meta):
-        fields = RelatedPatientSerializer.Meta.fields + \
-                 ['doctor_name', 'address', 'phone', 'age', 'emergency_call']
+class PatientDetailSerializer(PatientListSerializer):
+    class Meta:
+        model = Patient
+        fields = PatientFields.detail_field
 
 
-class PatientListSerailizer(RawPatientSerializer):
-    full_name = serializers.SerializerMethodField()
-    doctor_name = serializers.SerializerMethodField()
+# class OriginalPatientSerializer(serializers.ModelSerializer):
+#     gender = serializers.CharField(source='get_gender_display', read_only=True)
+#
+#     class Meta:
+#         model = Patient
+#         # __all__
+#         fields = ['user', 'doctor', 'first_name', 'last_name',
+#                   'gender', 'address', 'phone', 'age', 'emergency_call', 'created_at', 'updated_at']
 
-    class Meta(RawPatientSerializer.Meta):
-        fields = RawPatientSerializer.Meta.fields + ['full_name', 'age', 'doctor_name']
+
+# class RawPatientSerializer(RawAccountSerializer):
+#     url = serializers.HyperlinkedIdentityField(
+#         view_name='accounts:patient-detail-update',
+#         lookup_field='pk',
+#         read_only=True
+#     )
+#     gender = serializers.CharField(source='get_gender_display', read_only=True)
+#
+#     class Meta:
+#         model = Patient
+#         fields = ['url', 'user_id', 'first_name', 'last_name', 'gender', 'age']
+#
+#     def get_doctor_name(self, instance: Patient) -> str:
+#         return str(instance.doctor) if hasattr(instance, 'doctor_name') else instance.doctor_name
 
 
-class PatientSignUpSerializer(SignupSerializerMixin, PatientSerializer):
+# class RelatedPatientSerializer(RawPatientSerializer):
+#     user = serializers.PrimaryKeyRelatedField(read_only=True)
+#
+#     class Meta(RawPatientSerializer.Meta):
+#         fields = RawPatientSerializer.Meta.fields + ['doctor']
+#
+#
+# class PatientSerializer(RelatedPatientSerializer):
+#     doctor_name = serializers.SerializerMethodField()
+#
+#     class Meta(RelatedPatientSerializer.Meta):
+#         fields = RelatedPatientSerializer.Meta.fields + \
+#                  ['doctor_name', 'address', 'phone', 'age', 'emergency_call']
+
+
+# class PatientListSerailizer(RawPatientSerializer):
+#     full_name = serializers.SerializerMethodField()
+#     doctor_name = serializers.SerializerMethodField()
+#
+#     class Meta(RawPatientSerializer.Meta):
+#         fields = RawPatientSerializer.Meta.fields + ['full_name', 'age', 'doctor_name']
+
+
+class PatientSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer):
     user = BaseUserSignUpSerializer()
     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.select_all())
     gender = serializers.ChoiceField(choices=Gender.choices)
     first_name = serializers.CharField()
     last_name = serializers.CharField()
 
-    class Meta(PatientSerializer.Meta):
+    class Meta:
         fields = ['user', 'first_name', 'last_name', 'gender', 'age', 'address', 'phone', 'emergency_call', 'doctor']
 
 
-class PatientRetrieveSerializer(RawPatientSerializer):
-    class Meta(RawPatientSerializer.Meta):
-        fields = RawPatientSerializer.Meta.fields + ['phone', 'address', 'emergency_call']
+# class PatientRetrieveSerializer(RawPatientSerializer):
+#     class Meta(RawPatientSerializer.Meta):
+#         fields = RawPatientSerializer.Meta.fields + ['phone', 'address', 'emergency_call']
 
 
 class AccountsTokenSerializer(TokenObtainPairSerializer):

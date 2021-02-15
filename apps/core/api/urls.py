@@ -37,12 +37,12 @@ urlpatterns = [
                                path('file-prescriptions/<int:pk>',
                                     views.FilePrescriptionDetail.as_view(),
                                     name='file-prescription-detail'),
-                               path('doctor-files/upload',
-                                    views.DoctorFileUpload.as_view(),
-                                    name='file-upload'),
-                               path('doctor-files/<int:pk>',
-                                    views.DoctorFileDetail.as_view(),
-                                    name='file-detail'),
+                               # path('doctor-files/upload',
+                               #      views.DoctorFileUpload.as_view(),
+                               #      name='file-upload'),
+                               # path('doctor-files/<int:pk>',
+                               #      views.DoctorFileDetail.as_view(),
+                               #      name='file-detail'),
 
                                # histroy
                                path('histories/new-uploaded-file',  # 4

@@ -1,4 +1,5 @@
 from rest_framework.generics import RetrieveUpdateAPIView, RetrieveAPIView, CreateAPIView
+from rest_framework.parsers import MultiPartParser, FileUploadParser
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
 from config.utils.api_utils import InputValueSupporter
@@ -25,6 +26,8 @@ class PrescriptionCreateAPIView(InputValueSupporter, CreateAPIView):
     serializer_class = PrescriptionCreateSerializer
     # permission_classes = [IsDoctor]
     permission_classes = []
+    # parser_classes = (FileUploadParser,)
+
     fields_to_display = 'patient', 'status'
 
 
@@ -48,6 +51,8 @@ class FilePrescriptionCreateAPIView(InputValueSupporter, CreateAPIView):
     queryset = FilePrescription.objects.all()
     serializer_class = FilePrescriptionCreateSerializer
     permission_classes = [IsDoctor]
+    parser_classes = (FileUploadParser,)
+
     fields_to_display = 'prescription', 'status'
 
 

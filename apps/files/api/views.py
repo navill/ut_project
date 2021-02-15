@@ -2,8 +2,9 @@ from typing import Type
 
 from django.db.models import QuerySet
 from django.http import FileResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.parsers import FileUploadParser
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner
 from config.utils.api_utils import InputValueSupporter
@@ -40,7 +41,7 @@ class DoctorFileUploadAPIView(InputValueSupporter, CreateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = DoctorFileUploadSerializer
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (FileUploadParser,)
 
     fields_to_display = 'prescription'
 
@@ -49,7 +50,6 @@ class DoctorUploadedFileListAPIView(ListAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = DoctorUploadedFileListSerializer
-    parser_classes = (MultiPartParser, FormParser)
 
     def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
@@ -62,6 +62,7 @@ class DoctorUploadedFileUpdateAPIView(RetrieveUpdateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = DoctorUploadedFileRetrieveSerializer
+    parser_classes = (FileUploadParser,)
     lookup_field = 'id'
 
     def get_queryset(self) -> Type[QuerySet]:
@@ -70,6 +71,7 @@ class DoctorUploadedFileUpdateAPIView(RetrieveUpdateAPIView):
         queryset = queryset.filter_patient(user.id)
         return queryset
 
+    @swagger_auto_schema(operation_description='Upload file...', )
     def put(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
@@ -84,6 +86,7 @@ class PatientFileRetrieveAPIView(RetrieveUpdateAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsOwner | IsDoctor]
     serializer_class = PatientFlieRetrieveSerializer
+    parser_classes = (FileUploadParser,)
     lookup_field = 'id'
 
 
@@ -91,7 +94,7 @@ class PatientFileUploadAPIView(InputValueSupporter, CreateAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
     serializer_class = PatientFileUploadSerializer
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (FileUploadParser,)
 
     fields_to_display = 'file_prescription',
 
@@ -100,7 +103,6 @@ class PatientUploadedFileListAPIView(ListAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
     serializer_class = PatientUploadedFileListSerializer
-    parser_classes = (MultiPartParser, FormParser)
     lookup_field = 'id'
 
     def get_queryset(self) -> Type[QuerySet]:

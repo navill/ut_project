@@ -1,5 +1,6 @@
 from django.db.models import Prefetch
 from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView, CreateAPIView, DestroyAPIView
+from rest_framework.parsers import MultiPartParser, FileUploadParser
 
 from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly
 from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerializer
@@ -152,9 +153,9 @@ class PatientProfile(RetrieveAPIView):
 
 class PrescriptionCreate(InputValueSupporter, CreateAPIView):
     queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
-    # permission_classes = [IsDoctor]
     permission_classes = [IsDoctor]
     serializer_class = PrescriptionCreateSerializer
+
     fields_to_display = 'patient', 'status'
 
 
@@ -165,33 +166,33 @@ class PrescriptionDetail(RetrieveUpdateAPIView):
     lookup_field = 'pk'
 
 
-# 보류
-class DoctorFileUpload(InputValueSupporter, CreateAPIView):
-    queryset = DoctorFile.objects.select_all()
-    permission_classes = []  # only doctor
-    serializer_class = DoctorFileUploadSerializer
-    lookup_field = 'pk'
-    fields_to_display = 'prescription'
+# # 보류
+# class DoctorFileUpload(InputValueSupporter, CreateAPIView):
+#     queryset = DoctorFile.objects.select_all()
+#     permission_classes = []  # only doctor
+#     serializer_class = DoctorFileUploadSerializer
+#     lookup_field = 'pk'
+#     fields_to_display = 'prescription'
 
 
-# 보류
-class DoctorFileDetail(RetrieveUpdateAPIView):
-    queryset = DoctorFile.objects.select_all()
-    permission_classes = []  # only owner
-    serializer_class = DoctorFlieRetrieveSerializer
-    lookup_field = 'id'
+# # 보류
+# class DoctorFileDetail(RetrieveUpdateAPIView):
+#     queryset = DoctorFile.objects.select_all()
+#     permission_classes = []  # only owner
+#     serializer_class = DoctorFlieRetrieveSerializer
+#     lookup_field = 'id'
 
 
 class DoctorFileDelete(DestroyAPIView):
     pass
 
 
-# 보류
-class PatientFileDetail(RetrieveAPIView):
-    queryset = PatientFile.objects.select_all()
-    permission_classes = []
-    serializer_class = PatientFlieRetrieveSerializer
-    lookup_field = 'id'
+# # 보류
+# class PatientFileDetail(RetrieveAPIView):
+#     queryset = PatientFile.objects.select_all()
+#     permission_classes = []
+#     serializer_class = PatientFlieRetrieveSerializer
+#     lookup_field = 'id'
 
 
 class FilePrescriptionDetail(RetrieveUpdateAPIView):
@@ -219,6 +220,8 @@ class PatientProfileForPatient(RetrieveUpdateAPIView):
 class PatientFileUpload(CreateAPIView):  # add InputValueSupporter
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
+    parser_classes = (FileUploadParser,)
+
     serializer_class = PatientFileUploadSerializer
 
 

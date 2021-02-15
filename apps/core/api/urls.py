@@ -34,7 +34,7 @@ urlpatterns = [
                                path('prescriptions/<int:pk>',
                                     views.PrescriptionDetail.as_view(),
                                     name='prescription-detail'),
-                               path('file-prescription/<int:pk>',
+                               path('file-prescriptions/<int:pk>',
                                     views.FilePrescriptionDetail.as_view(),
                                     name='file-prescription-detail'),
                                path('doctor-files/upload',

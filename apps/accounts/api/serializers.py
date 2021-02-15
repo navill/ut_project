@@ -1,11 +1,9 @@
 from typing import Union, Dict, AnyStr, NoReturn
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import update_last_login
 from django.db import transaction
 from django.urls import reverse
 from rest_framework import serializers
-from rest_framework.settings import api_settings
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import Token
@@ -72,18 +70,23 @@ class BaseUserSignUpSerializer(BaseUserSerializer):
 
 # Doctor
 class DoctorListSerializer(AccountSerializer):
-    # major = serializers.PrimaryKeyRelatedField(read_only=True)
+    detail_url = serializers.HyperlinkedIdentityField(
+        view_name='accounts:doctor-detail-update',
+        lookup_field='pk',
+        read_only=True
+    )
     major = serializers.CharField(source='major.name', read_only=True)
 
     class Meta:
         model = Doctor
-        fields = DoctorFields.list_field
+        fields = ['detail_url'] + DoctorFields.list_field
 
 
 class DoctorDetailSerializer(DoctorListSerializer):
     class Meta:
         model = Doctor
         fields = DoctorFields.detail_field
+        extra_kwargs = {'user': {'read_only': True}}
 
 
 # class RawDoctorSerializer(RawAccountSerializer):
@@ -134,6 +137,11 @@ class DoctorDetailSerializer(DoctorListSerializer):
 
 
 class DoctorSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer):
+    detail_url = serializers.HyperlinkedIdentityField(
+        view_name='accounts:doctor-detail-update',
+        lookup_field='pk',
+        read_only=True
+    )
     user = BaseUserSignUpSerializer()
     major = serializers.PrimaryKeyRelatedField(queryset=Major.objects.all())
     gender = serializers.ChoiceField(choices=Gender.choices)
@@ -142,12 +150,12 @@ class DoctorSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer)
 
     class Meta:
         model = Doctor
-        fields = ['url', 'gender', 'user', 'first_name', 'last_name', 'address', 'phone', 'description', 'major']
+        fields = ['detail_url', 'gender', 'user', 'first_name', 'last_name', 'address', 'phone', 'description', 'major']
 
 
 # Patient
 class PatientListSerializer(AccountSerializer):
-    url = serializers.HyperlinkedIdentityField(
+    detail_url = serializers.HyperlinkedIdentityField(
         view_name='accounts:patient-detail-update',
         lookup_field='pk',
         read_only=True
@@ -155,7 +163,7 @@ class PatientListSerializer(AccountSerializer):
 
     class Meta:
         model = Patient
-        fields = ['url'] + PatientFields.list_field
+        fields = ['detail_url'] + PatientFields.list_field
 
 
 class PatientDetailSerializer(PatientListSerializer):
@@ -214,6 +222,11 @@ class PatientDetailSerializer(PatientListSerializer):
 
 
 class PatientSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer):
+    detail_url = serializers.HyperlinkedIdentityField(
+        view_name='accounts:patient-detail-update',
+        lookup_field='pk',
+        read_only=True
+    )
     user = BaseUserSignUpSerializer()
     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.select_all())
     gender = serializers.ChoiceField(choices=Gender.choices)
@@ -221,12 +234,9 @@ class PatientSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer
     last_name = serializers.CharField()
 
     class Meta:
-        fields = ['user', 'first_name', 'last_name', 'gender', 'age', 'address', 'phone', 'emergency_call', 'doctor']
-
-
-# class PatientRetrieveSerializer(RawPatientSerializer):
-#     class Meta(RawPatientSerializer.Meta):
-#         fields = RawPatientSerializer.Meta.fields + ['phone', 'address', 'emergency_call']
+        model = Patient
+        fields = ['detail_url', 'user', 'first_name', 'last_name', 'gender', 'age', 'address', 'phone',
+                  'emergency_call', 'doctor']
 
 
 class AccountsTokenSerializer(TokenObtainPairSerializer):

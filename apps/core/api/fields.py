@@ -16,8 +16,8 @@ PATIENT_OPTION_FIELD = ['address', 'phone', 'emergency_call']
 PRESCRIPTION_BASEFIELD = ['id', 'writer', 'patient', 'status', 'checked', 'created_at']
 PRESCRIPTION_OPTION_FIELD = COMMON_PRESCRIPTION_FIELD + ['start_date', 'end_date']
 
-FILEPRESCRIPTION_BASEFIELD = ['id', 'prescription', 'uploaded', 'checked', 'day', 'created_at']
-FILEPRESCRIPTION_OPTION_FIELD = COMMON_PRESCRIPTION_FIELD + ['day_number', 'active']
+FILEPRESCRIPTION_BASEFIELD = ['id', 'prescription', 'uploaded', 'checked', 'day', 'status', 'created_at', 'updated_at']
+FILEPRESCRIPTION_OPTION_FIELD = COMMON_PRESCRIPTION_FIELD + ['day_number', 'active', 'description']
 
 
 class RootField:
@@ -41,7 +41,7 @@ class DoctorFields(RootField):
 
     @classproperty
     def all(self) -> list:
-        return self.detail_field + ('updated_at',)
+        return self.detail_field + ['updated_at']
 
     @classproperty
     def list_field(self) -> list:
@@ -59,7 +59,7 @@ class PatientFields(RootField):
 
     @classproperty
     def all(self) -> list:
-        return self.detail_field + ('updated_at',)
+        return self.detail_field + ['updated_at']
 
     @classproperty
     def list_field(self) -> list:
@@ -100,10 +100,3 @@ class FilePrescriptionFields(RootField):
     @classproperty
     def detail_field(self) -> list:
         return self.base + FILEPRESCRIPTION_OPTION_FIELD
-
-
-class CoreSerializerFields:
-    doctor = DoctorFields()
-    patient = PatientFields()
-    prescription = PrescriptionFields()
-    file_prescription = FilePrescriptionFields()

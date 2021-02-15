@@ -9,7 +9,7 @@ from core.api.core_serializers import (CoreDoctorDetailSerializer,
                                        CorePatientFileSerializer,
                                        CorePrescriptionListSerializer, CoreFilePrescriptionListSerializer,
                                        CorePrescriptionDetailSerializer, CorePatientDetailSerializer)
-from core.api.fields import FilePrescriptionFields, PrescriptionFields, PatientFields, DoctorFields
+from core.api.fields import FilePrescriptionFields, PrescriptionFields, PatientFields
 from prescriptions.models import FilePrescription
 
 if TYPE_CHECKING:
@@ -18,6 +18,13 @@ if TYPE_CHECKING:
 """
 Doctor Serializer
 """
+
+
+class PrescriptionWithDoctorFileSerializer(CorePrescriptionDetailSerializer):
+    doctor_files = CoreDoctorFileSerializer(many=True)
+
+    class Meta(CorePrescriptionDetailSerializer.Meta):
+        fields = CorePrescriptionDetailSerializer.Meta.fields + ['doctor_files']
 
 
 # 0: 의사 메인페이지(의사 정보 및 담당 환자 리스트)
@@ -36,29 +43,27 @@ class PatientWithPrescriptionSerializer(PatientDetailSerializer):
         fields = PatientDetailSerializer.Meta.fields + ['prescriptions']
 
 
-class PrescriptionNestedDoctorFileSerializer(CorePrescriptionDetailSerializer):
-    doctor_files = CoreDoctorFileSerializer(many=True)
-
-    class Meta(CorePrescriptionDetailSerializer.Meta):
-        fields = CorePrescriptionDetailSerializer.Meta.fields + ['doctor_files']
-
-
 # 2: 소견서에 연결된 중계 모델(FilePrescription)에 업로드된 환자의 파일 정보
-class PrescriptionNestedFilePrescriptionSerializer(PrescriptionNestedDoctorFileSerializer):
+class PrescriptionNestedFilePrescriptionSerializer(PrescriptionWithDoctorFileSerializer):
     file_prescriptions = CoreFilePrescriptionListSerializer(many=True)
 
-    class Meta(PrescriptionNestedDoctorFileSerializer.Meta):
-        fields = PrescriptionNestedDoctorFileSerializer.Meta.fields + ['file_prescriptions']
+    class Meta(PrescriptionWithDoctorFileSerializer.Meta):
+        fields = PrescriptionWithDoctorFileSerializer.Meta.fields + ['file_prescriptions']
 
 
 # 3  /file-prescription/<int:pk>/patient-files
 class FilePrescriptionNestedPatientFileSerializer(CoreFilePrescriptionSerializer):
-    prescription = PrescriptionNestedDoctorFileSerializer()
-    patient_files = CorePatientFileSerializer(many=True)
+    prescription = PrescriptionWithDoctorFileSerializer(read_only=True)
+    patient_files = CorePatientFileSerializer(many=True, read_only=True)
 
     class Meta(CoreFilePrescriptionSerializer.Meta):
         fields = CoreFilePrescriptionSerializer.Meta.fields + ['prescription', 'patient_files']
-        extra_kwords = {}
+        extra_kwargs = {
+            'uploaded': {'read_only': True},
+            'day': {'read_only': True},
+            'day_number': {'read_only': True}
+        }
+
 
 # 4 /histroies/new-uploaded-file
 class UploadedPatientFileHistorySerializer(CoreFilePrescriptionSerializer):

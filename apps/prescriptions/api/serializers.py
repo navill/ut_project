@@ -27,27 +27,30 @@ class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         return super().get_queryset().filter(**query)
 
 
-class CommonPrescriptionSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display', read_only=True)
-
-    class Meta:
-        fields = ['description', 'status', 'checked', 'created_at', 'updated_at', 'deleted']
-
-
-class OriginalPrescriptionSerializer(CommonPrescriptionSerializer):
-    class Meta:
-        model = Prescription
-        fields = ['id', 'writer', 'patient', 'start_date', 'end_date'] + CommonPrescriptionSerializer.Meta.fields
-
-
-class OriginalFilePrescriptionSerializer(CommonPrescriptionSerializer):
-    class Meta:
-        model = FilePrescription
-        fields = ['id', 'prescription', 'day_number', 'day', 'active',
-                  'uploaded'] + CommonPrescriptionSerializer.Meta.fields
+#
+# class CommonPrescriptionSerializer(serializers.ModelSerializer):
+#     status = serializers.CharField(source='get_status_display', read_only=True)
+#
+#     class Meta:
+#         fields = ['description', 'status', 'checked', 'created_at', 'updated_at', 'deleted']
+#
+#
+# class OriginalPrescriptionSerializer(CommonPrescriptionSerializer):
+#     class Meta:
+#         model = Prescription
+#         fields = ['id', 'writer', 'patient', 'start_date', 'end_date'] + CommonPrescriptionSerializer.Meta.fields
+#
+#
+# class OriginalFilePrescriptionSerializer(CommonPrescriptionSerializer):
+#     class Meta:
+#         model = FilePrescription
+#         fields = ['id', 'prescription', 'day_number', 'day', 'active',
+#                   'uploaded'] + CommonPrescriptionSerializer.Meta.fields
 
 
 class PrescriptionListSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(source='get_status_display', read_only=True)
+
     class Meta:
         model = Prescription
         fields = PrescriptionFields.list_field
@@ -58,17 +61,17 @@ class PrescriptionDetailSerializer(PrescriptionListSerializer):
         fields = PrescriptionFields.detail_field
 
 
-class PrescriptionSerializer(OriginalPrescriptionSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='prescriptions:prescription-detail-update',
-        lookup_field='pk',
-    )
-    writer = serializers.PrimaryKeyRelatedField(read_only=True)
-    patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
-                                             write_only=True, target_field='doctor_id')
-
-    class Meta(OriginalPrescriptionSerializer.Meta):
-        fields = OriginalPrescriptionSerializer.Meta.fields + ['url']
+# class PrescriptionSerializer(OriginalPrescriptionSerializer):
+#     url = serializers.HyperlinkedIdentityField(
+#         view_name='prescriptions:prescription-detail-update',
+#         lookup_field='pk',
+#     )
+#     writer = serializers.PrimaryKeyRelatedField(read_only=True)
+#     patient = FilteredPrimaryKeyRelatedField(queryset=Patient.objects.select_all(),
+#                                              write_only=True, target_field='doctor_id')
+#
+#     class Meta(OriginalPrescriptionSerializer.Meta):
+#         fields = OriginalPrescriptionSerializer.Meta.fields + ['url']
 
 
 class PrescriptionCreateSerializer(PrescriptionSerializerMixin, serializers.ModelSerializer):
@@ -85,9 +88,26 @@ class PrescriptionCreateSerializer(PrescriptionSerializerMixin, serializers.Mode
     end_date = serializers.DateField()
     checked = serializers.BooleanField(default=False)
 
-    class Meta(OriginalPrescriptionSerializer.Meta):
-        fields = ['url'] + OriginalPrescriptionSerializer.Meta.fields + ['doctor_files', 'doctor_upload_files']
+    class Meta(PrescriptionDetailSerializer.Meta):
+        fields = ['url'] + PrescriptionDetailSerializer.Meta.fields + ['doctor_files', 'doctor_upload_files']
 
+
+class FilePrescriptionListSerializer(serializers.ModelSerializer):
+    uploaded = serializers.BooleanField(read_only=True)
+    status = serializers.CharField(source='get_status_display')
+
+    class Meta:
+        model = FilePrescription
+        fields = FilePrescriptionFields.list_field
+
+
+class FilePrescriptionDetailSerializer(FilePrescriptionListSerializer):
+    class Meta:
+        model = FilePrescription
+        fields = FilePrescriptionFields.detail_field
+
+
+# old version
 
 class FilePrescriptionSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
@@ -112,32 +132,11 @@ class FilePrescriptionSerializer(serializers.ModelSerializer):
                   'uploaded', 'checked', 'created_at', 'updated_at']
 
 
-class FilePrescriptionListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FilePrescription
-        fields = FilePrescriptionFields.list_field
-
-
-class FilePrescriptionDetailSerializer(FilePrescriptionListSerializer):
-    class Meta:
-        model = FilePrescription
-        fields = FilePrescriptionFields.detail_field
-
-
 class FilePrescriptionCreateSerializer(FilePrescriptionSerializer):
     prescription = serializers.PrimaryKeyRelatedField(queryset=Prescription.objects.select_all())
     active = serializers.BooleanField(read_only=True)
     uploaded = serializers.BooleanField(read_only=True)
     checked = serializers.BooleanField(read_only=True)
-
-    class Meta(FilePrescriptionSerializer.Meta):
-        fields = FilePrescriptionSerializer.Meta.fields
-
-
-class FilePrescriptionRetrieveUpdateSerializer(FilePrescriptionSerializer):
-    active = serializers.BooleanField()
-    uploaded = serializers.BooleanField(read_only=True)
-    checked = serializers.BooleanField()
 
     class Meta(FilePrescriptionSerializer.Meta):
         fields = FilePrescriptionSerializer.Meta.fields
@@ -150,8 +149,8 @@ class NestedFilePrescriptionSerializer(FilePrescriptionSerializer):
         fields = FilePrescriptionSerializer.Meta.fields + ['patient_files']
 
 
-class NestedPrescriptionSerializer(PrescriptionSerializer):
+class NestedPrescriptionSerializer(PrescriptionDetailSerializer):
     file_prescriptions = NestedFilePrescriptionSerializer(many=True)
 
-    class Meta(PrescriptionSerializer.Meta):
-        fields = PrescriptionSerializer.Meta.fields + ['file_prescriptions']
+    class Meta(PrescriptionDetailSerializer.Meta):
+        fields = PrescriptionDetailSerializer.Meta.fields + ['file_prescriptions']

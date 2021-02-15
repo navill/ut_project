@@ -5,7 +5,8 @@ from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerial
 from files.api.serializers import PatientFileSerializer, DoctorFileSerializer
 from prescriptions.api.serializers import (PrescriptionListSerializer,
                                            PrescriptionDetailSerializer, FilePrescriptionListSerializer,
-                                           FilePrescriptionDetailSerializer)
+                                           FilePrescriptionDetailSerializer, PrescriptionCreateSerializer)
+
 
 class CoreDoctorListSerializer(DoctorListSerializer):
     pass
@@ -70,6 +71,11 @@ class CorePrescriptionListSerializer(PrescriptionListSerializer):
 class CorePrescriptionDetailSerializer(PrescriptionDetailSerializer):
     class Meta(PrescriptionDetailSerializer.Meta):
         fields = PrescriptionDetailSerializer.Meta.fields  # + ['prescription_with_file_url']
+
+
+class CorePrescriptionCreateSrializer(PrescriptionCreateSerializer):
+    class Meta(PrescriptionCreateSerializer.Meta):
+        fields = PrescriptionCreateSerializer.Meta.fields
 
 
 class CoreFilePrescriptionSerializer(FilePrescriptionDetailSerializer):

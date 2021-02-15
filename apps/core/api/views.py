@@ -1,5 +1,5 @@
 from django.db.models import Prefetch
-from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView, CreateAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView, CreateAPIView, DestroyAPIView
 
 from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly
 from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerializer
@@ -10,17 +10,20 @@ from core.api.serializers import (DoctorWithPatientSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
                                   FilePrescriptionNestedPatientFileSerializer,
                                   ExpiredFilePrescriptionHistorySerializer,
-                                  UploadedPatientFileHistorySerializer, PatientWithDoctorSerializer,
+                                  UploadedPatientFileHistorySerializer,
+                                  PatientWithDoctorSerializer,
                                   FilePrescriptionsForPatientSerializer,
-                                  PatientMainSerializer, PrescriptionNestedDoctorFileSerializer,
+                                  PatientMainSerializer,
+                                  PrescriptionWithDoctorFileSerializer,
                                   PrescriptionListForPatientSerializer,
                                   )
 from files.api.serializers import DoctorFileUploadSerializer, DoctorFlieRetrieveSerializer, \
     PatientFlieRetrieveSerializer, PatientFileUploadSerializer
 from files.models import PatientFile, DoctorFile
 from prescriptions.api.mixins import HistoryMixin
-from prescriptions.api.serializers import PrescriptionCreateSerializer, PrescriptionSerializer, \
-    FilePrescriptionRetrieveUpdateSerializer
+from prescriptions.api.serializers import PrescriptionCreateSerializer, \
+    PrescriptionDetailSerializer, FilePrescriptionDetailSerializer
+
 from prescriptions.models import Prescription, FilePrescription
 
 
@@ -50,7 +53,7 @@ class PrescriptionWithFilePrescriptions(RetrieveAPIView):
     lookup_field = 'pk'
 
 
-class FilePrescriptionWithPatientFiles(RetrieveAPIView):
+class FilePrescriptionWithPatientFiles(RetrieveUpdateAPIView):
     queryset = FilePrescription.objects.nested_all()
     permission_classes = [IsDoctor]
     serializer_class = FilePrescriptionNestedPatientFileSerializer
@@ -95,7 +98,7 @@ class PrescriptionDetailForPatient(RetrieveAPIView):
     queryset = Prescription.objects.select_all()
     permission_classes = []
     # permission_classes = ['PatientReadOnly']
-    serializer_class = PrescriptionNestedDoctorFileSerializer
+    serializer_class = PrescriptionWithDoctorFileSerializer
     lookup_field = 'pk'
 
 
@@ -158,7 +161,7 @@ class PrescriptionCreate(InputValueSupporter, CreateAPIView):
 class PrescriptionDetail(RetrieveUpdateAPIView):
     queryset = Prescription.objects.select_all()
     permission_classes = [IsOwner]  # only owner
-    serializer_class = PrescriptionSerializer
+    serializer_class = PrescriptionDetailSerializer
     lookup_field = 'pk'
 
 
@@ -179,6 +182,10 @@ class DoctorFileDetail(RetrieveUpdateAPIView):
     lookup_field = 'id'
 
 
+class DoctorFileDelete(DestroyAPIView):
+    pass
+
+
 # 보류
 class PatientFileDetail(RetrieveAPIView):
     queryset = PatientFile.objects.select_all()
@@ -190,7 +197,7 @@ class PatientFileDetail(RetrieveAPIView):
 class FilePrescriptionDetail(RetrieveUpdateAPIView):
     queryset = FilePrescription.objects.all()
     permission_classes = [IsOwner]  # only owner
-    serializer_class = FilePrescriptionRetrieveUpdateSerializer
+    serializer_class = FilePrescriptionDetailSerializer
     lookup_field = 'pk'
 
 
@@ -219,3 +226,10 @@ class PatientFileDetailForPatient(RetrieveUpdateAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
     serializer_class = PatientFlieRetrieveSerializer
+
+
+class PatientFileDelete(DestroyAPIView):
+    # IsSuperUser: hard delete
+    # IsOwner: shallow delete
+    pass
+

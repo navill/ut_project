@@ -27,27 +27,6 @@ class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         return super().get_queryset().filter(**query)
 
 
-#
-# class CommonPrescriptionSerializer(serializers.ModelSerializer):
-#     status = serializers.CharField(source='get_status_display', read_only=True)
-#
-#     class Meta:
-#         fields = ['description', 'status', 'checked', 'created_at', 'updated_at', 'deleted']
-#
-#
-# class OriginalPrescriptionSerializer(CommonPrescriptionSerializer):
-#     class Meta:
-#         model = Prescription
-#         fields = ['id', 'writer', 'patient', 'start_date', 'end_date'] + CommonPrescriptionSerializer.Meta.fields
-#
-#
-# class OriginalFilePrescriptionSerializer(CommonPrescriptionSerializer):
-#     class Meta:
-#         model = FilePrescription
-#         fields = ['id', 'prescription', 'day_number', 'day', 'active',
-#                   'uploaded'] + CommonPrescriptionSerializer.Meta.fields
-
-
 class PrescriptionListSerializer(serializers.ModelSerializer):
     status = serializers.CharField(source='get_status_display', read_only=True)
 

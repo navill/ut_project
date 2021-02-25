@@ -18,11 +18,11 @@ User = get_user_model()
 
 
 class AccountSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(read_only=True)
-    last_name = serializers.CharField(read_only=True)
-    gender = serializers.CharField(source='get_gender_display', read_only=True)
-    address = serializers.CharField()
-    phone = serializers.CharField()
+    first_name = serializers.CharField(read_only=True, help_text='사용자의 이름: 길동')
+    last_name = serializers.CharField(read_only=True, help_text='사용자의 성: 홍')
+    gender = serializers.CharField(source='get_gender_display', read_only=True, help_text='성별: MALE/FEMALE')
+    address = serializers.CharField(help_text='사용자의 주소: 광주광역시 ...')
+    phone = serializers.CharField(max_length=14, help_text='사용자의 전화번호: 010-1111-1111')
 
     def get_full_name(self, instance: Union[Doctor, Patient]) -> str:
         if hasattr(instance, 'full_name'):
@@ -31,27 +31,38 @@ class AccountSerializer(serializers.ModelSerializer):
         return instance.get_full_name()
 
 
+class AccountSignupSerializer(AccountSerializer):
+    first_name = serializers.CharField(help_text='사용자의 이름: 길동')  # todo: help_text 하드코딩 수정
+    last_name = serializers.CharField(help_text='사용자의 성: 홍')
+    gender = serializers.ChoiceField(choices=Gender.choices, help_text='성별: MALE/FEMALE')
+
+
 # BaseUser
 class BaseUserSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField(read_only=True)
+    email = serializers.EmailField(read_only=True, help_text='이메일(계정 아이디): test@test.com')
 
     class Meta:
         model = User
         fields = ['id', 'email']
+        extra_kwargs = {'id': {'read_only': True}}
 
 
 class BaseUserSignUpSerializer(BaseUserSerializer):
-    email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(help_text='이메일(계정 아이디): test@test.com',
+                                   validators=[UniqueValidator(queryset=User.objects.all())])
+
     password = serializers.CharField(
         min_length=8,
         write_only=True,
         required=True,
+        help_text='비밀번호: xxxx1234',
         style={'input_type': 'password', 'placeholder': 'Password'}
     )
     password2 = serializers.CharField(
         min_length=8,
         write_only=True,
         required=True,
+        help_text='비밀번호 확인: xxxx1234',
         style={'input_type': 'password', 'placeholder': 'Confirm Password'}
     )
 
@@ -73,84 +84,38 @@ class DoctorListSerializer(AccountSerializer):
     detail_url = serializers.HyperlinkedIdentityField(
         view_name='accounts:doctor-detail-update',
         lookup_field='pk',
-        read_only=True
+        read_only=True,
+        help_text='의사 프로필(detail) url'
     )
-    major = serializers.CharField(source='major.name', read_only=True)
+    major = serializers.CharField(source='major.name', read_only=True, help_text='의사 전공: 심리학')
 
     class Meta:
         model = Doctor
         fields = ['detail_url'] + DoctorFields.list_field
+        extra_kwargs = {'user': {'help_text': '의사 계정 primary key: 2', 'read_only': True}}
 
 
 class DoctorDetailSerializer(DoctorListSerializer):
-    class Meta:
-        model = Doctor
+    description = serializers.CharField(max_length=255, help_text='의사 간단 소개: 정신과 의사 홍길동입니다.')
+
+    class Meta(DoctorListSerializer.Meta):
         fields = DoctorFields.detail_field
-        extra_kwargs = {'user': {'read_only': True}}
 
 
-# class RawDoctorSerializer(RawAccountSerializer):
-#     url = serializers.HyperlinkedIdentityField(
-#         view_name='accounts:doctor-detail-update',
-#         lookup_field='pk',
-#         read_only=True
-#     )
-#
-#     class Meta:
-#         model = Doctor
-#         fields = ['url', 'user_id', 'first_name', 'last_name', 'gender']
-#
-#     def get_major_name(self, instance: Doctor) -> str:
-#         return str(instance.major.name)
-
-
-# class RelatedDoctorSerializer(RawDoctorSerializer):
-#     user = serializers.PrimaryKeyRelatedField(read_only=True)
-#
-#     # major = serializers.PrimaryKeyRelatedField(read_only=True)
-#
-#     class Meta(RawDoctorSerializer.Meta):
-#         fields = RawDoctorSerializer.Meta.fields + ['major']
-
-
-# class DoctorSerializer(RelatedDoctorSerializer):
-#     major_name = serializers.SerializerMethodField()
-#
-#     class Meta:
-#         model = Doctor
-#         fields = RelatedDoctorSerializer.Meta.fields + ['major_name', 'address', 'phone', 'description']
-
-
-# class DoctorListSerializer(RawDoctorSerializer):
-#     full_name = serializers.SerializerMethodField()
-#     major_name = serializers.SerializerMethodField()
-#
-#     class Meta:
-#         model = Doctor
-#         fields = RawDoctorSerializer.Meta.fields + ['full_name', 'major_name']
-#
-#
-# class DoctorRetrieveSerializer(RawDoctorSerializer):
-#     class Meta:
-#         model = Doctor
-#         fields = RawDoctorSerializer.Meta.fields + ['address', 'phone', 'description']
-
-
-class DoctorSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer):
+class DoctorSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
     detail_url = serializers.HyperlinkedIdentityField(
         view_name='accounts:doctor-detail-update',
         lookup_field='pk',
-        read_only=True
+        read_only=True,
+        help_text='가입한 의사의 프로필 url'
     )
-    user = BaseUserSignUpSerializer()
-    major = serializers.PrimaryKeyRelatedField(queryset=Major.objects.all())
-    gender = serializers.ChoiceField(choices=Gender.choices)
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
+    user = BaseUserSignUpSerializer(help_text='계정 정보: email, password1, password2')
+    major = serializers.PrimaryKeyRelatedField(queryset=Major.objects.all(), help_text='의사의 전공 primary key: 1')
 
     class Meta:
         model = Doctor
         fields = ['detail_url', 'gender', 'user', 'first_name', 'last_name', 'address', 'phone', 'description', 'major']
+        extra_kwargs = {'description': {'help_text': '의사 간단 소개: 정신과 의사 홍길동입니다.'}}
 
 
 # Patient
@@ -158,80 +123,38 @@ class PatientListSerializer(AccountSerializer):
     detail_url = serializers.HyperlinkedIdentityField(
         view_name='accounts:patient-detail-update',
         lookup_field='pk',
-        read_only=True
+        read_only=True,
+        help_text='환자 프로필 url'
     )
 
     class Meta:
         model = Patient
         fields = ['detail_url'] + PatientFields.list_field
+        extra_kwargs = {
+            'user': {'help_text': '환자 계정 primary key: 5', 'read_only': True},
+            'doctor': {'help_text': '담당 의사 primary key: 2'},
+            'age': {'help_text': '나이: 30'}
+        }
 
 
 class PatientDetailSerializer(PatientListSerializer):
-    class Meta:
-        model = Patient
+    class Meta(PatientListSerializer.Meta):
         fields = PatientFields.detail_field
+        PatientListSerializer.Meta.extra_kwargs.setdefault('emergency_call',
+                                                           {'help_text': '보호자 또는 응급전화: 010-1111-2222'})
 
 
-# class OriginalPatientSerializer(serializers.ModelSerializer):
-#     gender = serializers.CharField(source='get_gender_display', read_only=True)
-#
-#     class Meta:
-#         model = Patient
-#         # __all__
-#         fields = ['user', 'doctor', 'first_name', 'last_name',
-#                   'gender', 'address', 'phone', 'age', 'emergency_call', 'created_at', 'updated_at']
-
-
-# class RawPatientSerializer(RawAccountSerializer):
-#     url = serializers.HyperlinkedIdentityField(
-#         view_name='accounts:patient-detail-update',
-#         lookup_field='pk',
-#         read_only=True
-#     )
-#     gender = serializers.CharField(source='get_gender_display', read_only=True)
-#
-#     class Meta:
-#         model = Patient
-#         fields = ['url', 'user_id', 'first_name', 'last_name', 'gender', 'age']
-#
-#     def get_doctor_name(self, instance: Patient) -> str:
-#         return str(instance.doctor) if hasattr(instance, 'doctor_name') else instance.doctor_name
-
-
-# class RelatedPatientSerializer(RawPatientSerializer):
-#     user = serializers.PrimaryKeyRelatedField(read_only=True)
-#
-#     class Meta(RawPatientSerializer.Meta):
-#         fields = RawPatientSerializer.Meta.fields + ['doctor']
-#
-#
-# class PatientSerializer(RelatedPatientSerializer):
-#     doctor_name = serializers.SerializerMethodField()
-#
-#     class Meta(RelatedPatientSerializer.Meta):
-#         fields = RelatedPatientSerializer.Meta.fields + \
-#                  ['doctor_name', 'address', 'phone', 'age', 'emergency_call']
-
-
-# class PatientListSerailizer(RawPatientSerializer):
-#     full_name = serializers.SerializerMethodField()
-#     doctor_name = serializers.SerializerMethodField()
-#
-#     class Meta(RawPatientSerializer.Meta):
-#         fields = RawPatientSerializer.Meta.fields + ['full_name', 'age', 'doctor_name']
-
-
-class PatientSignUpSerializer(SignupSerializerMixin, serializers.ModelSerializer):
+class PatientSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
     detail_url = serializers.HyperlinkedIdentityField(
         view_name='accounts:patient-detail-update',
         lookup_field='pk',
-        read_only=True
+        read_only=True,
+        help_text='환자 프로필 url'
     )
-    user = BaseUserSignUpSerializer()
-    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.select_all())
-    gender = serializers.ChoiceField(choices=Gender.choices)
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
+    user = BaseUserSignUpSerializer(help_text="계정정보: email, passsword1, password2")
+    doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.select_all(), help_text='담당 의사 정보: 의사 김, 심리학')
+    age = serializers.IntegerField(max_value=150, help_text='나이: 30')
+    emergency_call = serializers.CharField(max_length=14, help_text='긴급 또는 보호자 번호: 010-1111-2222')
 
     class Meta:
         model = Patient

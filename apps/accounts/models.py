@@ -1,4 +1,5 @@
 from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
+from django.utils.translation import gettext as _
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -53,14 +54,14 @@ class Gender(models.TextChoices):
 
 
 class AccountsModel(models.Model):
-    first_name = models.CharField(max_length=20, default='')
-    last_name = models.CharField(max_length=20, default='')
-    gender = models.CharField(max_length=7, choices=Gender.choices, default=Gender.male)
-    address = models.CharField(max_length=255, default='')
-    phone = models.CharField(max_length=14, unique=True)
+    first_name = models.CharField(max_length=20, default='', help_text="사용자 이름: 길동")
+    last_name = models.CharField(max_length=20, default='', help_text="사용자 성: 홍")
+    gender = models.CharField(max_length=7, choices=Gender.choices, default=Gender.male, help_text="성별: 남")
+    address = models.CharField(max_length=255, default='', help_text="사용자의 주소: 광주광역시 북구 ...")
+    phone = models.CharField(max_length=14, unique=True, help_text="연락처: 010-111-1111")
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, help_text="계정 생성일: 2021-01-01T00:00:00")
+    updated_at = models.DateTimeField(auto_now=True, help_text="계정 수정일: 2021-01-02T00:00:00")
 
     class Meta:
         abstract = True
@@ -120,14 +121,14 @@ class BaseManager(BaseUserManager):
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(max_length=255, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    token_expired = models.IntegerField(default=0)
+    email = models.EmailField(max_length=255, unique=True, help_text=_("이메일(계정 아이디): doctor@doctor.com"))
+    created_at = models.DateTimeField(auto_now_add=True, help_text="계정 생성일: 2021-01-01T00:00:00")
+    updated_at = models.DateTimeField(auto_now=True, help_text="계정 수정일: 2021-01-01T00:00:00")
+    token_expired = models.IntegerField(default=0, help_text="토근 만료일(epoch time): 123456")
 
-    is_active = models.BooleanField(default=True)
-    is_superuser = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True, help_text="계정 활성화 여부: True")
+    is_superuser = models.BooleanField(default=False, help_text="super user 여부: False")
+    is_staff = models.BooleanField(default=False, help_text="관리자 여부: False")
 
     objects = BaseManager()
 
@@ -275,7 +276,7 @@ class PatientManager(CommonUserManager):
 
 class Patient(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
-    doctor = models.ForeignKey(Doctor, on_delete=models.SET_NULL, null=True, related_name='patients')
+    doctor = models.ForeignKey(Doctor, on_delete=models.DO_NOTHING, related_name='patients')
     # birth = models.DateField()  # -> annotate를 이용해 age 필드 생성
     age = models.PositiveIntegerField(default=0)
     emergency_call = models.CharField(max_length=14, default='010')

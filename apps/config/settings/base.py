@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'accounts',
     'hospitals',
     'prescriptions',
-    'app_1',
+    # 'app_1',
     'core',
     'files',
     # third party

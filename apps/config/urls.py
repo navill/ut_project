@@ -11,9 +11,9 @@ from accounts.api.views import AccountsTokenPairView, TokenLogoutView, AccountsT
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Snippets API",
+        title="UT project API",
         default_version='v1',
-        description="Test description",
+        description="UTSOFT Project(2-1)",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="contact@snippets.local"),
         license=openapi.License(name="BSD License"),
@@ -22,13 +22,12 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 urlpatterns = [
+    path('core-api/', include('core.api.urls', namespace='core-api')),
 
     path('accounts/', include('accounts.api.urls', namespace='accounts')),
     path('prescriptions/', include('prescriptions.api.urls', namespace='prescriptions')),
     path('hospitals/', include('hospitals.api.urls', namespace='hospitals')),
     path('datafiles/', include('files.api.urls', namespace='files')),
-
-    path('core-api/', include('core.api.urls', namespace='core-api')),
 
     path('token', AccountsTokenPairView.as_view(), name='token-login'),
     path('token/refresh', AccountsTokenRefreshView.as_view(), name='token-refresh'),
@@ -38,7 +37,7 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    # url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

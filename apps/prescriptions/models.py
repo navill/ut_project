@@ -183,11 +183,11 @@ class FilePrescriptionQuerySet(models.QuerySet):
 
     # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
     def only_list(self, *others: List[str]):
-        fields = FilePrescriptionFields.list_field + others
+        fields = FilePrescriptionFields.list_field + list(others)
         return self.only(*fields)
 
     def only_detail(self, *others: List[str]):
-        fields = FilePrescriptionFields.detail_field + others
+        fields = FilePrescriptionFields.detail_field + list(others)
         return self.only(*fields)
 
 

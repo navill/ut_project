@@ -1,6 +1,7 @@
 from typing import Type
 
 from django.db.models import QuerySet
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -87,6 +88,10 @@ class PatientSignUpAPIView(InputValueSupporter, CreateAPIView):
     permission_classes = [AllowAny]
     lookup_field = 'pk'
     fields_to_display = 'gender', 'doctor'
+
+    @swagger_auto_schema(request_body=serializers.PatientSignUpSerializer)
+    def post(self, request, *args, **kwargs):
+        return super(PatientSignUpAPIView, self).post(request, *args, **kwargs)
 
 
 class PatientListAPIView(ListAPIView):

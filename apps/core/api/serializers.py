@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerializer
@@ -109,6 +110,7 @@ class PatientMainSerializer(PatientWithDoctorSerializer):
     class Meta(PatientWithDoctorSerializer.Meta):
         fields = PatientFields.detail_field + ['prescriptions', 'upload_schedules']
 
+    @swagger_serializer_method(serializer_or_field=FilePrescriptionsForPatientSerializer)
     def get_upload_schedules(self, instance: 'Patient'):
         queryset = FilePrescription.objects. \
             filter(prescription_id=instance.latest_prescription_id).only_list()

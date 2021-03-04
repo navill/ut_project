@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CurrentUserDefault
-from rest_framework.serializers import ListSerializer
 
 from files.models import DoctorFile, PatientFile
 from prescriptions.models import Prescription, FilePrescription
@@ -35,8 +34,9 @@ BaseFile Serializer
 
 
 class _BaseFileSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True)
-    deleted = serializers.BooleanField(default=False, read_only=True)
+    created_at = serializers.DateTimeField(read_only=True, help_text='파일 생성일(ex: 2021-01-01T00:00:00')
+    deleted = serializers.BooleanField(default=False, read_only=True,
+                                       help_text='삭제된 파일(deleted file) 여부(ex: true or false)')
 
     def get_uploader_name(self, instance: User):
         return getattr(instance, 'uploader_patient_name', None) or getattr(instance, 'uploader_doctor_name', None)
@@ -52,18 +52,20 @@ class DoctorFileSerializer(_BaseFileSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='files:doctor-file-retrieve',
         lookup_field='id',
-        read_only=True
+        read_only=True,
+        help_text='파일 세부 정보 접근 url'
     )
 
     download_url = serializers.HyperlinkedIdentityField(
         view_name='files:doctor-file-download',
         lookup_field='id',
-        read_only=True
+        read_only=True,
+        help_text='파일 다운로드 url'
     )
-    file = serializers.FileField(use_url=False)
-    uploader = serializers.PrimaryKeyRelatedField(read_only=True)
-    prescription = serializers.PrimaryKeyRelatedField(read_only=True)
-    created_at = serializers.DateTimeField(read_only=True)
+    file = serializers.FileField(use_url=False, help_text='파일 객체(보내려는 파일이 컴퓨터에 위치한 주소)')
+    uploader = serializers.PrimaryKeyRelatedField(read_only=True, help_text='로그인 유저(의사)의 계정 primary key(ex: 2)')
+    prescription = serializers.PrimaryKeyRelatedField(read_only=True, help_text='의사가 파일을 업로드하면서 작성한 소견서(ex: 불면증 의심됨)')
+    created_at = serializers.DateTimeField(read_only=True, help_text='파일 생성일(ex: 2021-01-01T00:00:00')
 
     class Meta:
         model = DoctorFile

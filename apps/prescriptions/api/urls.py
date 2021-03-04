@@ -13,5 +13,5 @@ urlpatterns = [
     path('file-pres/<int:pk>', views.FilePrescriptionRetrieveUpdateAPIView.as_view(),
          name='file-prescription-detail-update'),
     # path('file-pres/histories', views...)
-    path('test-pres/<int:pk>', views.TestPrescriptionAPIView.as_view())
+    # path('test-pres/<int:pk>', views.TestPrescriptionAPIView.as_view())
 ]

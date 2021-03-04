@@ -167,11 +167,6 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
 
 class DoctorQuerySet(CommonUserQuerySet):
-    # def defer_option_fields(self, *fields: str) -> 'DoctorQuerySet':
-    #     # deferred_user_fields = get_defer_field_set('user', DEFER_BASEUSER_FIELDS)
-    #     deferred_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
-    #     return self.defer(*DEFER_DOCTOR_FIELDS, *deferred_user_fields, *fields)
-
     def prefetch_all(self):
         return self.prefetch_related('patients')
 

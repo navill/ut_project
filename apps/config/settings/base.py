@@ -4,6 +4,8 @@ from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 
+# from config.utils.doc_utils import CustomSchemaGenerator
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_DIR = BASE_DIR.parent
 
@@ -134,3 +136,6 @@ REST_FRAMEWORK = {
     ]
 }
 # UPDATE_LAST_LOGIN = True
+SWAGGER_SETTINGS = {
+    'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomSchemaGenerator',
+}

@@ -68,7 +68,11 @@ urlpatterns = [
                                      views.PrescriptionDetailForPatient.as_view(),
                                      name='prescription-detail'),
 
-                                path('file-prescriptions',  # only patient
+                                # path('file-prescriptions',  # only patient
+                                #      views.FilePrescriptionListForPatient.as_view(),
+                                #      name='file-prescription-list'),
+
+                                path('prescriptions/<int:pk>/file-prescriptions',  # only patient
                                      views.FilePrescriptionListForPatient.as_view(),
                                      name='file-prescription-list'),
 

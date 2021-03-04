@@ -1,8 +1,10 @@
 from django.db.models import Prefetch
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView, CreateAPIView, DestroyAPIView
 from rest_framework.parsers import MultiPartParser, FileUploadParser
 
-from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly
+from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly, RelatedPatientReadOnly
 from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerializer
 from accounts.models import Doctor, Patient
 from config.utils.api_utils import InputValueSupporter
@@ -35,33 +37,51 @@ from prescriptions.models import Prescription, FilePrescription
 # doctor - main
 class DoctorWithPatients(RetrieveAPIView):
     """
-    로그인 시 의사 정보와 의사가 담당하는 환자의 리스트를 출력
-    ---
+    [DETAIL] 로그인 시 의사 정보와 의사가 담당하는 환자의 리스트를 출력
 
+    ---
+    - 기능: 의사용 메인 페이지 초기화에 필요한 정보 출력
+    - 권한: IsOwner(의사 객체 소유 계정)
+    - 내용
+        - 로그인한 의사의 일부 정보
+        - patients: 담당 환자의 리스트 정보
     """
     queryset = Doctor.objects.select_all()
     permission_classes = [IsOwner]
     serializer_class = DoctorWithPatientSerializer
     lookup_field = 'pk'
+    path_type_user = openapi.TYPE_INTEGER
 
 
 class PatientWithPrescriptions(RetrieveAPIView):
     """
-    의사가 작성한 해당 환자의 소견서 리스트
-    ---
+    [DETAIL] 환자의 세부 정보 및 환자의 소견서 리스트 출력
 
+    ---
+    - 기능: 환자 리스트에서 특정 환자를 선택했을 때 보여질 내용 표시
+    - 권한: IsDoctor(의사 계정)
+    - 내용
+        - 환자의 세부정보
+        - prescriptions: 환자의 소견서 리스트
     """
     queryset = Patient.objects.select_all().prefetch_prescription_with_writer()
     permission_classes = [IsDoctor]
     serializer_class = PatientWithPrescriptionSerializer
     lookup_field = 'pk'
+    path_type_user = openapi.TYPE_INTEGER
 
 
 class PrescriptionWithFilePrescriptions(RetrieveAPIView):
     """
-    소견서에 등록된 파일 업로드 일정(FilePrescription)
-    ---
+    [DETAIL] 소견서에 등록된 파일 업로드 일정(FilePrescription)
 
+    ---
+    - 기능: 소견서 및 소견서 작성 시 생성된 스케줄(FilePrescription 객체) 세부 내용 표시
+    - 권한: IsDoctor(의사 계정) -> IsOwner로 변경 예정
+    - 내용
+        - 소견서 내용
+        - doctor_files: 의사가 소견서를 작성하면서 함께 올린 파일 정보
+        - file_prescriptions: 의사가 소견서를 작성하면서 지정한 파일 업로드 스케줄
     """
     queryset = Prescription.objects.select_all()
     permission_classes = [IsDoctor]
@@ -69,11 +89,18 @@ class PrescriptionWithFilePrescriptions(RetrieveAPIView):
     lookup_field = 'pk'
 
 
-class FilePrescriptionWithPatientFiles(RetrieveUpdateAPIView):
+class FilePrescriptionWithPatientFiles(RetrieveAPIView):
     """
-    파일 업로드 일정에 등록된 환자가 올린 파일 정보
-    ---
+    [DETAIL, UPDATE] 파일 업로드 일정(FilePrescription) 및 환자가 올린 파일
 
+    ---
+    - 기능: 업로드 일정을 확인하거나, 환자가 업로드한 파일을 확인
+    - 권한: IsDoctor(의사 계정) -> IsOwner로 변경 예정
+    - 내용
+        - 업로드 일정 및 업로드된 파일에 대한 의사 소견
+        - prescriptions: 대면 진료에 작성된 소견서
+            - doctor_files: 의사가 올린 파일
+        - patient_files: 환자가 올린 파일
     """
     queryset = FilePrescription.objects.nested_all()
     permission_classes = [IsDoctor]
@@ -84,9 +111,11 @@ class FilePrescriptionWithPatientFiles(RetrieveUpdateAPIView):
 # doctor - history
 class UploadedPatientFileHistory(HistoryMixin, ListAPIView):
     """
-    환자가 새로운 파일을 업로드 했을 때 보여지는 리스트(FilePrescription)
-    ---
+    [LIST] 환자가 새로운 파일을 업로드 했을 때 보여질 리스트(FilePrescription)
 
+    ---
+    - 기능: 환자가 파일을 업로드했을 때 의사가 쉽게 확인할 수 있도록 업로드된 파일 리스트 표시
+    - 권한: IsDoctor(의사 계정)
     """
     queryset = FilePrescription.objects.nested_all().filter_new_uploaded_file()
     permission_classes = [IsDoctor]
@@ -95,21 +124,27 @@ class UploadedPatientFileHistory(HistoryMixin, ListAPIView):
 
 class ExpiredFilePrescriptionHistory(HistoryMixin, ListAPIView):
     """
-    환자가 일정 내에 파일을 업로드 하지 않았을 경우 보여지는 리스트(FilePrescription)
-    ---
+    [LIST] 환자가 일정 내에 파일을 업로드 하지 않았을 경우 보여지는 리스트(FilePrescription)
 
+    ---
+    - 기능: 환자가 기간 내에 파일을 업로드하지 않을 경우 의사가 쉽게 확인할 수 있도록 업로드되지 않은 스케줄 표시
+    - 권한: IsDoctor(의사 계정)
     """
     queryset = FilePrescription.objects.nested_all().filter_upload_date_expired()
     permission_classes = [IsDoctor]
     serializer_class = ExpiredFilePrescriptionHistorySerializer
 
 
-# Patient - main
 class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의사 정보 포함
     """
-    담당 의사 정보를 포함하는 환자의 첫 페이지
-    ---
+    [DETAIL] 담당 의사 정보를 환자의 정보 페이지
 
+    ---
+    - 기능: 환자의 정보와 담당 의사 정보를 표시
+    - 권한: IsPatient(환자 계정) -> IsOwner로 변경할 예정
+    - 내용
+        - 환자 세부 정보
+        - doctor: 담당 의사 세부 정보
     """
     queryset = Patient.objects.select_all()
     # permission_classes = [IsPatient]
@@ -120,8 +155,11 @@ class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의�
 
 class PrescriptionListForPatient(ListAPIView):  # 환자와 관련된 소견서 + 의사 파일 + FilePrescriptionList
     """
-    해당 환자에 대해 작성된 소견서 리스트
+    [LIST] 해당 환자에 대해 작성된 소견서 리스트
+
     ---
+    - 기능: 로그인한 환자의 소견서 리스트 표시
+    - 권한: IsOwner
 
     """
 
@@ -138,34 +176,54 @@ class PrescriptionListForPatient(ListAPIView):  # 환자와 관련된 소견서 
 
 class PrescriptionDetailForPatient(RetrieveAPIView):
     """
-    환자가 접근할 수 있는 소견서의 세부 정보
-    ---
+    [DETAIL] 환자가 접근할 수 있는 소견서의 세부 정보
 
+    ---
+    - 기능: 소견서 리스트에서 특정 소견서를 선택할 경우 해당 소견서의 세부 내용 출력
+    - 권한: RelatedPatientReadOnly(객체와 관계된 환자일 경우 읽기 가능)
+    - 내용
+        - 소견서 세부 내용
+        - doctor_files: 의사가 올린 파일 정보
     """
     queryset = Prescription.objects.select_all()
     permission_classes = []
-    # permission_classes = ['PatientReadOnly']
+    # permission_classes = [RelatedPatientReadOnly]
     serializer_class = PrescriptionWithDoctorFileSerializer
     lookup_field = 'pk'
 
 
-class FilePrescriptionListForPatient(ListAPIView):  # Detail FilePrescription + PatietFile
+class FilePrescriptionListForPatient(RetrieveAPIView):  # Detail FilePrescription + PatietFile
     """
-    환자가 접근할 수 있는 파일 업로드 일정 리스트
-    ---
+    [LIST] 환자가 접근할 수 있는 파일 업로드 일정 리스트
 
+    ---
+    - 기능: 의사가 생성한 스케줄(파일 업로드 일정)을 확인할 때 사용
+    - 권한: RelatedPatientReadOnly(객체와 관계된 환자일 경우 읽기 가능)
+    - 내용
+        - 소견서 내용
+        - doctor_files: 의사가 소견서를 작성하면서 함께 올린 파일 정보
+        - file_prescriptions: 의사가 소견서를 작성하면서 지정한 파일 업로드 스케줄
     """
-    queryset = FilePrescription.objects.select_all()
+    queryset = Prescription.objects.select_all()
     # permission_classes = [IsPatient]
     permission_classes = []
-    serializer_class = FilePrescriptionsForPatientSerializer
+    serializer_class = PrescriptionNestedFilePrescriptionSerializer
+    lookup_field = 'pk'
 
 
 class FilePrescriptionDetailForPatient(RetrieveAPIView):
     """
-    환자가 접근할 수 있는 파일 업로드 일정의 세부 정보
-    ---
+    [DETAIL] 환자가 접근할 수 있는 파일 업로드 일정의 세부 정보
 
+    ---
+    - 기능: 업로드 일정의 세부 정보 표시
+        - 환자가 올린 파일, 의사가 환자의 파일에 대해 작성한 소견서도 포함
+    - 권한: RelatedPatientReadOnly
+    - 내용
+        - 스케줄 및 상태 정보
+        - prescription: 대면시 작성된 소견서
+            - doctor_files: 의사가 업로드한 파일 정보
+        - patient_files: 환자가 업로드한 파일 정보
     """
     queryset = FilePrescription.objects.select_all()
     permission_classes = []
@@ -175,9 +233,16 @@ class FilePrescriptionDetailForPatient(RetrieveAPIView):
 
 class PatientMain(RetrieveAPIView):
     """
-    환자용 메인 페이지
-    ---
+    [DETAIL] 환자용 메인 페이지
 
+    ---
+    - 기능: 환자 계정으로 로그인 시 처음 보여질 내용 표시
+    - 권한: IsOnwer
+    - 내용
+        - 환자 정보
+        - doctor: 담당 의사 정보
+        - prescriptions: 환자의 소견서 리스트
+        - upload_schedules: 업로드 일정
     """
     queryset = Patient.objects.select_all(). \
         prefetch_prescription(Prefetch('prescriptions', queryset=Prescription.objects.select_all().only_list())). \
@@ -186,60 +251,71 @@ class PatientMain(RetrieveAPIView):
     permission_classes = []
     serializer_class = PatientMainSerializer
     lookup_field = 'pk'
+    path_type_user = openapi.TYPE_INTEGER
 
 
 # patient - history
 class ChecekdFilePrescription(ListAPIView):  # 환자가 올린 파일을 의사가 확인(checked=True)한 리스트
+    """
+    [LIST] 환자가 업로드한 파일을 의사가 확인했을 경우 표시될 리스트 -> 개발 예정
+    """
     pass
 
 
-# 210208 추가
-# doctor
-# 기존의 기능을 끌어쓰는 것 보다 core-api용 view를 생성
-# => 접근(permission) 처리 용이 및 구조적으로 core-api에서 .../patients/5/detail 이렇게 접근하는 것이 어색해보임
-# 단순히 의사 및 환자에 따라 read & write 구분이 필요할 경우 공통으로 core view를 사용하고 permission으로 접근을 제어할 예정
 class DoctorProfile(RetrieveUpdateAPIView):
     """
-    의사의 프로필 접근 및 수정
-    ---
+    [DETAIL, UPDATE] 의사의 프로필 접근 및 수정
 
+    ---
+    - 기능: 의사의 프로필 접근 및 수정
+    - 권한: IsOwner
     """
     queryset = Doctor.objects.select_all()
     permission_classes = [IsOwner]  # owner readonly
     serializer_class = DoctorDetailSerializer
     lookup_field = 'pk'
+    path_type_user = openapi.TYPE_INTEGER
 
 
 class PatientProfile(RetrieveAPIView):
     """
-    환자의 프로필 접근(의사용)
-    ---
+    [DETAIL] 환자의 프로필 접근(의사용)
 
+    ---
+    - 기능: 담당하고 있는 환자의 프로필 접근
+    - 권한: CareDoctorReadOnly(담당 의사일 경우 읽기 가능)
     """
     queryset = Patient.objects.select_all()
     permission_classes = [CareDoctorReadOnly]  # owner readonly
     serializer_class = PatientDetailSerializer
     lookup_field = 'pk'
+    path_type_user = openapi.TYPE_INTEGER
 
 
-class PrescriptionCreate(InputValueSupporter, CreateAPIView):
+class PrescriptionCreate(CreateAPIView):
     """
-    소견서 작성
-    ---
+    [CREATE] 소견서 작성
 
+    ---
+    - 기능: 환자에 대한 소견서 작성 및 파일 업로드(의사용), 환자의 파일 업로드 스케줄을 지정
+    - 권한: IsDoctor(의사 계정)
+    - 내용
+        - 소견서 내용
+        - 업로드 스케줄(start_date~end_date)
+        - doctor_upload_files: 의사가 업로드할 파일 필드(directory path)
     """
     queryset = Prescription.objects.select_all().prefetch_doctor_file()  # .defer_option_fields()
     permission_classes = [IsDoctor]
     serializer_class = PrescriptionCreateSerializer
 
-    fields_to_display = 'patient', 'status'
-
 
 class PrescriptionDetail(RetrieveUpdateAPIView):
     """
-    소견서 세부 정보
-    ---
+    [DETAIL, UPDATE] 소견서 세부 정보
 
+    ---
+    - 기능: 소견서의 세부 정보를 확인하거나 수정 작업
+    - 권한: IsOwner(작성자 - 접근&수정)
     """
     queryset = Prescription.objects.select_all()
     permission_classes = [IsOwner]  # only owner
@@ -266,7 +342,7 @@ class PrescriptionDetail(RetrieveUpdateAPIView):
 
 class DoctorFileDelete(DestroyAPIView):
     """
-    의사가 올린 파일 삭제
+    [DELETE] 의사가 올린 파일 삭제
     """
     pass
 
@@ -281,9 +357,11 @@ class DoctorFileDelete(DestroyAPIView):
 
 class FilePrescriptionDetail(RetrieveUpdateAPIView):
     """
-    환자가 업로드 해야 할 일정에 대한 세부 정보 접근 및 수정
-    ---
+    [DETAIL, UPDATE] 파일 업로드 일정에 대한 세부 정보 접근 및 수정
 
+    ---
+    - 기능: 파일 업로드 스케줄 관련 세부 정보 표시 및 정보 수정
+    - 권한: IsOwner(스케줄을 작성한 의사 계정)
     """
     queryset = FilePrescription.objects.all()
     permission_classes = [IsOwner]  # only owner
@@ -294,45 +372,62 @@ class FilePrescriptionDetail(RetrieveUpdateAPIView):
 # patient
 class DoctorProfileForPatient(RetrieveAPIView):
     """
-    의사의 프로필 접근(환자용)
-    ---
+    [DETAIL] 의사의 프로필 접근(환자용)
 
+    ---
+    - 기능: 담당 의사의 프로필 정보 표시
+    - 권한: IsPatient
     """
     queryset = Doctor.objects.select_all()
-    permission_classes = []  # owner readonly
+    permission_classes = []
     serializer_class = DoctorDetailSerializer
     lookup_field = 'pk'
+    path_type_user = openapi.TYPE_INTEGER
+
+    def get_object(self):
+        obj = super().get_object()
+        if obj.patients.filter(user_id=self.request.user.id).exists():
+            return obj
+        else:
+            raise Exception('??')
 
 
 class PatientProfileForPatient(RetrieveUpdateAPIView):
     """
-    환자의 프로필 접근 및 수정(환자용)
+    [DETAIL, UPDATE]환자의 프로필 접근 및 수정(환자용)
 
+    ---
+    - 기능: 환자 본인 계정의 정보 표시 및 수정
+    - 권한: IsOwner
     """
     queryset = Patient.objects.select_all()
     permission_classes = []  # onwer readonly
     serializer_class = PatientDetailSerializer
     lookup_field = 'pk'
+    path_type_user = openapi.TYPE_INTEGER
 
 
 class PatientFileUpload(CreateAPIView):  # add InputValueSupporter
     """
-    환자가 측정한 파일 업로드(환자용)
-    ---
+    [CREATE]파일 업로드(환자용)
 
+    ---
+    - 기능: 환자용 파일 객체 생성
+    - 권한: IsPatient
     """
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
     parser_classes = (FileUploadParser,)
-
     serializer_class = PatientFileUploadSerializer
 
 
 class PatientFileDetailForPatient(RetrieveUpdateAPIView):
     """
-    환자가 올린 파일 세부정보 및 수정(환자용)
-    ---
+    [DETAIL, UPDATE]환자가 올린 파일 세부정보 접근 및 수정(환자용)
 
+    ---
+    - 기능: 업로드한 파일의 세부 정보 표시 및 수정
+    - 권한: IsOwner
     """
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
@@ -341,7 +436,8 @@ class PatientFileDetailForPatient(RetrieveUpdateAPIView):
 
 class PatientFileDelete(DestroyAPIView):
     """
-    환자가 올린 파일 삭제(환자용)
+    [DELETE] 환자가 올린 파일 삭제(환자용)
+
     ---
 
     """

@@ -161,7 +161,7 @@ class FilePrescriptionQuerySet(models.QuerySet):
         return self.filter_uploaded().filter_not_checked()
 
     def filter_upload_date_expired(self) -> 'FilePrescriptionQuerySet':
-        return self.filter(day__lt=datetime.date.today()).filter_not_checked().filter_not_uploaded()
+        return self.filter(date__lt=datetime.date.today()).filter_not_checked().filter_not_uploaded()
 
     def filter_prescription_writer(self, user_id: int) -> 'FilePrescriptionQuerySet':
         return self.filter(prescription__writer_id=user_id)
@@ -219,7 +219,7 @@ FilePrescription
 class FilePrescription(BasePrescription):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='file_prescriptions')
     day_number = models.IntegerField()
-    day = models.DateField(null=True)
+    date = models.DateField(null=True)
     active = models.BooleanField(default=True)
     uploaded = models.BooleanField(default=False)
 
@@ -229,7 +229,7 @@ class FilePrescription(BasePrescription):
         ordering = ['-id']
 
     def __str__(self) -> str:
-        return f'prescription_id:{self.prescription.id}-{self.day}: {self.day_number}일'
+        return f'prescription_id:{self.prescription.id}-{self.date}: {self.day_number}일'
 
 
 @receiver(post_save, sender=FilePrescription)

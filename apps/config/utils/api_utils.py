@@ -8,6 +8,7 @@ to_display_choices = openapi.Parameter('default', openapi.IN_QUERY, description=
                                        type=openapi.TYPE_BOOLEAN)
 
 
+
 class InputValueSupporter:
     fields_to_display: Tuple[str] = ()
 
@@ -45,6 +46,7 @@ class InputValueSupporter:
                     }
                 ]
             }
+
         """
         default_values = None
         if self.fields_to_display is None:

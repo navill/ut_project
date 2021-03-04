@@ -22,7 +22,7 @@ Doctor Serializer
 
 
 class PrescriptionWithDoctorFileSerializer(CorePrescriptionDetailSerializer):
-    doctor_files = CoreDoctorFileSerializer(many=True)
+    doctor_files = CoreDoctorFileSerializer(many=True, help_text='의사가 올린 파일 정보')
 
     class Meta(CorePrescriptionDetailSerializer.Meta):
         fields = CorePrescriptionDetailSerializer.Meta.fields + ['doctor_files']
@@ -30,7 +30,7 @@ class PrescriptionWithDoctorFileSerializer(CorePrescriptionDetailSerializer):
 
 # 0: 의사 메인페이지(의사 정보 및 담당 환자 리스트)
 class DoctorWithPatientSerializer(CoreDoctorDetailSerializer):
-    patients = CorePatientDetailSerializer(many=True)
+    patients = CorePatientDetailSerializer(many=True, help_text='담당 환자 리스트')
 
     class Meta(CoreDoctorDetailSerializer.Meta):
         fields = CoreDoctorDetailSerializer.Meta.fields + ['patients']
@@ -38,7 +38,7 @@ class DoctorWithPatientSerializer(CoreDoctorDetailSerializer):
 
 # 1: 의사가 작성한 환자의 소견서 리스트 + 소견서에 업로드된 파일
 class PatientWithPrescriptionSerializer(PatientDetailSerializer):
-    prescriptions = CorePrescriptionListSerializer(many=True)
+    prescriptions = CorePrescriptionListSerializer(many=True, help_text='환자의 소견서 리스트')
 
     class Meta(PatientDetailSerializer.Meta):
         fields = PatientDetailSerializer.Meta.fields + ['prescriptions']
@@ -61,7 +61,7 @@ class FilePrescriptionNestedPatientFileSerializer(CoreFilePrescriptionSerializer
         fields = CoreFilePrescriptionSerializer.Meta.fields + ['prescription', 'patient_files']
         extra_kwargs = {
             'uploaded': {'read_only': True},
-            'day': {'read_only': True},
+            'date': {'read_only': True},
             'day_number': {'read_only': True}
         }
 
@@ -82,7 +82,7 @@ Patient Serializer
 
 
 class PatientWithDoctorSerializer(PatientDetailSerializer):  # Patient<pk>, doctor
-    doctor = DoctorDetailSerializer()
+    doctor = DoctorDetailSerializer(help_text='담당 의사 정보')
 
     class Meta(PatientDetailSerializer.Meta):
         fields = PatientDetailSerializer.Meta.fields
@@ -104,8 +104,8 @@ class FilePrescriptionsForPatientSerializer(CoreFilePrescriptionSerializer):  # 
 
 
 class PatientMainSerializer(PatientWithDoctorSerializer):
-    prescriptions = PrescriptionListForPatientSerializer(many=True)
-    upload_schedules = serializers.SerializerMethodField()
+    prescriptions = PrescriptionListForPatientSerializer(many=True, help_text='의사가 작성한 환자의 소견서 리스트')
+    upload_schedules = serializers.SerializerMethodField(help_text='업로드 일정 리스트')
 
     class Meta(PatientWithDoctorSerializer.Meta):
         fields = PatientFields.detail_field + ['prescriptions', 'upload_schedules']
@@ -115,5 +115,6 @@ class PatientMainSerializer(PatientWithDoctorSerializer):
         queryset = FilePrescription.objects. \
             filter(prescription_id=instance.latest_prescription_id).only_list()
         serializer_context = {'request': self.context['request']}
-        file_prescriptions = FilePrescriptionsForPatientSerializer(queryset, many=True, context=serializer_context)
+        file_prescriptions = FilePrescriptionsForPatientSerializer(queryset, many=True, context=serializer_context,
+                                                                   help_text='파일 업로드 일정')
         return file_prescriptions.data

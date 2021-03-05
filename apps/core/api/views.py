@@ -407,7 +407,7 @@ class PatientProfileForPatient(RetrieveUpdateAPIView):
     path_type_user = openapi.TYPE_INTEGER
 
 
-class PatientFileUpload(CreateAPIView):  # add InputValueSupporter
+class PatientFileUpload(CreateAPIView):
     """
     [CREATE]파일 업로드(환자용)
 

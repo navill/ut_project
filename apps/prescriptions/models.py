@@ -134,7 +134,7 @@ def create_file_prescription(sender, **kwargs: Dict[str, Any]):
         FilePrescription(
             prescription_id=instance.id,
             day_number=day_number + 1,
-            day=start_date + datetime.timedelta(days=day_number))
+            date=start_date + datetime.timedelta(days=day_number))
         for day_number in range((end_date - start_date).days))
     FilePrescription.objects.bulk_create(bulk_list)
 

@@ -42,7 +42,8 @@ class PrescriptionSerializerMixin:
         writer = validated_data.pop('writer').doctor
         return Prescription.objects.create(writer=writer, **validated_data)
 
-    def _create_doctor_files(self, writer_id: int,
+    def _create_doctor_files(self,
+                             writer_id: int,
                              prescription_id: int,
                              request_files: 'InMemoryUploadedFile') -> NoReturn:
         uploader_id = writer_id

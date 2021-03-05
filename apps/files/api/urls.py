@@ -14,7 +14,7 @@ urlpatterns = [
     path('patient-files/upload', views.PatientFileUploadAPIView.as_view(), name='patient-file-upload'),
     path('patient-files/<uuid:id>', views.PatientFileRetrieveAPIView.as_view(), name='patient-file-retrieve'),  #
     path('patient-files/<uuid:id>/download', views.PatientFileDownloadAPIView.as_view(), name='patient-file-download'),  #
-    path('patient-uploaded-files', views.PatientUploadedFileListAPIView.as_view(), name='patient-file-not-checked'),
+    # path('patient-uploaded-files', views.PatientUploadedFileListAPIView.as_view(), name='patient-file-not-checked'),
 
     # path('files/<uuid:id>', .as_view(), name='file-retrieve'),
     # path('files/download/<uuid:id>', .as_view(), name='file-download'),

@@ -136,6 +136,8 @@ REST_FRAMEWORK = {
     ]
 }
 # UPDATE_LAST_LOGIN = True
+
 SWAGGER_SETTINGS = {
-    'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomSchemaGenerator',
+    # default inspector classes, see advanced documentation
+    'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomSchemaGenerator'
 }

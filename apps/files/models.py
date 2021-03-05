@@ -99,7 +99,7 @@ class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
         return self.select_related('file_prescription')
 
     def select_all(self) -> 'PatientFileQuerySet':
-        return self.select_patient().select_file_prescription()
+        return self.select_doctor().select_patient().select_file_prescription()
 
 
 class PatientFileManager(models.Manager):

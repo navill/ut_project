@@ -138,6 +138,14 @@ REST_FRAMEWORK = {
 # UPDATE_LAST_LOGIN = True
 
 SWAGGER_SETTINGS = {
-    # default inspector classes, see advanced documentation
-    'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomSchemaGenerator'
+    'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomSchemaGenerator',
+
+    'SECURITY_DEFINITIONS': {
+
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'HTTP_AUTHORIZATION',
+            'in': 'header'
+        }
+    }
 }

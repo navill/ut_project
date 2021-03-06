@@ -2,8 +2,8 @@ import datetime
 from typing import Dict, Any, Tuple, List
 
 from django.db import models
-from django.db.models import F, Prefetch
-from django.db.models.signals import post_save
+from django.db.models import F, Prefetch, Q
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from accounts.models import Patient, Doctor
@@ -121,22 +121,22 @@ class Prescription(BasePrescription):
         return f'{self.patient.get_full_name()}-{str(self.created_at)}'
 
 
-@receiver(post_save, sender=Prescription)
-def create_file_prescription(sender, **kwargs: Dict[str, Any]):
-    instance = kwargs['instance']
-    start_date = instance.start_date
-    end_date = instance.end_date
-
-    if not start_date or not end_date:
-        return None
-
-    bulk_list = (
-        FilePrescription(
-            prescription_id=instance.id,
-            day_number=day_number + 1,
-            date=start_date + datetime.timedelta(days=day_number))
-        for day_number in range((end_date - start_date).days))
-    FilePrescription.objects.bulk_create(bulk_list)
+# @receiver(post_save, sender=Prescription)
+# def create_file_prescription_by_prescription(sender, **kwargs: Dict[str, Any]):
+#     instance = kwargs['instance']
+#     start_date = instance.start_date
+#     end_date = instance.end_date
+#
+#     if not start_date or not end_date:
+#         return None
+#
+#     bulk_list = (
+#         FilePrescription(
+#             prescription_id=instance.id,
+#             day_number=day_number + 1,
+#             date=start_date + datetime.timedelta(days=day_number))
+#         for day_number in range((end_date - start_date).days + 1))
+#     FilePrescription.objects.bulk_create(bulk_list)
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
@@ -235,8 +235,10 @@ class FilePrescription(BasePrescription):
 @receiver(post_save, sender=FilePrescription)
 def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
     instance = kwargs['instance']
-    checked_queryset = instance.prescription.file_prescriptions.values_list('checked')
+    checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id).values_list('checked')
 
     if not checked_queryset.filter(checked=False).exists():
+        # prescription의 자식 file_prescriptions가 모두 checked=True일 경우
+        # 해당 prescription.checked = True로 변경
         instance.prescription.checked = True
         instance.prescription.save()

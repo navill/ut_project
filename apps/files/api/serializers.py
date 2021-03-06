@@ -73,10 +73,15 @@ class DoctorFileSerializer(_BaseFileSerializer):
 
 
 class DoctorFlieRetrieveSerializer(DoctorFileSerializer):
+    class Meta(DoctorFileSerializer.Meta):
+        fields = DoctorFileSerializer.Meta.fields + ['deleted']
+
+
+class DoctorFileUpdateSerializer(serializers.ModelSerializer):
     file = serializers.FileField(use_url=False, write_only=True, help_text='파일 객체(파일 디렉토리)')
 
-    class Meta(DoctorFileSerializer.Meta):
-        fields = ['url', 'download_url', 'prescription', 'file', 'uploader', 'created_at'] + ['deleted']
+    class Meta:
+        fields = ['file']
 
 
 class DoctorFileUploadSerializer(DoctorFileSerializer):

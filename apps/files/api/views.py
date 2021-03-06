@@ -4,7 +4,7 @@ from django.db.models import QuerySet
 from django.http import FileResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, RetrieveUpdateAPIView, UpdateAPIView
 from rest_framework.parsers import FileUploadParser, MultiPartParser
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner, CareDoctorReadOnly
@@ -39,9 +39,9 @@ class DoctorFileListAPIView(QuerySetMixin, ListAPIView):
     serializer_class = DoctorFileListSerializer
 
 
-class DoctorFileRetrieveAPIView(RetrieveUpdateAPIView):
+class DoctorFileRetrieveAPIView(RetrieveAPIView):
     """
-    [DETAIL, UPDATE] 의사가 올린 파일 세부 정보
+    [UPDATE] 의사가 올린 파일 세부 정보
 
     ---
     - 기능: 의사가 업로드한 파일의 세부 정보 출력
@@ -56,6 +56,21 @@ class DoctorFileRetrieveAPIView(RetrieveUpdateAPIView):
     def get(self, request, *args, **kwargs):
         return super(DoctorFileRetrieveAPIView, self).get(request, *args, **kwargs)
 
+
+class DoctorFileUpdateAPIView(UpdateAPIView):
+    """
+    [UPDATE] 의사가 올린 파일 세부 정보 수정
+
+    ---
+    - 기능: 의사가 업로드한 파일의 세부 정보 수정
+    - 권한: IsOwner
+
+    """
+    queryset = DoctorFile.objects.select_all()
+    permission_classes = [IsOwner]
+    serializer_class = DoctorFlieRetrieveSerializer
+    lookup_field = 'id'
+
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -64,7 +79,7 @@ class DoctorFileRetrieveAPIView(RetrieveUpdateAPIView):
     ),
         responses={200: DoctorFlieRetrieveSerializer, 400: 'Bad Request'})
     def put(self, request, *args, **kwargs):
-        return super(DoctorFileRetrieveAPIView, self).put(request, *args, **kwargs)
+        return super().put(request, *args, **kwargs)
 
     @swagger_auto_schema(request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
@@ -74,7 +89,7 @@ class DoctorFileRetrieveAPIView(RetrieveUpdateAPIView):
     ),
         responses={200: DoctorFlieRetrieveSerializer, 400: 'Bad Request'})
     def patch(self, request, *args, **kwargs):
-        return super(DoctorFileRetrieveAPIView, self).patch(request, *args, **kwargs)
+        return super().patch(request, *args, **kwargs)
 
 
 class DoctorFileUploadAPIView(CreateAPIView):
@@ -88,6 +103,7 @@ class DoctorFileUploadAPIView(CreateAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = DoctorFileUploadSerializer
+
     # parser_classes = (FileUploadParser,)
 
     @swagger_auto_schema(request_body=openapi.Schema(

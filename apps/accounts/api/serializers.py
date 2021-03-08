@@ -103,7 +103,7 @@ class DoctorDetailSerializer(DoctorListSerializer):
 
 
 class DoctorSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
-    detail_url = serializers.HyperlinkedIdentityField(
+    url = serializers.HyperlinkedIdentityField(
         view_name='accounts:doctor-detail-update',
         lookup_field='pk',
         read_only=True,
@@ -114,7 +114,7 @@ class DoctorSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
 
     class Meta:
         model = Doctor
-        fields = ['detail_url', 'gender', 'user', 'first_name', 'last_name', 'address', 'phone', 'description', 'major']
+        fields = ['url', 'gender', 'user', 'first_name', 'last_name', 'address', 'phone', 'description', 'major']
         extra_kwargs = {'description': {'help_text': '의사 간단 소개(ex: 정신과 의사 홍길동입니다.)'}}
 
 
@@ -126,6 +126,7 @@ class PatientListSerializer(AccountSerializer):
         read_only=True,
         help_text='환자 프로필 url'
     )
+    age = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
@@ -133,8 +134,11 @@ class PatientListSerializer(AccountSerializer):
         extra_kwargs = {
             'user': {'help_text': '환자 계정 primary key(ex: 5)', 'read_only': True},
             'doctor': {'help_text': '담당 의사 primary key(ex: 2)'},
-            'age': {'help_text': '나이(ex: 30)'}
+
         }
+
+    def get_age(self, instance):
+        return instance.age
 
 
 class PatientDetailSerializer(PatientListSerializer):
@@ -154,12 +158,12 @@ class PatientSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
     user = BaseUserSignUpSerializer(help_text='환자 계정 정보 입력 필드(email, password1, password2)')
     doctor = serializers.PrimaryKeyRelatedField(queryset=Doctor.objects.select_all(),
                                                 help_text='담당 의사 primary key(ex: 2)')
-    age = serializers.IntegerField(max_value=150, help_text='나이(ex: 30)')
+    birth = serializers.DateField()
     emergency_call = serializers.CharField(max_length=14, help_text='긴급 또는 보호자 번호(ex: 010-1111-2222)')
 
     class Meta:
         model = Patient
-        fields = ['detail_url', 'user', 'first_name', 'last_name', 'gender', 'age', 'address', 'phone',
+        fields = ['detail_url', 'user', 'first_name', 'last_name', 'gender', 'birth', 'address', 'phone',
                   'emergency_call', 'doctor']
 
 

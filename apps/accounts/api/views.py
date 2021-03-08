@@ -11,6 +11,7 @@ from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from accounts import docs
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
 from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser
@@ -63,18 +64,13 @@ class TokenLogoutView(APIView):
 
 
 class DoctorSignUpAPIView(CreateAPIView):
-    """
-    [CREATE] 의사 계정 생성
-
-    ---
-    ## 의사 계정 생성
-    - permissions: Any
-    - result: 생성된 객체 정보 출력
-    """
     queryset = Doctor.objects.select_all()
     serializer_class = DoctorSignUpSerializer
     permission_classes = [AllowAny]
-    # fields_to_display = 'gender', 'major'
+
+    @swagger_auto_schema(**docs.doctor_signup)
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 class DoctorListAPIView(ListAPIView):

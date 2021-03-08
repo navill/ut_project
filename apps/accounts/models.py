@@ -4,9 +4,10 @@ from django.utils.translation import gettext as _
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import Q, Prefetch, Max
+from django.db.models import Q, Prefetch, Max, F, Func
 from django.urls import reverse
 
+from config.utils.database_function import CalculateAge
 from config.utils.utils import concatenate_name
 from core.api.fields import PatientFields, DoctorFields
 from hospitals.models import Major
@@ -260,20 +261,22 @@ class PatientQuerySet(CommonUserQuerySet):
         fields = PatientFields.detail_field + list(others)
         return self.only(*fields)
 
+    def set_age(self):
+        return self.annotate(age=CalculateAge('birth'))
+
 
 class PatientManager(CommonUserManager):
     def get_queryset(self) -> PatientQuerySet:
         return PatientQuerySet(self.model, using=self._db). \
             annotate(full_name=concatenate_name(),
                      doctor_name=concatenate_name('doctor')). \
-            filter_user_active()
+            filter_user_active().set_age()
 
 
 class Patient(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
     doctor = models.ForeignKey(Doctor, on_delete=models.DO_NOTHING, related_name='patients')
-    # birth = models.DateField()  # -> annotate를 이용해 age 필드 생성
-    age = models.PositiveIntegerField(default=0)
+    birth = models.DateField()
     emergency_call = models.CharField(max_length=14, default='010')
 
     objects = PatientManager()

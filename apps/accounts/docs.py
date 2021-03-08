@@ -34,7 +34,8 @@ user_schema = {
                 type=TYPE_STRING,
                 format=FORMAT_PASSWORD
             )
-        }
+        },
+        required=['email', 'password', 'password2']
     ),
 }
 account_schema = {
@@ -60,7 +61,12 @@ account_schema = {
         type=TYPE_STRING
     ),
 }
-
+created_at_schema = {
+    'created_at': Schema(
+        description='계정 생성일',
+        type=TYPE_STRING,
+        format=FORMAT_DATETIME
+    )}
 doctor_signup = {
     'operation_summary': '[CREATE] 의사 계정 생성',
     'operation_description': """
@@ -89,7 +95,6 @@ doctor_signup = {
             schema=Schema(type=TYPE_OBJECT,
                           properties={
                               **user_schema,
-
                               'description': Schema(
                                   description='의사 소개',
                                   type=TYPE_STRING
@@ -145,11 +150,7 @@ doctor_list = {
                               'first_name': account_schema['first_name'],
                               'last_name': account_schema['last_name'],
                               'gender': account_schema['gender'],
-                              'created_at': Schema(
-                                  description='계정 생성일',
-                                  type=TYPE_STRING,
-                                  format=FORMAT_DATETIME
-                              )
+                              'created_at': created_at_schema
                           },
                           ),
             description='의사 리스트',
@@ -211,11 +212,7 @@ doctor_detail = {
                         type=TYPE_STRING
                     ),
                     **account_schema,
-                    'created_at': Schema(
-                        description='계정 생성일',
-                        type=TYPE_STRING,
-                        format=FORMAT_DATETIME
-                    ),
+                    'created_at': created_at_schema,
                     'description': Schema(
                         description='의사 간략 소개',
                         type=TYPE_STRING
@@ -344,7 +341,7 @@ patient_signup = {
                                   description='담당 의사 객체의 pk',
                                   type=TYPE_INTEGER
                               )
-                          }, ),
+                          }),
             description='환자 계정 생성',
             examples={
                 "application/json": {
@@ -394,13 +391,8 @@ patient_list = {
                               'first_name': account_schema['first_name'],
                               'last_name': account_schema['last_name'],
                               'gender': account_schema['gender'],
-                              'created_at': Schema(
-                                  description='계정 생성일',
-                                  type=TYPE_STRING,
-                                  format=FORMAT_DATETIME
-                              )
-
-                          }, ),
+                              'created_at': created_at_schema
+                          }),
             description='의사 계정에 연결된 환자의 리스트 출력',
             examples={
                 "application/json": [
@@ -468,11 +460,7 @@ patient_detail = {
                         type=TYPE_INTEGER
                     ),
                     **account_schema,
-                    'created_at': Schema(
-                        description='계정 생성일',
-                        type=TYPE_STRING,
-                        format=FORMAT_DATETIME
-                    ),
+                    'created_at': created_at_schema,
                     'emergency_call': Schema(
                         description='보호자 또는 응급 전화 번호',
                         type=TYPE_STRING
@@ -550,5 +538,4 @@ patient_update = {
             }
         )
     }
-
 }

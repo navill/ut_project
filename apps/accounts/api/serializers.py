@@ -134,7 +134,7 @@ class PatientListSerializer(AccountSerializer):
         model = Patient
         fields = ['url'] + PatientFields.list_field
 
-    def get_age(self, instance):
+    def get_age(self, instance: Patient) -> int:
         return instance.age
 
 
@@ -179,7 +179,7 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
         token = CustomRefreshToken.for_user(user)
         return token
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, str]) -> Dict[str, str]:
         data = super(AccountsTokenSerializer, self).validate(attrs)
         self._add_next_url(data)
         return data

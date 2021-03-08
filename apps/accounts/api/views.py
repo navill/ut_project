@@ -1,10 +1,11 @@
-from typing import Type
+from typing import Type, NoReturn
 
 from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
@@ -51,7 +52,7 @@ class TokenLogoutView(APIView):
             raise e
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
-    def _logout_using_refresh_token(self, request):
+    def _logout_using_refresh_token(self, request: Request) -> NoReturn:
         user = request.user
         refresh_token = request.data.get('refresh', None)
         if refresh_token:

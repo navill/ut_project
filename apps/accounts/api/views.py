@@ -3,7 +3,7 @@ from typing import Type
 from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,10 +14,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from accounts import docs
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
-from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser
+from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser, RelatedPatientReadOnly
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer, DoctorSignUpSerializer
 from accounts.models import Doctor, Patient
-from config.utils.api_utils import InputValueSupporter
 
 
 class AccountsTokenPairView(TokenObtainPairView):
@@ -74,64 +73,53 @@ class DoctorSignUpAPIView(CreateAPIView):
 
 
 class DoctorListAPIView(ListAPIView):
-    """
-    [LIST] 의사 정보
-
-    ---
-    ## 등록된 의사의 리스트 출력
-    - permissions: 관리자 계정
-    - result: 의사 객체들 출력
-    """
     queryset = Doctor.objects.select_all().order_by('-created_at')
     serializer_class = serializers.DoctorListSerializer
     permission_classes = [IsSuperUser | IsDoctor]
 
+    @swagger_auto_schema(**docs.doctor_list)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
-class DoctorRetrieveUpdateAPIView(RetrieveUpdateAPIView):
-    """
-    [DETAIL, UPDATE] 의사 정보
 
-    ---
-    ## 등록된 의사의 세부 정보 및 수정
-    - permissions: 객체 소유자
-    - result(detail): 의사 세부 정보
-    - result(update): 수정 사항이 반영된 의사의 세부정보
-
-    """
+class DoctorRetrieveAPIView(RetrieveAPIView):
     queryset = Doctor.objects.select_all()
     serializer_class = serializers.DoctorDetailSerializer
+    permission_classes = [IsOwner | RelatedPatientReadOnly]
+    lookup_field = 'pk'
+
+    @swagger_auto_schema(**docs.doctor_detail)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class DoctorUpdateAPIView(UpdateAPIView):
+    queryset = Doctor.objects.select_all()
+    serializer_class = serializers.DoctorUpdateSerializer
     permission_classes = [IsOwner]
     lookup_field = 'pk'
 
+    @swagger_auto_schema(**docs.doctor_update)
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(**docs.doctor_update)
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
 
 class PatientSignUpAPIView(CreateAPIView):
-    """
-    [CREATE] 환자 계정 생성
-
-    ---
-    ## 환자 계정 생성
-    - permissions: Any
-    - result: 생성된 객체 정보 출력
-    """
     queryset = Patient.objects.select_all()
     serializer_class = serializers.PatientSignUpSerializer
     permission_classes = [AllowAny]
     lookup_field = 'pk'
 
-    @swagger_auto_schema(request_body=serializers.PatientSignUpSerializer)
+    @swagger_auto_schema(**docs.patient_signup)
     def post(self, request, *args, **kwargs):
-        return super(PatientSignUpAPIView, self).post(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
 
 
 class PatientListAPIView(ListAPIView):
-    """
-    [LIST] 환자 정보
-
-    ---
-    ## 등록된 환자의 리스트 정보
-    - premissions: 의사 계정 접근 가능
-    - result: 로그인한 의사의 담당 환자 리스트 출력
-    """
     queryset = Patient.objects.select_all().order_by('-created_at')
     serializer_class = serializers.PatientListSerializer
     permission_classes = [IsDoctor]
@@ -142,19 +130,32 @@ class PatientListAPIView(ListAPIView):
         doctor = self.request.user.doctor
         return queryset.filter(doctor=doctor)
 
+    @swagger_auto_schema(**docs.patient_list)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
-class PatientRetrieveUpdateAPIView(RetrieveUpdateAPIView):
-    """
-    [DETAIL, UPDATE] 환자 정보
 
-    ---
-    ## 등록된 환자의 세부 정보
-    - permissions: 환자 본인 계정(읽기 및 수정), 환자를 담당하는 의사 계정(읽기 전용)
-    - result(detail): 환자의 세부 정보 출력
-    - result(update): 수정사항이 반영된 환자의 세부 정보 출력
-
-    """
+class PatientRetrieveAPIView(RetrieveAPIView):
     queryset = Patient.objects.select_all()
     serializer_class = serializers.PatientDetailSerializer
     permission_classes = [CareDoctorReadOnly | IsOwner]
     lookup_field = 'pk'
+
+    @swagger_auto_schema(**docs.patient_detail)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
+class PatientUpdateAPIView(UpdateAPIView):
+    queryset = Patient.objects.select_all()
+    serializer_class = serializers.PatientUpdateSerializer
+    permission_classes = [IsOwner]
+    lookup_field = 'pk'
+
+    @swagger_auto_schema(**docs.patient_update)
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(**docs.patient_update)
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)

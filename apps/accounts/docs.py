@@ -94,7 +94,22 @@ doctor_signup = {
         '201': Response(
             schema=Schema(type=TYPE_OBJECT,
                           properties={
-                              **user_schema,
+                              'user': Schema(
+                                  type=TYPE_OBJECT,
+                                  description='계정 정보',
+                                  properties={
+                                      'id': Schema(
+                                          description='사용자 객체의 pk',
+                                          type=TYPE_INTEGER
+                                      ),
+                                      'email': Schema(
+                                          description='계정 아이디로 사용될 이메일',
+                                          type=TYPE_STRING,
+                                          format=FORMAT_URI
+                                      )
+                                  }
+                              ),
+                              **account_schema,
                               'description': Schema(
                                   description='의사 소개',
                                   type=TYPE_STRING
@@ -178,7 +193,8 @@ doctor_list = {
                     ]
             }
         ),
-    }}
+    }
+}
 doctor_detail = {
     'operation_summary': '[DETAIL] 의사 세부 정보',
     'operation_description': """
@@ -221,16 +237,18 @@ doctor_detail = {
             ),
             description='의사 정보 출력',
             examples={
-                "url": "http://127.0.0.1:8000/accounts/doctors/2/update",
-                "user": 2,
-                "major": "정신의학",
-                "first_name": "의사",
-                "last_name": "일",
-                "gender": "남",
-                "created_at": "2021-01-27T13:09:58.512592",
-                "address": "서울특별시",
-                "phone": "111",
-                "description": "첫 번째 의사"
+                "application/json": {
+                    "url": "http://127.0.0.1:8000/accounts/doctors/2/update",
+                    "user": 2,
+                    "major": "정신의학",
+                    "first_name": "의사",
+                    "last_name": "일",
+                    "gender": "남",
+                    "created_at": "2021-01-27T13:09:58.512592",
+                    "address": "서울특별시",
+                    "phone": "111",
+                    "description": "첫 번째 의사"
+                }
             }
         )
     }
@@ -315,7 +333,7 @@ patient_signup = {
                 type=TYPE_INTEGER
             )
         },
-        required=['user', 'first_name', 'last_name', 'gender', 'address', 'phone', 'major']
+        required=['user', 'doctor', 'first_name', 'last_name', 'gender', 'address', 'birth', 'phone', 'emergency_call']
     ),
     'responses': {
         '201': Response(

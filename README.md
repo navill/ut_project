@@ -11,6 +11,7 @@
 ### TIL
 
 -   Django & DRF
+    -   210308: [MySQL Function을 이용한 만 나이 계산](docs/210308.md)
     -   210123: [DRF 다중 파일 업로드](docs/210123.md)
     -   210117: [Database(MySQL-docker) 변경](docs/210117.md)
     -   210108: [FileField에 연결된 파일(로컬에 저장된 파일) 삭제](docs/210108.md)
@@ -20,6 +21,7 @@
     -   201204: [Generic View 흐름도 정리](docs/201204.md)
 
 <br>
+
 -   Celery
     -   201202: [celery 셋팅 및 db backend](docs/celery_doc.md)
 

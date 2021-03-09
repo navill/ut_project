@@ -1,8 +1,7 @@
-from typing import Dict, Any, Optional, Type, TYPE_CHECKING, NoReturn
+from typing import Optional, Type, TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.fields import CurrentUserDefault
 
 from files.models import DoctorFile, PatientFile
@@ -28,11 +27,6 @@ class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         return queryset.filter(prescription__patient_id=request.user.id)
 
 
-"""
-BaseFile Serializer
-"""
-
-
 class _BaseFileSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(read_only=True, help_text='파일 생성일(ex: 2021-01-01T00:00:00')
     deleted = serializers.BooleanField(default=False, read_only=True,
@@ -40,12 +34,6 @@ class _BaseFileSerializer(serializers.ModelSerializer):
 
     def get_uploader_name(self, instance: User):
         return getattr(instance, 'uploader_patient_name', None) or getattr(instance, 'uploader_doctor_name', None)
-
-
-"""
-DoctorFile Serializer
-- fields: id, uploader, created_at, file, deleted, prescription
-"""
 
 
 class DoctorFileSerializer(_BaseFileSerializer):

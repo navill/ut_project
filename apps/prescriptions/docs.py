@@ -286,45 +286,47 @@ file_prescription_list = {
     'responses': {
         '200': openapi.Response(
             schema=openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    'id': openapi.Schema(
-                        description='FilePrescription(파일 업로드 스케줄) 객체의 pk',
-                        type=openapi.TYPE_INTEGER,
-                    ),
-                    'prescription': openapi.Schema(
-                        description='Prescription(소견서) 객체의 pk',
-                        type=openapi.TYPE_INTEGER,
-                    ),
-                    'uploaded': openapi.Schema(
-                        description='환자가 파일을 올렸는지 여부',
-                        type=openapi.TYPE_BOOLEAN,
-                    ),
-                    'checked': openapi.Schema(
-                        description='의사가 환자 파일을 확인했는지 여부',
-                        type=openapi.TYPE_BOOLEAN,
-                    ),
-                    'date': openapi.Schema(
-                        description='환자가 업로드해야할 날짜',
-                        type=openapi.TYPE_STRING,
-                        format=openapi.FORMAT_DATE
-                    ),
-                    'status': openapi.Schema(
-                        description='파일을 기반으로한 환자의 상태 표시',
-                        enum=['None', 'NORMAL', 'ABNORMAL', 'UNKNOWN'],
-                        type=openapi.TYPE_STRING,
-                    ),
-                    'created_at': openapi.Schema(
-                        description='객체 생성일',
-                        type=openapi.TYPE_STRING,
-                        format=openapi.FORMAT_DATETIME
-                    ),
-                    'updated_at': openapi.Schema(
-                        description='객체 수정일',
-                        type=openapi.TYPE_STRING,
-                        format=openapi.FORMAT_DATETIME
-                    ),
-                }
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'id': openapi.Schema(
+                            description='FilePrescription(파일 업로드 스케줄) 객체의 pk',
+                            type=openapi.TYPE_INTEGER,
+                        ),
+                        'prescription': openapi.Schema(
+                            description='Prescription(소견서) 객체의 pk',
+                            type=openapi.TYPE_INTEGER,
+                        ),
+                        'uploaded': openapi.Schema(
+                            description='환자가 파일을 올렸는지 여부',
+                            type=openapi.TYPE_BOOLEAN,
+                        ),
+                        'checked': openapi.Schema(
+                            description='의사가 환자 파일을 확인했는지 여부',
+                            type=openapi.TYPE_BOOLEAN,
+                        ),
+                        'date': openapi.Schema(
+                            description='환자가 업로드해야할 날짜',
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATE
+                        ),
+                        'status': openapi.Schema(
+                            description='파일을 기반으로한 환자의 상태 표시',
+                            enum=['None', 'NORMAL', 'ABNORMAL', 'UNKNOWN'],
+                            type=openapi.TYPE_STRING,
+                        ),
+                        'created_at': openapi.Schema(
+                            description='객체 생성일',
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATETIME
+                        ),
+                        'updated_at': openapi.Schema(
+                            description='객체 수정일',
+                            type=openapi.TYPE_STRING,
+                            format=openapi.FORMAT_DATETIME
+                        ),
+                    })
             ),
             description='의사가 지정한 업로드 일정에 대한 정보',
             examples={

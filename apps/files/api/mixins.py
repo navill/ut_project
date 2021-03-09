@@ -19,13 +19,6 @@ class QuerySetMixin:
             queryset = queryset.select_patient().select_file_prescription().filter_uploader(user)
         return queryset if user.is_superuser else queryset
 
-    # def _get_user_role(self, user):
-    #     if user.is_doctor:
-    #         query = 'uploader__doctor'
-    #     elif user.is_patient:
-    #         query = 'uploader__patient'
-    #     return query
-
 
 class BaseFileQuerySetMixin:
     def shallow_delete(self: Type['BaseFileQuerySetMixin']) -> str:

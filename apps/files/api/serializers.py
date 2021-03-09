@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
-class BasedCurrentUserPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+class CurrentUserPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self) -> Optional[Type['QuerySet']]:
         request = self.context.get('request', None)
         queryset = super().get_queryset()
@@ -28,22 +28,14 @@ class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 
 class _BaseFileSerializer(serializers.ModelSerializer):
-    created_at = serializers.DateTimeField(read_only=True, help_text='파일 생성일(ex: 2021-01-01T00:00:00')
-    deleted = serializers.BooleanField(default=False, read_only=True,
-                                       help_text='삭제된 파일(deleted file) 여부(ex: true or false)')
+    created_at = serializers.DateTimeField(read_only=True)
+    deleted = serializers.BooleanField(default=False)
 
     def get_uploader_name(self, instance: User):
         return getattr(instance, 'uploader_patient_name', None) or getattr(instance, 'uploader_doctor_name', None)
 
 
 class DoctorFileSerializer(_BaseFileSerializer):
-    url = serializers.HyperlinkedIdentityField(
-        view_name='files:doctor-file-retrieve',
-        lookup_field='id',
-        read_only=True,
-        help_text='파일 세부 정보 접근 url'
-    )
-
     download_url = serializers.HyperlinkedIdentityField(
         view_name='files:doctor-file-download',
         lookup_field='id',
@@ -53,30 +45,37 @@ class DoctorFileSerializer(_BaseFileSerializer):
     file = serializers.FileField(use_url=False, help_text='파일 객체(파일 디렉토리)')
     uploader = serializers.PrimaryKeyRelatedField(read_only=True, help_text='로그인 유저(의사)의 계정 primary key(ex: 2)')
     prescription = serializers.PrimaryKeyRelatedField(read_only=True, help_text='의사가 파일을 업로드하면서 작성한 소견서(ex: 불면증 의심됨)')
-    created_at = serializers.DateTimeField(read_only=True, help_text='파일 생성일(ex: 2021-01-01T00:00:00')
 
     class Meta:
         model = DoctorFile
-        fields = ['url', 'download_url', 'prescription', 'file', 'uploader', 'created_at']
+        fields = ['id', 'download_url', 'prescription', 'file', 'uploader', 'created_at']
 
 
 class DoctorFlieRetrieveSerializer(DoctorFileSerializer):
+    update_url = serializers.HyperlinkedIdentityField(
+        view_name='files:doctor-file-update',
+        lookup_field='id',
+        read_only=True
+    )
+
     class Meta(DoctorFileSerializer.Meta):
-        fields = DoctorFileSerializer.Meta.fields + ['deleted']
+        fields = ['id', 'update_url', 'download_url', 'prescription', 'file', 'uploader', 'created_at', 'deleted']
 
 
 class DoctorFileUpdateSerializer(serializers.ModelSerializer):
-    file = serializers.FileField(use_url=False, write_only=True, help_text='파일 객체(파일 디렉토리)')
+    file = serializers.FileField(use_url=False, help_text='파일 객체(파일 디렉토리)')
+    deleted = serializers.BooleanField()
 
     class Meta:
-        fields = ['file']
+        model = DoctorFile
+        fields = ['file', 'deleted']
 
 
 class DoctorFileUploadSerializer(DoctorFileSerializer):
     uploader = serializers.HiddenField(default=CurrentUserDefault())
-    prescription = BasedCurrentUserPrimaryKeyRelatedField(queryset=Prescription.objects.select_all(),
-                                                          required=True,
-                                                          help_text='소견서 객체 primary key')
+    prescription = CurrentUserPrimaryKeyRelatedField(queryset=Prescription.objects.select_all(),
+                                                     required=True,
+                                                     help_text='소견서 객체 primary key')
     file = serializers.FileField(write_only=True, help_text='업로드할 파일')
 
     class Meta(DoctorFileSerializer.Meta):
@@ -109,7 +108,6 @@ class DoctorFileInPrescriptionSerializer(serializers.ModelSerializer):
                                                         lookup_field='id',
                                                         read_only=True,
                                                         help_text='download url')
-    # prescription = serializers.PrimaryKeyRelatedField(read_only=True)
     file = serializers.FileField(use_url=False, help_text='파일 정보')
 
     class Meta:
@@ -123,10 +121,15 @@ class DoctorFileDownloadSerializer(DoctorFileSerializer):
 
 
 class DoctorFileListSerializer(DoctorFileSerializer):
+    url = serializers.HyperlinkedIdentityField(
+        view_name='files:doctor-file-retrieve',
+        lookup_field='id',
+        read_only=True,
+    )
     uploader_name = serializers.SerializerMethodField(read_only=True, help_text='업로더(의사) 이름')
 
     class Meta(DoctorFileSerializer.Meta):
-        fields = DoctorFileSerializer.Meta.fields + ['uploader_name']
+        fields = ['url'] + DoctorFileSerializer.Meta.fields + ['uploader_name']
 
 
 class DoctorUploadedFileListSerializer(DoctorFileSerializer):
@@ -143,7 +146,7 @@ class DoctorUploadedFileListSerializer(DoctorFileSerializer):
 
 
 class DoctorUploadedFileRetrieveSerializer(DoctorFileSerializer):
-    prescription = BasedCurrentUserPrimaryKeyRelatedField(
+    prescription = CurrentUserPrimaryKeyRelatedField(
         queryset=Prescription.objects.select_all(), required=False)
 
     class Meta(DoctorFileSerializer.Meta):
@@ -172,18 +175,28 @@ class PatientFileSerializer(_BaseFileSerializer):
     file_prescription = CurrentPatientPrimaryKeyRelatedField(queryset=FilePrescription.objects.select_all(),
                                                              help_text='FilePrescription pk')
     uploader = serializers.PrimaryKeyRelatedField(read_only=True, help_text='업로더(환자계정) pk')
-    uploader_name = serializers.SerializerMethodField(help_text='업로더(환자)의 이름')
 
     class Meta:
         model = PatientFile
-        fields = ['url', 'download_url', 'id', 'file_prescription', 'uploader', 'uploader_name', 'created_at']
+        fields = ['url', 'download_url', 'id', 'file_prescription', 'file', 'uploader', 'created_at']
 
 
 class PatientFlieRetrieveSerializer(PatientFileSerializer):
+    update_url = serializers.HyperlinkedIdentityField(
+        view_name='files:patient-file-update',
+        lookup_field='id',
+        read_only=True,
+    )
+    uploader_name = serializers.SerializerMethodField(help_text='업로더(환자)의 이름')
     file = serializers.FileField(help_text='환자가 올린 파일')
 
     class Meta(PatientFileSerializer.Meta):
-        fields = PatientFileSerializer.Meta.fields + ['file']
+        fields = ['update_url'] + PatientFileSerializer.Meta.fields + ['file', 'uploader_name']
+
+
+class PatientFlieUpdateSerializer(PatientFileSerializer):
+    class Meta(PatientFileSerializer.Meta):
+        fields = PatientFileSerializer.Meta.fields
 
 
 class PatientFileUploadSerializer(PatientFileSerializer):

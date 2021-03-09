@@ -41,5 +41,5 @@ def directory_path(instance: Union['DoctorFile', 'PatientFile'], filename: str) 
 
 
 def concatenate_name(target_field: str) -> Concat:
-    full_name = Concat(F(f'{target_field}__first_name'), F(f'{target_field}__last_name'))
+    full_name = Concat(F(f'{target_field}__last_name'), F(f'{target_field}__first_name'))
     return full_name

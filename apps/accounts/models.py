@@ -75,17 +75,8 @@ class BaseQuerySet(models.QuerySet):
     def active(self) -> 'BaseQuerySet':
         return self.filter(is_active=True)
 
-    # def defer_option_fields(self, *fields: Tuple[str]) -> 'BaseQuerySet':
-    #     return self.defer(*DEFER_BASEUSER_FIELDS, *fields)
-
     def select_all(self) -> 'BaseQuerySet':
         return self.select_related('doctor').select_related('patient')
-
-    # def defer_unnecessary_fields(self) -> 'BaseQuerySet':
-    #     # deferred_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
-    #     deferred_doctor_fields = get_defer_field_set(parent_field_name='doctor', *DEFER_DOCTOR_FIELDS)
-    #     deferred_patient_fields = get_defer_field_set(parent_field_name='patient', *DEFER_PATIENT_FIELDS)
-    #     return self.defer(*DEFER_BASEUSER_FIELDS, *deferred_doctor_fields, *deferred_patient_fields)
 
 
 class BaseManager(BaseUserManager):
@@ -113,12 +104,6 @@ class BaseManager(BaseUserManager):
         attributes.setdefault('is_staff', True)
         attributes.setdefault('is_superuser', True)
         attributes.setdefault('is_active', True)
-
-    # def _validate_superuser_status(self, attributes):
-    #     if attributes.get('is_staff') is not True:
-    #         raise ValueError('Superuser must have is_staff=True.')
-    #     if attributes.get('is_superuser') is not True:
-    #         raise ValueError('Superuser must have is_superuser=True.')
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
@@ -177,7 +162,6 @@ class DoctorQuerySet(CommonUserQuerySet):
     def nested_all(self):
         return self.select_all().prefetch_all()
 
-    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
     def only_list(self, *others: Tuple[str]):
         fields = DoctorFields.list_field + others
         return self.only(*fields)
@@ -211,11 +195,6 @@ class Doctor(AccountsModel):
 
 
 class PatientQuerySet(CommonUserQuerySet):
-    # def defer_option_fields(self, *fields: Tuple[str, ...]) -> 'PatientQuerySet':
-    #     defer_user_fields = (f'user__{field}' for field in DEFER_BASEUSER_FIELDS)
-    #     defer_doctor_fields = (f'doctor__{field}' for field in DEFER_DOCTOR_FIELDS)
-    #     return self.defer(*DEFER_PATIENT_FIELDS, *defer_doctor_fields, *defer_user_fields, *fields)
-
     def with_latest_prescription(self) -> 'PatientQuerySet':
         return self.filter(prescriptions__checked=False).annotate(latest_prescription_id=Max('prescriptions__id'))
 
@@ -252,7 +231,6 @@ class PatientQuerySet(CommonUserQuerySet):
     def nested_all(self):
         return self.select_all().prefetch_all()
 
-    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
     def only_list(self, *others: List[str]):
         fields = PatientFields.list_field + list(others)
         return self.only(*fields)

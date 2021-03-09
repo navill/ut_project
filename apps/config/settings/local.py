@@ -20,13 +20,6 @@ if DEBUG:
 
 ALLOWED_HOSTS = ['*']
 
-# database
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -64,7 +57,7 @@ SIMPLE_JWT = {
 
     'AUTH_TOKEN_CLASSES': (
         'rest_framework_simplejwt.tokens.AccessToken',
-        # 'rest_framework_simplejwt.tokens.SlidingToken'
+        'rest_framework_simplejwt.tokens.SlidingToken'
     ),
     'TOKEN_TYPE_CLAIM': 'token_type',
 

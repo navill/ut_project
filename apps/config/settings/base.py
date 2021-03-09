@@ -4,8 +4,6 @@ from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
 
-# from config.utils.doc_utils import CustomSchemaGenerator
-
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 ROOT_DIR = BASE_DIR.parent
 
@@ -138,13 +136,30 @@ REST_FRAMEWORK = {
 
 SWAGGER_SETTINGS = {
     # 'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomSchemaGenerator',
-
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'config.utils.doc_utils.CustomAutoSchema',
     'SECURITY_DEFINITIONS': {
-
         'Bearer': {
             'type': 'apiKey',
-            'name': 'HTTP_AUTHORIZATION',
-            'in': 'header'
-        }
+            'name': 'Authorization',
+            'in': 'header',
+            'description':
+            """
+            ```bash            
+            curl -H "Authorization: Bearer eyJ0eXAiOiJKV1QiL..." -X GET http://localhost:8000/...
+            ```
+            - service access: 회원가입과 로그인을 제외한 모든 서비스의 헤더에 access token 값을 포함해야함.
+            
+            ```bash
+            curl -X POST -d"email=test@test.com&password=test1234" http://localhost:8000/token
+            ```
+            - login -> refresh, access token 반환(status_code=201) 
+            
+            ```bash
+            curl -H "Authorization: Bearer eyJ0eXAiOi...WbyjSVk" -X POST -d"refresh=eyJ0eXAiOiJK...0OSdp0" http://localhost:8000/token/logout 
+            ```
+            - logout -> None 반환(status_code=205)
+            
+            """
+        },
     }
 }

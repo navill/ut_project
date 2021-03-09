@@ -557,3 +557,154 @@ patient_update = {
         )
     }
 }
+authentication_schema = {
+    'next_url': Schema(
+        type=TYPE_STRING,
+        format=FORMAT_URI,
+        description='로그인 이후 접근할 url'
+    ),
+    'email': Schema(
+        type=TYPE_STRING,
+        format=FORMAT_EMAIL,
+        description='계정 아이디'
+    ),
+    'password': Schema(
+        type=TYPE_STRING,
+        format=FORMAT_PASSWORD,
+        description='계정 비밀번호'
+    ),
+    'refresh': Schema(
+        type=TYPE_STRING,
+        description='access 토큰 갱신을 위해 사용될 refresh token'
+    ),
+    'access': Schema(
+        type=TYPE_STRING,
+        description='서비스 접근에 필요한 토큰'
+    )
+}
+
+login_with_token = {
+    'operation_summary': "[CREATE] 사용자 계정을 통한 토큰 획득",
+    'operation_description': """
+    - 기능: 계정 아이디(email)과 비밀번호를 입력하고 API 접근에 필요한 토큰(access, refresh)을 획득
+    - 권한: AllowAny
+    """,
+
+    'request_body': Schema(
+        type=TYPE_OBJECT,
+        description="계정 정보(email, password)",
+        properties={
+            'email': authentication_schema['email'],
+            'password': authentication_schema['password'],
+        },
+        required=['email', 'password']
+    ),
+    'responses': {
+        '201': Response(
+            schema=Schema(
+                type=TYPE_OBJECT,
+                properties={
+                    'refresh': authentication_schema['refresh'],
+                    'access': authentication_schema['access'],
+                    'main_url': authentication_schema['next_url']
+                }
+            ),
+            description='로그인 완료(토큰 반환)',
+            examples={
+                'application/json':
+                    {
+                        "refresh": "eyJ0eXAiOiJKV...1QiLC6hOXm35pYRw",
+                        "access": "eyJ0eXAiOiJKVb...sdjJeSUz5j2z_2eY",
+                        "main_url": "/core-api/doctors/2/patients"
+                    }
+            }
+        )
+    },
+    'code_examples': [
+        {
+            'lang': 'bash',
+            'source': """
+            $ curl -X POST 
+            -d"email=doctor1@doctor.com&password=test1234" 
+            http://localhost:8000/token
+
+            {
+                "refresh":"eyJ0eXAiOiJKV1QHRB..._PxD_4U18kumbf9Ut-YbIvehI",
+                "access":"eyJ0eXAiNiODZhYyIsI...ZlkrnLIhp3EXSZusZOP35PxzA",
+                "main_url":"/core-api/doctors/2/patients"
+            } 
+        """
+        },
+    ],
+}
+
+refresh_token = {
+    'operation_summary': "[CREATE] access token 갱신",
+    'operation_description': """
+    - 기능: 사용자가 획득한 refresh token을 이용해 새 새로운 토큰을 수신 
+    - 권한: AllowAny
+    """,
+    'request_body': Schema(
+        type=TYPE_OBJECT,
+        description="refresh token",
+        properties={
+            'refresh': authentication_schema['refresh']
+        },
+        required=['refresh']
+    ),
+    'responses': {
+        '201': Response(
+            schema=Schema(
+                type=TYPE_OBJECT,
+                properties={
+                    'refresh': authentication_schema['refresh'],
+                }
+            ),
+            description='로그인 완료(토큰 반환)',
+            examples={
+                'application/json':
+                    {
+                        "access": "eyJ0eXAiOiJKV1QiLC...JhbGcil4XakP_QtJt6_Yi9BqA",
+                        "refresh": "eyJ0eXAiOiJKV1QiL...CJhbGciOiJIUtE2b5Xea1agwA"
+                    }
+            }
+        )
+    },
+    'code_examples': [
+        {
+            'lang': 'bash',
+            'source': """
+            $ curl -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJ..." 
+            -X POST -d"refresh=eyJ0eXAiOi...Pa2RQ" 
+            http://localhost:8000/token/refresh
+
+            {
+                "access":"eyJ0eXAiOiJKV1Q...OcH4A",
+                "refresh":"eyJ0eXAiOiJKVQ...QtFZ8",
+            }        
+        """
+        },
+    ],
+}
+
+destroy_token = {
+    'operation_summary': "[CREATE] Token 무효화(로그아웃)",
+    'operation_description': """
+    - 기능: 사용자가 획득한 access token의 유효시간을 강제로 만료시킴 
+    - 권한: AllowAny
+    """,
+    'request_body': Schema(
+        type=TYPE_OBJECT,
+        description="계정 정보(email, password)",
+        properties={
+            'refresh': Schema(
+                type=TYPE_STRING,
+                description='refresh token'
+            )
+        },
+        required=['refresh']
+    ),
+    'responses': {
+        '205': None
+    },
+}

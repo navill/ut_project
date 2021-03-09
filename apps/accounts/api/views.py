@@ -4,6 +4,7 @@ from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -23,7 +24,9 @@ from accounts.models import Doctor, Patient
 class AccountsTokenPairView(TokenObtainPairView):
     permission_classes = [AllowAny]
     serializer_class = AccountsTokenSerializer
+    # parser_classes = [MultiPartParser]
 
+    @swagger_auto_schema(**docs.login_with_token)
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
@@ -41,10 +44,15 @@ class AccountsTokenRefreshView(TokenRefreshView):
     authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(**docs.refresh_token)
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
 
 class TokenLogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(**docs.destroy_token)
     def post(self, request, *args, **kwargs):
         try:
             self._logout_using_refresh_token(request)

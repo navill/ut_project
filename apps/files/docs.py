@@ -155,7 +155,25 @@ doctor_file_create = {
                 }
             }
         )
-    }
+    },
+    'code_examples': [
+        {
+            'lang': 'bash',
+            'source': """
+            $ curl -H "Authorization: Bearer eyJ0eXA...zngXwc" 
+            -F "file=@/Users/jh/Desktop/test.md" 
+            -F "prescription=22" 
+            -X POST http://127.0.0.1:8000/datafiles/doctor-files/upload
+            
+            {
+                "id":"5e129581-8ec9-4f9a-b856-137df0268836",
+                "download_url":"http://127.0.0.1:8000/datafiles/doctor-files/5e129581-8ec9-4f9a-b856-137df0268836/download",
+                "prescription":22,
+                "created_at":"2021-03-09T22:28:34.568023"
+            }        
+            """
+        },
+    ],
 }
 
 doctor_file_detail = {
@@ -213,7 +231,7 @@ doctor_file_update = {
     """,
     'manual_parameters': [
         Parameter(
-            name='user',
+            name='id',
             description='의사 파일 객체의 pk',
             in_=IN_PATH,
             type=TYPE_INTEGER
@@ -226,7 +244,6 @@ doctor_file_update = {
             'file': doctor_file_schema['file'],
             'deleted': common_file_schema['deleted']
         },
-        required=['file', 'deleted']
     ),
     'responses': {
         '200': Response(
@@ -419,13 +436,16 @@ patient_file_update = {
     ],
     'request_body': Schema(
         title='파일 수정',
+        description='multipart/form-data',
         type=TYPE_OBJECT,
+
         properties={
             'file_prescription': patient_file_schema['file_prescription'],
             'file': patient_file_schema['file']
         },
         required=['file_prescription']
     ),
+
     'responses': {
         '200': Response(
             schema=Schema(

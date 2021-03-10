@@ -2,12 +2,12 @@ from django.db.models import Prefetch
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import RetrieveAPIView, ListAPIView, RetrieveUpdateAPIView, CreateAPIView, DestroyAPIView
-from rest_framework.parsers import MultiPartParser, FileUploadParser
+from rest_framework.parsers import FileUploadParser
 
-from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly, RelatedPatientReadOnly
+from accounts.api.permissions import IsDoctor, IsOwner, IsPatient, CareDoctorReadOnly
 from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerializer
 from accounts.models import Doctor, Patient
-from config.utils.api_utils import InputValueSupporter
+from core import docs
 from core.api.serializers import (DoctorWithPatientSerializer,
                                   PatientWithPrescriptionSerializer,
                                   PrescriptionNestedFilePrescriptionSerializer,
@@ -15,124 +15,83 @@ from core.api.serializers import (DoctorWithPatientSerializer,
                                   ExpiredFilePrescriptionHistorySerializer,
                                   UploadedPatientFileHistorySerializer,
                                   PatientWithDoctorSerializer,
-                                  FilePrescriptionsForPatientSerializer,
                                   PatientMainSerializer,
                                   PrescriptionWithDoctorFileSerializer,
                                   PrescriptionListForPatientSerializer,
                                   )
-from files.api.serializers import DoctorFileUploadSerializer, DoctorFlieRetrieveSerializer, \
-    PatientFlieRetrieveSerializer, PatientFileUploadSerializer
-from files.models import PatientFile, DoctorFile
+from files.api.serializers import PatientFlieRetrieveSerializer, PatientFileUploadSerializer
+from files.models import PatientFile
 from prescriptions.api.mixins import HistoryMixin
 from prescriptions.api.serializers import PrescriptionCreateSerializer, \
     PrescriptionDetailSerializer, FilePrescriptionDetailSerializer
-
 from prescriptions.models import Prescription, FilePrescription
 
 
-# todo(improve): serializer 정리
-# core.serializer: core-url을 포함하는 serializer
-# <app_name>.serializer: 각 앱에 위치한 default serializer
-
 # doctor - main
 class DoctorWithPatients(RetrieveAPIView):
-    """
-    [DETAIL] 로그인 시 의사 정보와 의사가 담당하는 환자의 리스트를 출력
-
-    ---
-    - 기능: 의사용 메인 페이지 초기화에 필요한 정보 출력
-    - 권한: IsOwner(의사 객체 소유 계정)
-    - 내용
-        - 로그인한 의사의 일부 정보
-        - patients: 담당 환자의 리스트 정보
-    """
     queryset = Doctor.objects.select_all()
     permission_classes = [IsOwner]
     serializer_class = DoctorWithPatientSerializer
     lookup_field = 'pk'
-    path_type_user = openapi.TYPE_INTEGER
+
+    @swagger_auto_schema(**docs.doctor_with_patients)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
 class PatientWithPrescriptions(RetrieveAPIView):
-    """
-    [DETAIL] 환자의 세부 정보 및 환자의 소견서 리스트 출력
-
-    ---
-    - 기능: 환자 리스트에서 특정 환자를 선택했을 때 보여질 내용 표시
-    - 권한: IsDoctor(의사 계정)
-    - 내용
-        - 환자의 세부정보
-        - prescriptions: 환자의 소견서 리스트
-    """
     queryset = Patient.objects.select_all().prefetch_prescription_with_writer()
     permission_classes = [IsDoctor]
     serializer_class = PatientWithPrescriptionSerializer
     lookup_field = 'pk'
-    path_type_user = openapi.TYPE_INTEGER
+
+    @swagger_auto_schema(**docs.patient_with_prescriptions)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
 class PrescriptionWithFilePrescriptions(RetrieveAPIView):
-    """
-    [DETAIL] 소견서에 등록된 파일 업로드 일정(FilePrescription)
-
-    ---
-    - 기능: 소견서 및 소견서 작성 시 생성된 스케줄(FilePrescription 객체) 세부 내용 표시
-    - 권한: IsDoctor(의사 계정) -> IsOwner로 변경 예정
-    - 내용
-        - 소견서 내용
-        - doctor_files: 의사가 소견서를 작성하면서 함께 올린 파일 정보
-        - file_prescriptions: 의사가 소견서를 작성하면서 지정한 파일 업로드 스케줄
-    """
     queryset = Prescription.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = PrescriptionNestedFilePrescriptionSerializer
     lookup_field = 'pk'
 
+    @swagger_auto_schema(**docs.prescription_with_file_prescription)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
 
 class FilePrescriptionWithPatientFiles(RetrieveAPIView):
-    """
-    [DETAIL, UPDATE] 파일 업로드 일정(FilePrescription) 및 환자가 올린 파일
-
-    ---
-    - 기능: 업로드 일정을 확인하거나, 환자가 업로드한 파일을 확인
-    - 권한: IsDoctor(의사 계정) -> IsOwner로 변경 예정
-    - 내용
-        - 업로드 일정 및 업로드된 파일에 대한 의사 소견
-        - prescriptions: 대면 진료에 작성된 소견서
-            - doctor_files: 의사가 올린 파일
-        - patient_files: 환자가 올린 파일
-    """
     queryset = FilePrescription.objects.nested_all()
-    permission_classes = [IsDoctor]
+    permission_classes = [IsOwner]
     serializer_class = FilePrescriptionNestedPatientFileSerializer
     lookup_field = 'pk'
 
+    @swagger_auto_schema(**docs.file_prescription_with_patient_file)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
+
+# todo: 아래의 두 history를 하나의 endpoint에서 처리(분기는 query parameter로)할 수 있을듯
 # doctor - history
 class UploadedPatientFileHistory(HistoryMixin, ListAPIView):
-    """
-    [LIST] 환자가 새로운 파일을 업로드 했을 때 보여질 리스트(FilePrescription)
-
-    ---
-    - 기능: 환자가 파일을 업로드했을 때 의사가 쉽게 확인할 수 있도록 업로드된 파일 리스트 표시
-    - 권한: IsDoctor(의사 계정)
-    """
     queryset = FilePrescription.objects.nested_all().filter_new_uploaded_file()
     permission_classes = [IsDoctor]
     serializer_class = UploadedPatientFileHistorySerializer
 
+    @swagger_auto_schema(**docs.uploaded_patient_file_history)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
 
 class ExpiredFilePrescriptionHistory(HistoryMixin, ListAPIView):
-    """
-    [LIST] 환자가 일정 내에 파일을 업로드 하지 않았을 경우 보여지는 리스트(FilePrescription)
-
-    ---
-    - 기능: 환자가 기간 내에 파일을 업로드하지 않을 경우 의사가 쉽게 확인할 수 있도록 업로드되지 않은 스케줄 표시
-    - 권한: IsDoctor(의사 계정)
-    """
     queryset = FilePrescription.objects.nested_all().filter_upload_date_expired()
     permission_classes = [IsDoctor]
     serializer_class = ExpiredFilePrescriptionHistorySerializer
+
+    @swagger_auto_schema(**docs.expired_file_prescription_history)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
 class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의사 정보 포함

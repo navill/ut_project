@@ -52,13 +52,20 @@ class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 class PrescriptionListSerializer(PrescriptionModelSerializer):
     status = serializers.CharField(source='get_status_display')
 
-    class Meta(PrescriptionModelSerializer.Meta):
+    class Meta:
+        model = Prescription
         fields = ['url'] + PrescriptionFields.list_field
 
 
 class PrescriptionDetailSerializer(PrescriptionListSerializer):
-    class Meta(PrescriptionListSerializer.Meta):
-        fields = PrescriptionFields.detail_field
+    url = serializers.HyperlinkedIdentityField(
+        view_name='prescriptions:prescription-update',
+        lookup_field='pk',
+    )
+
+    class Meta:
+        model = Prescription
+        fields = ['url'] + PrescriptionFields.detail_field
 
 
 class PrescriptionUpdateSerializer(PrescriptionModelSerializer):

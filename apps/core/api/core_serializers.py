@@ -13,14 +13,14 @@ class CoreDoctorListSerializer(DoctorListSerializer):
 
 
 class CoreDoctorDetailSerializer(DoctorDetailSerializer):
-    profile_url = serializers.HyperlinkedIdentityField(
-        view_name='core-api:doctors:doctor-profile',
-        lookup_field='pk',
-        help_text='의사의 프로필(세부정보) url'
-    )
+    # url = serializers.HyperlinkedIdentityField(
+    #     view_name='core-api:doctors:doctor-profile',
+    #     lookup_field='pk',
+    #     help_text='의사의 프로필(세부정보) url'
+    # )
 
     class Meta(DoctorDetailSerializer.Meta):
-        fields = DoctorDetailSerializer.Meta.fields + ['profile_url']
+        fields = DoctorDetailSerializer.Meta.fields  # + ['profile_url']
 
 
 class CorePatientListSerializer(PatientListSerializer):
@@ -61,15 +61,13 @@ class CorePatientFileSerializer(PatientFileSerializer):
 
 
 class CorePrescriptionListSerializer(PrescriptionListSerializer):
-    # prescription detail_(update)url
-    prescription_detail_url = serializers.HyperlinkedIdentityField(
+    url = serializers.HyperlinkedIdentityField(
         view_name='core-api:doctors:prescription-file',
         lookup_field='pk',
-        help_text='소견서 세부정보 url'
     )
 
     class Meta(PrescriptionListSerializer.Meta):
-        fields = PrescriptionListSerializer.Meta.fields + ['prescription_detail_url']
+        fields = PrescriptionListSerializer.Meta.fields  # + ['prescription_detail_url']
 
 
 class CorePrescriptionDetailSerializer(PrescriptionDetailSerializer):
@@ -83,14 +81,8 @@ class CorePrescriptionCreateSrializer(PrescriptionCreateSerializer):
 
 
 class CoreFilePrescriptionSerializer(FilePrescriptionDetailSerializer):
-    # file prescription detail_(update)url
-    core_url = serializers.HyperlinkedIdentityField(
-        view_name='core-api:doctors:file-prescription-with-patient-file',
-        lookup_field='pk'
-    )
-
     class Meta(FilePrescriptionDetailSerializer.Meta):
-        fields = FilePrescriptionDetailSerializer.Meta.fields + ['core_url']
+        fields = FilePrescriptionDetailSerializer.Meta.fields
 
 
 # # 아직 사용 x
@@ -129,13 +121,13 @@ class CoreFilePrescriptionSerializer(FilePrescriptionDetailSerializer):
 # - 선택된 소견서의 FilePrescription 리스트 (FilePrescription 선택 -> PatientFile 리스트)
 # - 환자가 파일을 업로드 해야할 FilePrescription 리스트 (FilePrescription 선택 -> PatientFile 업로드 페이지 or detail 페이지)
 class CoreFilePrescriptionListSerializer(FilePrescriptionListSerializer):
-    file_prescription_detail_url = serializers.HyperlinkedIdentityField(
+    url = serializers.HyperlinkedIdentityField(
         view_name='core-api:doctors:file-prescription-with-patient-file',
         lookup_field='pk'
     )
 
     class Meta(FilePrescriptionListSerializer.Meta):
-        fields = FilePrescriptionListSerializer.Meta.fields + ['file_prescription_detail_url']
+        fields = ['url'] + FilePrescriptionListSerializer.Meta.fields
 
 
 class CoreFilePrescriptionDetailSerializer(FilePrescriptionDetailSerializer):

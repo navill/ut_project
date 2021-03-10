@@ -7,6 +7,13 @@ doctor_url_schema = {
         format=FORMAT_URI
     )
 }
+doctor_update_url_schema = {
+    'url': Schema(
+        description='doctor update url',
+        type=TYPE_STRING,
+        format=FORMAT_URI
+    )
+}
 patient_url_schema = {
     'url': Schema(
         description='patient detail url',
@@ -14,6 +21,37 @@ patient_url_schema = {
         format=FORMAT_URI
     )
 }
+patient_update_url_schema = {
+    'url': Schema(
+        description='patient update url',
+        type=TYPE_STRING,
+        format=FORMAT_URI
+    )
+}
+doctor_path_parameter = Parameter(
+    name='user',
+    description='의사 객체의 pk',
+    in_=IN_PATH,
+    type=TYPE_INTEGER
+)
+patient_path_parameter = Parameter(
+    name='user',
+    description='환자 객체의 pk',
+    in_=IN_PATH,
+    type=TYPE_INTEGER
+)
+user_field_schema = {
+    'id': Schema(
+        description='사용자 객체의 pk',
+        type=TYPE_INTEGER
+    ),
+    'email': Schema(
+        description='계정 아이디로 사용될 이메일',
+        type=TYPE_STRING,
+        format=FORMAT_EMAIL
+    ),
+}
+
 user_schema = {
     'user': Schema(
         description='계정(User) 객체',
@@ -60,13 +98,47 @@ account_schema = {
         description='연락처',
         type=TYPE_STRING
     ),
-}
-created_at_schema = {
     'created_at': Schema(
         description='계정 생성일',
         type=TYPE_STRING,
         format=FORMAT_DATETIME
-    )}
+    )
+}
+
+doctor_schema = {
+    'description': Schema(
+        description='의사 소개',
+        type=TYPE_STRING
+    ),
+    'major_name': Schema(
+        description='전공 이름',
+        type=TYPE_STRING
+    ),
+    'major_pk': Schema(
+        description='전공(객체) pk',
+        type=TYPE_INTEGER
+    )
+}
+patient_schema = {
+    'birth': Schema(
+        description='환자의 생년월일',
+        type=TYPE_STRING,
+        format=FORMAT_DATE
+    ),
+    'age': Schema(
+        description='환자의 만 나이',
+        type=TYPE_INTEGER
+    ),
+    'emergency_call': Schema(
+        description='응급 전화번호',
+        type=TYPE_STRING
+    ),
+    'doctor': Schema(
+        description='담당 의사 객체의 pk',
+        type=TYPE_INTEGER
+    )
+}
+
 doctor_signup = {
     'operation_summary': '[CREATE] 의사 계정 생성',
     'operation_description': """
@@ -110,14 +182,7 @@ doctor_signup = {
                                   }
                               ),
                               **account_schema,
-                              'description': Schema(
-                                  description='의사 소개',
-                                  type=TYPE_STRING
-                              ),
-                              'major': Schema(
-                                  description='전공(객체) pk',
-                                  type=TYPE_INTEGER
-                              )
+                              **doctor_schema,
                           }, ),
             description='소견서 작성 완료',
             examples={
@@ -158,14 +223,11 @@ doctor_list = {
                                   description='User 객체 pk',
                                   type=TYPE_INTEGER
                               ),
-                              'major': Schema(
-                                  description='의사 전공 이름',
-                                  type=TYPE_STRING
-                              ),
+                              'major': doctor_schema['major_name'],
                               'first_name': account_schema['first_name'],
                               'last_name': account_schema['last_name'],
                               'gender': account_schema['gender'],
-                              'created_at': created_at_schema
+                              'created_at': account_schema['created_at']
                           },
                           ),
             description='의사 리스트',
@@ -202,12 +264,7 @@ doctor_detail = {
     - 권한: IsOwner or RelatedPatientReadOnly
     """,
     'manual_parameters': [
-        Parameter(
-            name='user',
-            description='의사 객체의 pk',
-            in_=IN_PATH,
-            type=TYPE_INTEGER
-        )
+        doctor_path_parameter
     ],
     'responses': {
         '200': Response(
@@ -223,16 +280,10 @@ doctor_detail = {
                         description='의사 객체 pk',
                         type=TYPE_INTEGER
                     ),
-                    'major': Schema(
-                        description='의사 전공 이름',
-                        type=TYPE_STRING
-                    ),
+                    'major': doctor_schema['major_name'],
                     **account_schema,
-                    'created_at': created_at_schema,
-                    'description': Schema(
-                        description='의사 간략 소개',
-                        type=TYPE_STRING
-                    )
+                    'created_at': account_schema['created_at'],
+                    'description': doctor_schema['description']
                 }
             ),
             description='의사 정보 출력',
@@ -261,12 +312,7 @@ doctor_update = {
     - 권한: IsOwner
     """,
     'manual_parameters': [
-        Parameter(
-            name='user',
-            description='의사 객체의 pk',
-            in_=IN_PATH,
-            type=TYPE_INTEGER
-        )
+        doctor_path_parameter
     ],
     'request_body': Schema(
         title='계정 정보 수정',
@@ -319,19 +365,9 @@ patient_signup = {
         properties={
             **user_schema,
             **account_schema,
-            'birth': Schema(
-                description='환자의 생년월일',
-                type=TYPE_STRING,
-                format=FORMAT_DATE
-            ),
-            'emergency_call': Schema(
-                description='응급 전화번호',
-                type=TYPE_STRING
-            ),
-            'doctor': Schema(
-                description='담당 의사 객체의 pk',
-                type=TYPE_INTEGER
-            )
+            'birth': patient_schema['birth'],
+            'emergency_call': patient_schema['emergency_call'],
+            'doctor': patient_schema['doctor'],
         },
         required=['user', 'doctor', 'first_name', 'last_name', 'gender', 'address', 'birth', 'phone', 'emergency_call']
     ),
@@ -346,19 +382,8 @@ patient_signup = {
                               ),
                               **user_schema,
                               **account_schema,
-                              'birth': Schema(
-                                  description='환자의 생년월일',
-                                  type=TYPE_STRING,
-                                  format=FORMAT_DATE
-                              ),
-                              'emergency_call': Schema(
-                                  description='응급 전화번호',
-                                  type=TYPE_STRING
-                              ),
-                              'doctor': Schema(
-                                  description='담당 의사 객체의 pk',
-                                  type=TYPE_INTEGER
-                              )
+                              'birth': patient_schema['birth'],
+                              'emergency_call': patient_schema['emergency_call'],
                           }),
             description='환자 계정 생성',
             examples={
@@ -409,7 +434,7 @@ patient_list = {
                               'first_name': account_schema['first_name'],
                               'last_name': account_schema['last_name'],
                               'gender': account_schema['gender'],
-                              'created_at': created_at_schema
+                              'created_at': account_schema['created_at']
                           }),
             description='의사 계정에 연결된 환자의 리스트 출력',
             examples={
@@ -448,12 +473,7 @@ patient_detail = {
     - 권한: CareDoctorReadOnly or IsOwner
     """,
     'manual_parameters': [
-        Parameter(
-            name='user',
-            description='환자 객체의 pk',
-            in_=IN_PATH,
-            type=TYPE_INTEGER
-        )
+        patient_path_parameter
     ],
     'responses': {
         '200': Response(
@@ -469,16 +489,13 @@ patient_detail = {
                         description='환자 객체 pk',
                         type=TYPE_INTEGER
                     ),
-                    'doctor': Schema(
-                        description='의사 객체 pk',
-                        type=TYPE_INTEGER
-                    ),
+                    'doctor': patient_schema['doctor'],
                     'age': Schema(
                         description='환자의 만 나이',
                         type=TYPE_INTEGER
                     ),
                     **account_schema,
-                    'created_at': created_at_schema,
+                    'created_at': account_schema['created_at'],
                     'emergency_call': Schema(
                         description='보호자 또는 응급 전화 번호',
                         type=TYPE_STRING
@@ -514,12 +531,7 @@ patient_update = {
     - 권한: IsOwner
     """,
     'manual_parameters': [
-        Parameter(
-            name='user',
-            description='환자 객체의 pk',
-            in_=IN_PATH,
-            type=TYPE_INTEGER
-        )
+        patient_path_parameter
     ],
     'request_body': Schema(
         title='계정 정보 수정',

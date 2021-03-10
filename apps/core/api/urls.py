@@ -22,21 +22,21 @@ urlpatterns = [
                                     name='file-prescription-with-patient-file'),
 
                                # main - detail
-                               path('<int:pk>/detail',
-                                    views.DoctorProfile.as_view(),
-                                    name='doctor-profile'),
-                               path('patient/<int:pk>/detail',
-                                    views.PatientProfile.as_view(),
-                                    name='patient-profile'),
-                               path('prescriptions/create',
-                                    views.PrescriptionCreate.as_view(),
-                                    name='prescription-create'),
-                               path('prescriptions/<int:pk>',
-                                    views.PrescriptionDetail.as_view(),
-                                    name='prescription-detail'),
-                               path('file-prescriptions/<int:pk>',
-                                    views.FilePrescriptionDetail.as_view(),
-                                    name='file-prescription-detail'),
+                               # path('<int:pk>/detail',
+                               #      views.DoctorProfile.as_view(),
+                               #      name='doctor-profile'),
+                               # path('patient/<int:pk>/detail',
+                               #      views.PatientProfile.as_view(),
+                               #      name='patient-profile'),
+                               # path('prescriptions/create',
+                               #      views.PrescriptionCreate.as_view(),
+                               #      name='prescription-create'),
+                               # path('prescriptions/<int:pk>',
+                               #      views.PrescriptionDetail.as_view(),
+                               #      name='prescription-detail'),
+                               # path('file-prescriptions/<int:pk>',
+                               #      views.FilePrescriptionDetail.as_view(),
+                               #      name='file-prescription-detail'),
                                # path('doctor-files/upload',
                                #      views.DoctorFileUpload.as_view(),
                                #      name='file-upload'),
@@ -85,23 +85,24 @@ urlpatterns = [
                                      name='main'),
 
                                 # main - detail
-                                path('<int:pk>/detail',
-                                     views.PatientProfileForPatient.as_view(),
-                                     name='patient-detail'),
+                                # path('<int:pk>/detail',
+                                #      views.PatientProfileForPatient.as_view(),
+                                #      name='patient-detail'),
+                                #
+                                # path('doctors/<int:pk>/detail',
+                                #      views.DoctorProfileForPatient.as_view,
+                                #      name='doctor-detail'),
+                                #
+                                # path('patient-files/upload',
+                                #      views.PatientFileUpload.as_view(),
+                                #      name='file-upload'),
+                                #
+                                # path('patient-files/<int:pk>/detail',
+                                #      views.PatientFileDetailForPatient.as_view(),
+                                #      name='file-detail')
 
-                                path('doctors/<int:pk>/detail',
-                                     views.DoctorProfileForPatient.as_view,
-                                     name='doctor-detail'),
-
-                                path('patient-files/upload',
-                                     views.PatientFileUpload.as_view(),
-                                     name='file-upload'),
-
-                                path('patient-files/<int:pk>/detail',
-                                     views.PatientFileDetailForPatient.as_view(),
-                                     name='file-detail')
-
-                                ], 'views'), namespace='patients')),
+                                ], 'views'), namespace='patients')
+         ),
 ]
 
 # temp = [

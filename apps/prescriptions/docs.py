@@ -1,5 +1,175 @@
 from drf_yasg import openapi
 
+prescription_path_parameter = openapi.Parameter(
+    name='id',
+    description='소견서(prescription) 객체의 pk',
+    in_=openapi.IN_PATH,
+    type=openapi.TYPE_INTEGER
+)
+
+prescription_url_schema = {
+    'url': openapi.Schema(
+        description='prescription detail url',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_URI
+    ),
+    'update_url': openapi.Schema(
+        description='prescription update url',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_URI
+    )
+}
+prescription_schema = {
+    'id': openapi.Schema(
+        description='prescription 객체의 pk',
+        type=openapi.TYPE_INTEGER
+    ),
+    'writer': openapi.Schema(
+        description='작성자(의사)의 pk',
+        type=openapi.TYPE_INTEGER
+    ),
+    'patient': openapi.Schema(
+        description='소견서 대상(환자)의 pk',
+        type=openapi.TYPE_INTEGER
+    ),
+    'status': openapi.Schema(
+        description='환자의 상태 표시(default: NONE)',
+        enum=['NONE', 'NORMAL', 'ABNORMAL', 'UNKNOWN'],
+        type=openapi.TYPE_STRING
+    ),
+    'checked': openapi.Schema(
+        description='스케줄(file-prescription)에 환자의 파일을 의사가 모두 확인했을 경우 true, 그렇지 않을 경우 false',
+        type=openapi.TYPE_BOOLEAN
+    ),
+    'created_at': openapi.Schema(
+        description='소견서 작성일',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATETIME,
+    ),
+    "updated_at": openapi.Schema(
+        description='소견서 수정일',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATETIME
+    ),
+    "description": openapi.Schema(
+        description='의사가 작성한 소견서 내용',
+        type=openapi.TYPE_STRING
+    ),
+    "start_date": openapi.Schema(
+        description='환자가 올려야할 파일 일정 시작일',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE
+    ),
+    "end_date": openapi.Schema(
+        description='환자가 올려야할 파일 일정 종료일',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE
+    ),
+}
+prescription_list_schema = {
+    'id': prescription_schema['id'],
+    'writer': prescription_schema['writer'],
+    'patient': prescription_schema['patient'],
+    'status': prescription_schema['status'],
+    'checked': prescription_schema['checked'],
+    'created_at': prescription_schema['created_at']
+}
+
+prescription_detail_schema = {
+    **prescription_list_schema,
+    'updated_at': prescription_schema['updated_at'],
+    'description': prescription_schema['description'],
+    'start_date': prescription_schema['start_date'],
+    'end_date': prescription_schema['end_date']
+}
+
+file_prescription_path_parameter = openapi.Parameter(
+    name='id',
+    description='file prescription 객체의 pk',
+    in_=openapi.IN_PATH,
+    type=openapi.TYPE_INTEGER
+)
+
+file_prescription_schema = {
+    'id': openapi.Schema(
+        description='file prescription 객체의 pk',
+        type=openapi.TYPE_INTEGER
+    ),
+    'prescription': openapi.Schema(
+        description='소견서(prescription) 객체의 pk',
+        type=openapi.TYPE_INTEGER
+    ),
+    'uploaded': openapi.Schema(
+        description='환자가 파일을 올렸는지 여부',
+        type=openapi.TYPE_BOOLEAN
+    ),
+    'checked': openapi.Schema(
+        description='환자의 파일을 의사가 확인했는지 여부',
+        type=openapi.TYPE_BOOLEAN
+    ),
+    'date': openapi.Schema(
+        description='소견서 작성 시 생성된 일정에 맵핑되는 날짜(1일~3일일 경우 각 날짜에 해당하는 file_prescription 객체가 생성됨)',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE
+    ),
+    'status': openapi.Schema(
+        description='환자의 상태 표시(default: NONE)',
+        enum=['NONE', 'NORMAL', 'ABNORMAL', 'UNKNOWN'],
+        type=openapi.TYPE_STRING
+    ),
+    'created_at': openapi.Schema(
+        description='소견서 작성일(소견서 작성시 file prescription 생성)',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATETIME,
+    ),
+    "updated_at": openapi.Schema(
+        description='객체 수정일',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATETIME
+    ),
+    "description": openapi.Schema(
+        description='환자가 올린 파일을 바탕으로 의사가 작성한 소견서 내용',
+        type=openapi.TYPE_STRING
+    ),
+    'day_number': openapi.Schema(
+        description='몇 번째 날짜인지 표시',
+        type=openapi.TYPE_INTEGER,
+    ),
+    'active': openapi.Schema(
+        description='업로드 일정 활성화 여부',
+        type=openapi.TYPE_BOOLEAN
+    ),
+}
+file_prescription_url_schema = {
+    'url': openapi.Schema(
+        description='file prescription detail url',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_URI
+    ),
+    'update_url': openapi.Schema(
+        description='file prescription update url',
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_URI
+    )
+}
+file_prescription_list_schema = {
+    'id': file_prescription_schema['id'],
+    'prescription': file_prescription_schema['prescription'],
+    'uploaded': file_prescription_schema['uploaded'],
+    'checked': file_prescription_schema['checked'],
+    'date': file_prescription_schema['date'],
+    'status': file_prescription_schema['status'],
+    'created_at': file_prescription_schema['created_at']
+}
+
+file_prescription_detail_schema = {
+    **file_prescription_list_schema,
+    'updated_at': file_prescription_schema['updated_at'],
+    'description': file_prescription_schema['description'],
+    'day_number': file_prescription_schema['day_number'],
+    'active': file_prescription_schema['active'],
+}
+
 prescription_list = {
     'operation_summary': '[LIST] Prescription(소견서) 리스트',
     'operation_description': """
@@ -13,32 +183,7 @@ prescription_list = {
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        'id': openapi.Schema(
-                            description='prescription 객체의 pk',
-                            type=openapi.TYPE_INTEGER
-                        ),
-                        'writer': openapi.Schema(
-                            description='작성자(의사)의 pk',
-                            type=openapi.TYPE_INTEGER
-                        ),
-                        'patient': openapi.Schema(
-                            description='소견서 대상(환자)의 pk',
-                            type=openapi.TYPE_INTEGER
-                        ),
-                        'status': openapi.Schema(
-                            description='환자의 상태 표시(default: NONE)',
-                            enum=['NONE', 'NORMAL', 'ABNORMAL', 'UNKNOWN'],
-                            type=openapi.TYPE_STRING
-                        ),
-                        'checked': openapi.Schema(
-                            description='스케줄(file-prescription)에 환자의 파일을 의사가 모두 확인했을 경우 true, 그렇지 않을 경우 false',
-                            type=openapi.TYPE_BOOLEAN
-                        ),
-                        'created_at': openapi.Schema(
-                            description='소견서 작성일',
-                            type=openapi.TYPE_STRING,
-                            format=openapi.FORMAT_DATETIME,
-                        )
+                        **prescription_list_schema,
                     }
                 )
             ),
@@ -271,8 +416,30 @@ prescription_detail = {
     - 기능: 작성된 소견서의 세부사항 확인
     - 권한: IsOwner or RelatedPatientReadOnly
     """,
-    'manual_paramters': prescription_update['manual_parameters'],
-    'responses': prescription_update['responses'],
+    'manual_parameters': prescription_update['manual_parameters'],
+    'responses': {
+        '200': openapi.Response(
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={**prescription_detail_schema}
+            ),
+            description='소견서 세부 사항',
+            examples={
+                'application/json': {
+                    "id": 23,
+                    "writer": 2,
+                    "patient": 5,
+                    "status": "알 수 없음",
+                    "checked": "false",
+                    "created_at": "2021-03-06T22:10:20.618187",
+                    "updated_at": "2021-03-06T22:10:20.618222",
+                    "description": "doctor2 test prescription",
+                    "start_date": "2021-01-01",
+                    "end_date": "2021-01-10"
+                }
+            }
+        )
+    },
 }
 
 file_prescription_list = {

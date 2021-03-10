@@ -9,7 +9,7 @@ class CustomAutoSchema(SwaggerAutoSchema):
     def get_operation(self, operation_keys=None):
         operation = super().get_operation(operation_keys=operation_keys)
         operation['x-code-samples'] = self.overrides.get('code_examples')
-        operation['consumes'] = ["multipart/form-data", "application/x-www-form-urlencoded"]
+        operation['consumes'] = ["multipart/form-data"]
         return operation
 
 

@@ -4,17 +4,17 @@ from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
 from accounts.api.serializers import DoctorDetailSerializer, PatientDetailSerializer
+from accounts.models import Patient, Doctor
 from core.api.core_serializers import (CoreDoctorDetailSerializer,
                                        CoreFilePrescriptionSerializer,
                                        CoreDoctorFileSerializer,
                                        CorePatientFileSerializer,
                                        CorePrescriptionListSerializer, CoreFilePrescriptionListSerializer,
-                                       CorePrescriptionDetailSerializer, CorePatientDetailSerializer)
-from core.api.fields import FilePrescriptionFields, PrescriptionFields, PatientFields
-from prescriptions.models import FilePrescription
-
-if TYPE_CHECKING:
-    from accounts.models import Patient
+                                       CorePrescriptionDetailSerializer, CorePatientDetailSerializer,
+                                       CorePatientListSerializer)
+from core.api.fields import FilePrescriptionFields, PrescriptionFields, PatientFields, DoctorFields
+from prescriptions.api.serializers import PrescriptionDetailSerializer
+from prescriptions.models import FilePrescription, Prescription
 
 """
 Doctor Serializer
@@ -29,19 +29,21 @@ class PrescriptionWithDoctorFileSerializer(CorePrescriptionDetailSerializer):
 
 
 # 0: 의사 메인페이지(의사 정보 및 담당 환자 리스트)
-class DoctorWithPatientSerializer(CoreDoctorDetailSerializer):
-    patients = CorePatientDetailSerializer(many=True, help_text='담당 환자 리스트')
+class DoctorWithPatientSerializer(serializers.ModelSerializer):
+    patients = CorePatientListSerializer(many=True, help_text='담당 환자 리스트')
 
-    class Meta(CoreDoctorDetailSerializer.Meta):
-        fields = CoreDoctorDetailSerializer.Meta.fields + ['patients']
+    class Meta:
+        model = Doctor
+        fields = DoctorFields.detail_field + ['patients']
 
 
 # 1: 의사가 작성한 환자의 소견서 리스트 + 소견서에 업로드된 파일
 class PatientWithPrescriptionSerializer(PatientDetailSerializer):
     prescriptions = CorePrescriptionListSerializer(many=True, help_text='환자의 소견서 리스트')
 
-    class Meta(PatientDetailSerializer.Meta):
-        fields = PatientDetailSerializer.Meta.fields + ['prescriptions']
+    class Meta:
+        model = Patient
+        fields = PatientFields.detail_field + ['prescriptions']
 
 
 # 2: 소견서에 연결된 중계 모델(FilePrescription)에 업로드된 환자의 파일 정보
@@ -59,20 +61,16 @@ class FilePrescriptionNestedPatientFileSerializer(CoreFilePrescriptionSerializer
 
     class Meta(CoreFilePrescriptionSerializer.Meta):
         fields = CoreFilePrescriptionSerializer.Meta.fields + ['prescription', 'patient_files']
-        extra_kwargs = {
-            'uploaded': {'read_only': True},
-            'date': {'read_only': True},
-            'day_number': {'read_only': True}
-        }
 
 
 # 4 /histroies/new-uploaded-file
-class UploadedPatientFileHistorySerializer(CoreFilePrescriptionSerializer):
-    pass
+class UploadedPatientFileHistorySerializer(CoreFilePrescriptionListSerializer):
+    class Meta(CoreFilePrescriptionListSerializer.Meta):
+        fields = CoreFilePrescriptionListSerializer.Meta.fields
 
 
 # 5 /histories/expired-upload-date
-class ExpiredFilePrescriptionHistorySerializer(CoreFilePrescriptionSerializer):
+class ExpiredFilePrescriptionHistorySerializer(CoreFilePrescriptionListSerializer):
     pass
 
 

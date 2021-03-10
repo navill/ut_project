@@ -1,18 +1,18 @@
 from drf_yasg.openapi import *
 
 common_file_schema = {
-    'url': Schema(
+    'detail_url': Schema(
         description='detail url',
-        type=TYPE_STRING,
-        format=FORMAT_URI
-    ),
-    'download_url': Schema(
-        description='download url',
         type=TYPE_STRING,
         format=FORMAT_URI
     ),
     'update_url': Schema(
         description='update url',
+        type=TYPE_STRING,
+        format=FORMAT_URI
+    ),
+    'download_url': Schema(
+        description='download url',
         type=TYPE_STRING,
         format=FORMAT_URI
     ),
@@ -77,7 +77,7 @@ doctor_file_list = {
                 items=Schema(
                     type=TYPE_OBJECT,
                     properties={
-                        'url': common_file_schema['url'],
+                        'url': common_file_schema['detail_url'],
                         'download_url': common_file_schema['download_url'],
                         'id': common_file_schema['id'],
                         'prescription': doctor_file_schema['prescription'],
@@ -137,7 +137,7 @@ doctor_file_create = {
             schema=Schema(
                 type=TYPE_OBJECT,
                 properties={
-                    'url': common_file_schema['url'],
+                    'url': common_file_schema['detail_url'],
                     'download_url': common_file_schema['download_url'],
                     'id': common_file_schema['id'],
                     'prescription': doctor_file_schema['prescription'],
@@ -290,7 +290,7 @@ patient_file_list = {
                 items=Schema(
                     type=TYPE_OBJECT,
                     properties={
-                        'url': common_file_schema['url'],
+                        'url': common_file_schema['detail_url'],
                         'download_url': common_file_schema['download_url'],
                         'id': common_file_schema['id'],
                         'file_prescription': patient_file_schema['file_prescription'],
@@ -350,7 +350,7 @@ patient_file_create = {
             schema=Schema(
                 type=TYPE_OBJECT,
                 properties={
-                    'url': common_file_schema['url'],
+                    'url': common_file_schema['detail_url'],
                     'download_url': common_file_schema['download_url'],
                     'id': common_file_schema['id'],
                     'file_prescription': patient_file_schema['file_prescription'],
@@ -361,7 +361,7 @@ patient_file_create = {
             description="파일 업로드 결과",
             examples={
                 'application/json': {
-                    "url": "http://127.0.0.1:8000/datafiles/patient-files/18440b0b-b284-416b-8fee-ac4a06909666/update",
+                    "url": "http://127.0.0.1:8000/datafiles/patient-files/18440b0b-b284-416b-8fee-ac4a06909666",
                     "download_url": "http://127.0.0.1:8000/datafiles/patient-files/18440b0b-b284-416b-8fee-ac4a06909666/download",
                     "id": "18440b0b-b284-416b-8fee-ac4a06909666",
                     "file_prescription": 248,
@@ -451,7 +451,7 @@ patient_file_update = {
             schema=Schema(
                 type=TYPE_OBJECT,
                 properties={
-                    'url': common_file_schema['url'],
+                    'url': common_file_schema['detail_url'],
                     'download_url': common_file_schema['download_url'],
                     'id': common_file_schema['id'],
                     'file_prescription': patient_file_schema['file_prescription'],

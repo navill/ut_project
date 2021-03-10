@@ -140,11 +140,6 @@ class Prescription(BasePrescription):
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
-    # def defer_option_fields(self) -> 'FilePrescriptionQuerySet':
-    #     deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
-    #     deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
-    #     return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
-
     def filter_uploaded(self) -> 'FilePrescriptionQuerySet':
         return self.filter(uploaded=True)
 

@@ -13,14 +13,8 @@ class CoreDoctorListSerializer(DoctorListSerializer):
 
 
 class CoreDoctorDetailSerializer(DoctorDetailSerializer):
-    # url = serializers.HyperlinkedIdentityField(
-    #     view_name='core-api:doctors:doctor-profile',
-    #     lookup_field='pk',
-    #     help_text='의사의 프로필(세부정보) url'
-    # )
-
     class Meta(DoctorDetailSerializer.Meta):
-        fields = DoctorDetailSerializer.Meta.fields  # + ['profile_url']
+        fields = DoctorDetailSerializer.Meta.fields
 
 
 class CorePatientListSerializer(PatientListSerializer):
@@ -32,12 +26,10 @@ class CorePatientDetailSerializer(PatientDetailSerializer):
     prescription_url = serializers.HyperlinkedIdentityField(
         view_name='core-api:doctors:prescription-list',
         lookup_field='pk',
-        help_text='환자의 소견서 리스트 url'
     )
     profile_url = serializers.HyperlinkedIdentityField(
         view_name='core-api:doctors:patient-profile',
         lookup_field='pk',
-        help_text='환자의 프로필(세부정보) url'
     )
 
     class Meta(PatientDetailSerializer.Meta):
@@ -53,9 +45,6 @@ class CoreDoctorFileSerializer(DoctorFileSerializer):
 
 
 class CorePatientFileSerializer(PatientFileSerializer):
-    # patient detail(update)_url
-    # patient delete_url
-
     class Meta(PatientFileSerializer.Meta):
         fields = PatientFileSerializer.Meta.fields
 
@@ -67,12 +56,12 @@ class CorePrescriptionListSerializer(PrescriptionListSerializer):
     )
 
     class Meta(PrescriptionListSerializer.Meta):
-        fields = PrescriptionListSerializer.Meta.fields  # + ['prescription_detail_url']
+        fields = PrescriptionListSerializer.Meta.fields
 
 
 class CorePrescriptionDetailSerializer(PrescriptionDetailSerializer):
     class Meta(PrescriptionDetailSerializer.Meta):
-        fields = PrescriptionDetailSerializer.Meta.fields  # + ['prescription_with_file_url']
+        fields = PrescriptionDetailSerializer.Meta.fields
 
 
 class CorePrescriptionCreateSrializer(PrescriptionCreateSerializer):

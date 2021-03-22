@@ -24,12 +24,10 @@ from accounts.models import Doctor, Patient
 class AccountsTokenPairView(TokenObtainPairView):
     permission_classes = [AllowAny]
     serializer_class = AccountsTokenSerializer
-    # parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(**docs.login_with_token)
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError as e:
@@ -84,7 +82,7 @@ class DoctorSignUpAPIView(CreateAPIView):
 class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.select_all().order_by('-created_at')
     serializer_class = serializers.DoctorListSerializer
-    permission_classes = [IsSuperUser | IsDoctor]
+    permission_classes = [IsSuperUser]
 
     @swagger_auto_schema(**docs.doctor_list)
     def get(self, request, *args, **kwargs):

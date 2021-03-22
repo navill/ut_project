@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING, NoReturn, Dict
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -14,13 +14,12 @@ User = get_user_model()
 
 
 class SignupSerializerMixin:
-    def create(self, validated_data):
+    def create(self, validated_data: Dict[str, str]):
         user_data = validated_data.pop('user')
         try:
             with transaction.atomic():
                 baseuser = User.objects.create_user(**user_data)
                 user = self.Meta.model.objects.create(user_id=baseuser.id, **validated_data)
-                print(1, user)
                 director = PostProcessingUserDirector(user=user, baseuser=baseuser)
                 director.build_user_group_and_permission()
         except Exception:
@@ -29,7 +28,7 @@ class SignupSerializerMixin:
 
 
 class RefreshBlacklistMixin:
-    def try_blacklist(self, refresh: 'CustomRefreshToken'):
+    def try_blacklist(self, refresh: 'CustomRefreshToken') -> NoReturn:
         if api_settings.ROTATE_REFRESH_TOKENS:
             if api_settings.BLACKLIST_AFTER_ROTATION:
                 try:
@@ -37,7 +36,7 @@ class RefreshBlacklistMixin:
                 except AttributeError:
                     pass
 
-    def set_refresh_payload(self, refresh: 'CustomRefreshToken'):
+    def set_refresh_payload(self, refresh: 'CustomRefreshToken') -> NoReturn:
         refresh.set_jti()
         refresh.set_exp()
 
@@ -46,7 +45,7 @@ class RefreshBlacklistMixin:
         user.set_token_expired(epoch_time)
 
 
-class PermissionBundleMethodMixin:
+class PermissionMixin:
     def is_safe_method(self, request) -> bool:
         return request.method in permissions.SAFE_METHODS
 

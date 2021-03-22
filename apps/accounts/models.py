@@ -4,22 +4,16 @@ from django.utils.translation import gettext as _
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import Q, Prefetch, Max, F, Func
+from django.db.models import Q, Prefetch, Max
 from django.urls import reverse
 
-from config.utils.database_function import CalculateAge
+from accounts.database_function import CalculateAge
 from config.utils.utils import concatenate_name
 from core.api.fields import PatientFields, DoctorFields
 from hospitals.models import Major
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
-
-
-# DEFER_ACCOUNTS_FIELDS = ('address', 'phone')
-# DEFER_BASEUSER_FIELDS = ('password', 'last_login', 'created_at', 'updated_at', 'token_expired')
-# DEFER_DOCTOR_FIELDS = ('updated_at', 'description', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
-# DEFER_PATIENT_FIELDS = ('emergency_call', 'created_at', 'updated_at') + DEFER_ACCOUNTS_FIELDS
 
 
 def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str]:
@@ -55,14 +49,14 @@ class Gender(models.TextChoices):
 
 
 class AccountsModel(models.Model):
-    first_name = models.CharField(max_length=20, default='', help_text="사용자 이름: 길동")
-    last_name = models.CharField(max_length=20, default='', help_text="사용자 성: 홍")
-    gender = models.CharField(max_length=7, choices=Gender.choices, default=Gender.male, help_text="성별: 남")
-    address = models.CharField(max_length=255, default='', help_text="사용자의 주소: 광주광역시 북구 ...")
-    phone = models.CharField(max_length=14, unique=True, help_text="연락처: 010-111-1111")
+    first_name = models.CharField(max_length=20, default='')
+    last_name = models.CharField(max_length=20, default='')
+    gender = models.CharField(max_length=7, choices=Gender.choices, default=Gender.male)
+    address = models.CharField(max_length=255, default='')
+    phone = models.CharField(max_length=14, unique=True)
 
-    created_at = models.DateTimeField(auto_now_add=True, help_text="계정 생성일: 2021-01-01T00:00:00")
-    updated_at = models.DateTimeField(auto_now=True, help_text="계정 수정일: 2021-01-02T00:00:00")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         abstract = True
@@ -97,24 +91,24 @@ class BaseManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password, **attributes: Dict[str, str]) -> 'BaseUser':
-        self._set_superuser_status(attributes)
+        self._set_superuser_fields(attributes)
         return self.create_user(email=email, password=password, **attributes)
 
-    def _set_superuser_status(self, attributes) -> NoReturn:
+    def _set_superuser_fields(self, attributes) -> NoReturn:
         attributes.setdefault('is_staff', True)
         attributes.setdefault('is_superuser', True)
         attributes.setdefault('is_active', True)
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(max_length=255, unique=True, help_text=_("이메일(계정 아이디): doctor@doctor.com"))
-    created_at = models.DateTimeField(auto_now_add=True, help_text="계정 생성일: 2021-01-01T00:00:00")
-    updated_at = models.DateTimeField(auto_now=True, help_text="계정 수정일: 2021-01-01T00:00:00")
-    token_expired = models.IntegerField(default=0, help_text="토근 만료일(epoch time): 123456")
+    email = models.EmailField(max_length=255, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    token_expired = models.IntegerField(default=0)
 
-    is_active = models.BooleanField(default=True, help_text="계정 활성화 여부: True")
-    is_superuser = models.BooleanField(default=False, help_text="super user 여부: False")
-    is_staff = models.BooleanField(default=False, help_text="관리자 여부: False")
+    is_active = models.BooleanField(default=True)
+    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
 
     objects = BaseManager()
 
@@ -228,18 +222,18 @@ class PatientQuerySet(CommonUserQuerySet):
             prefetch_prescription_with_doctor_file(). \
             prefetch_prescription_with_file_prescriptions()
 
-    def nested_all(self):
+    def nested_all(self) -> 'PatientQuerySet':
         return self.select_all().prefetch_all()
 
-    def only_list(self, *others: List[str]):
+    def only_list(self, *others: List[str]) -> 'PatientQuerySet':
         fields = PatientFields.list_field + list(others)
         return self.only(*fields)
 
-    def only_detail(self, *others: List[str]):
+    def only_detail(self, *others: List[str]) -> 'PatientQuerySet':
         fields = PatientFields.detail_field + list(others)
         return self.only(*fields)
 
-    def set_age(self):
+    def set_age(self) -> 'PatientQuerySet':
         return self.annotate(age=CalculateAge('birth'))
 
 

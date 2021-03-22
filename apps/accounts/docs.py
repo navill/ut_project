@@ -596,9 +596,9 @@ authentication_schema = {
 }
 
 login_with_token = {
-    'operation_summary': "[CREATE] 사용자 계정을 통한 토큰 획득",
+    'operation_summary': "[CREATE] 사용자 계정을 통한 토큰 획득(Login)",
     'operation_description': """
-    - 기능: 계정 아이디(email)과 비밀번호를 입력하고 API 접근에 필요한 토큰(access, refresh)을 획득
+    - 기능: 계정 아이디(email)와 비밀번호를 입력하고 API 접근에 필요한 토큰(access, refresh)을 획득
     - 권한: AllowAny
     """,
 
@@ -653,7 +653,7 @@ login_with_token = {
 refresh_token = {
     'operation_summary': "[CREATE] access token 갱신",
     'operation_description': """
-    - 기능: 사용자가 획득한 refresh token을 이용해 새 새로운 토큰을 수신 
+    - 기능: 사용자가 획득한 refresh token을 이용해 새로운 토큰을 수신 
     - 권한: AllowAny
     """,
     'request_body': Schema(
@@ -669,6 +669,7 @@ refresh_token = {
             schema=Schema(
                 type=TYPE_OBJECT,
                 properties={
+                    'access': authentication_schema['access'],
                     'refresh': authentication_schema['refresh'],
                 }
             ),
@@ -700,7 +701,7 @@ refresh_token = {
 }
 
 destroy_token = {
-    'operation_summary': "[CREATE] Token 무효화(로그아웃)",
+    'operation_summary': "[CREATE] Token 무효화(Logout)",
     'operation_description': """
     - 기능: 사용자가 획득한 access token의 유효시간을 강제로 만료시킴 
     - 권한: AllowAny

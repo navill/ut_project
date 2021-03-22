@@ -22,7 +22,6 @@ class BasePrescription(models.Model):
     description = models.TextField()
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
     checked = models.BooleanField(default=False)
-    # patient_checked = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
@@ -37,11 +36,6 @@ class PrescriptionQuerySet(models.QuerySet):
 
     def filter_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
         return self.filter(patient_id=patient_id)
-
-    # def defer_option_fields(self) -> 'PrescriptionQuerySet':
-    #     deferred_doctor_field_set = get_defer_fields_set('writer', *DEFER_DOCTOR_FIELDS)
-    #     deferred_patient_field_set = get_defer_fields_set('patient', *DEFER_PATIENT_FIELDS)
-    #     return self.defer(*deferred_doctor_field_set, *deferred_patient_field_set)
 
     def select_patient(self) -> 'PrescriptionQuerySet':
         return self.select_related('patient')
@@ -176,7 +170,6 @@ class FilePrescriptionQuerySet(models.QuerySet):
     def nested_all(self) -> 'FilePrescriptionQuerySet':
         return self.select_all().prefetch_all()
 
-    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
     def only_list(self, *others: List[str]):
         fields = FilePrescriptionFields.list_field + list(others)
         return self.only(*fields)

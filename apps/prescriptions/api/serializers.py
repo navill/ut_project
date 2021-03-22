@@ -17,6 +17,7 @@ class PrescriptionModelSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-detail',
         lookup_field='pk',
+        read_only=True
     )
 
     class Meta:
@@ -28,6 +29,7 @@ class FilePrescriptionModelSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:file-prescription-detail',
         lookup_field='pk',
+        read_only=True
     )
 
     class Meta:

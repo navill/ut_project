@@ -2,6 +2,11 @@ from abc import abstractmethod
 
 from django.utils.decorators import classproperty
 
+"""
+객체를 사용할 때 필요한 필드를 크게 List field, Detail Field로 나누고 
+DB(ORM) 및 Serializer에서 사용됨
+"""
+
 COMMON_ACCOUNT_BASEFIELD = ['first_name', 'last_name', 'gender', 'created_at']
 COMMON_PRESCRIPTION_FIELD = ['updated_at', 'description']
 

@@ -31,7 +31,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
 
 class AccountSignupSerializer(AccountSerializer):
-    first_name = serializers.CharField()  # todo: help_text 하드코딩 수정
+    first_name = serializers.CharField()
     last_name = serializers.CharField()
     gender = serializers.ChoiceField(choices=Gender.choices)
 

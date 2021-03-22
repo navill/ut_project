@@ -20,12 +20,24 @@ schema_view = get_schema_view(
         description="""
         ### [UTSOFT] 2-1과제 API 문서
         - 로그인, 회원가입 제외한 모든 서비스 접근은 반드시 헤더에 로그인 시 받은 access token을 전달해야 합니다.
-        - POST, PUT, PATCH 메서드의 Content-Type은 "multipart/form-data"으로 전달해야합니다.
-        - GET 메서드는 "application/json" 타입으로 반환합니다.  
+        ### Content-type
+        ```bash
+            [POST, PUT, PATCH]: multipart/form-data
+            [GET]: application/json
+        ```
+        ### Permission
+            - IsOwner: 객체의 소유자(user)만 읽기 및 쓰기 가능
+            - IsDoctor: 의사 계정만 읽기 및 쓰기 가능
+            - IsPatient: 환자 계정만 읽기 및 쓰기 가능
+            - CareDoctorReadOnly: 환자의 담당의사 계정만 해당 객체 읽기 가능
+            - PatientReadOnly: 환자 계정만 읽기 가능
+            - RelatedPatientReadOnly: 객체에 연결된(related) 환자 계정만 읽기 가능
+            - WithRelated: 객체에 관계된 모든 계정이 읽기 및 쓰기 가능 
+        
         """,
-        terms_of_service="https://www.google.com/policies/terms/",
-        contact=openapi.Contact(email="contact@snippets.local"),
-        license=openapi.License(name="BSD License"),
+        # terms_of_service="https://www.google.com/policies/terms/",
+        # contact=openapi.Contact(email="contact@snippets.local"),
+        # license=openapi.License(name="BSD License"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),

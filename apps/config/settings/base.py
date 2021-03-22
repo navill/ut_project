@@ -135,7 +135,6 @@ REST_FRAMEWORK = {
 # UPDATE_LAST_LOGIN = True
 
 SWAGGER_SETTINGS = {
-    # 'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomSchemaGenerator',
     'DEFAULT_AUTO_SCHEMA_CLASS': 'config.utils.doc_utils.CustomAutoSchema',
     'SECURITY_DEFINITIONS': {
         'Bearer': {
@@ -158,7 +157,6 @@ SWAGGER_SETTINGS = {
             curl -H "Authorization: Bearer eyJ0eXAiOi...WbyjSVk" -X POST -d"refresh=eyJ0eXAiOiJK...0OSdp0" http://localhost:8000/token/logout 
             ```
             - logout -> None 반환(status_code=205)
-            
             """
         },
     }

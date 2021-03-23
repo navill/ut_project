@@ -209,7 +209,14 @@ doctor_list = {
     'operation_description': """
     - 기능: 등록된 의사 리스트 출력
     - 권한: Admin
+    ```python
+    class DoctorListAPIView(ListAPIView):
+        queryset = Doctor.objects.select_all().order_by('-created_at')
+        serializer_class = serializers.DoctorListSerializer
+        permission_classes = [IsSuperUser]
+    ```
     """,
+
     'responses': {
         '201': Response(
             schema=Schema(type=TYPE_OBJECT,

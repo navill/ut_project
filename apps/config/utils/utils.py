@@ -12,7 +12,7 @@ def concatenate_name(target_field: str = None) -> Concat:
     if target_field:
         first_name = f'{target_field}__{first_name}'
         last_name = f'{target_field}__{last_name}'
-    full_name = Concat(F(first_name), Value(' '), F(last_name))
+    full_name = Concat(F(last_name), Value(' '), F(first_name))
     return full_name
 
 
@@ -27,7 +27,6 @@ def log_request(sender, environ, **kwargs):  # HTTP_USER_AGENT, HTTP_HOST, REMOT
         client_agent = environ['HTTP_USER_AGENT']
         query = '?' + query if query else ''
 
-        # todo: logger - system level
         print(f'[{current_time}][{method}] {host}{path}{query} | IP_addr:{client_ip} | Agent: {client_agent}')
 
 

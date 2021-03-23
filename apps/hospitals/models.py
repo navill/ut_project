@@ -13,6 +13,9 @@ class MedicalCenterManager(models.Manager):
     def prefetch_all(self) -> MedicalCenterQuerySet:
         return self.get_queryset().prefetch_related('department__major')
 
+    def choice_fields(self) -> MedicalCenterQuerySet:
+        return self.only('id', 'name')
+
 
 class MedicalCenter(models.Model):
     country = models.CharField(max_length=25, default='한국')
@@ -45,6 +48,9 @@ class DepartmentManager(models.Manager):
 
     def prefetch_all(self) -> DepartmentQuerySet:
         return self.get_queryset().prefetch_related('major')
+
+    def choice_fields(self):
+        return self.only('id', 'name')
 
 
 class Department(models.Model):
@@ -85,6 +91,9 @@ class MajorManager(models.Manager):
 
     def nested_all(self) -> MajorQuerySet:
         return self.get_queryset().nested_all()
+
+    def choice_fields(self):
+        return self.only('id', 'name')
 
 
 class Major(models.Model):

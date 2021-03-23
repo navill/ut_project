@@ -2,11 +2,11 @@ import datetime
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Union, NoReturn
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Q, Func
-from django.utils.timezone import now
+from django.db.models import Q
 
 if TYPE_CHECKING:
     from accounts.models import Patient, Doctor
@@ -113,19 +113,11 @@ class PostProcessingUserDirector:
         builder.build()
 
 
-#
-# def calculate_age(birth: str = None):
-#     birth_year, birth_month, birth_day = [int(birth_date) for birth_date in birth.split('-')]
-#     now_year, now_month, now_day = [int(now_date) for now_date in str(now().date()).split('-')]
-#     if birth_month < now_month:
-#         age = now_year - birth_year
-#     elif birth_month == now_month:
-#         if birth_day <= now_day:
-#             age = now_year - birth_year
-#         else:
-#             age = now_year - birth_year - 1
-#     else:
-#         age = now_year - birth_year - 1
-#     return age
-
-
+def calculate_birthdate(age: int, is_max: bool = False) -> datetime.date:
+    extra_day = 0
+    if is_max:
+        age += 1
+        extra_day = 1
+    calculated_year = datetime.datetime.now() - relativedelta(years=age)
+    calculated_age = calculated_year.date() + relativedelta(day=calculated_year.day - extra_day)
+    return calculated_age

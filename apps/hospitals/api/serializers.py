@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.serializers import Serializer
 
 from hospitals.models import MedicalCenter, Department, Major
 
@@ -133,4 +134,27 @@ class MedicalCenterNestedDepartmentMajor(MedicalCenterSerializer):
     department = DepartmentNestedMajor(many=True)
 
     class Meta(DefaultMedicalCenterSerializer.Meta):
-        fields = DefaultMedicalCenterSerializer.Meta.fields + ['department']
+        fields = ['id', 'city', 'name'] + ['department']
+
+
+"""
+Choice Serializer
+"""
+
+
+class MedicalCenterChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MedicalCenter
+        fields = ['id', 'name']
+
+
+class DepartmentChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ['id', 'name']
+
+
+class MajorChoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Major
+        fields = ['id', 'name']

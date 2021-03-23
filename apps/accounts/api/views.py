@@ -1,10 +1,10 @@
 from typing import Type, NoReturn
 
 from django.db.models import QuerySet
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
-from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -16,6 +16,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from accounts import docs
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
+from accounts.api.filters import DoctorFilter, PatientFilter
 from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser, RelatedPatientReadOnly
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer, DoctorSignUpSerializer
 from accounts.models import Doctor, Patient
@@ -82,7 +83,11 @@ class DoctorSignUpAPIView(CreateAPIView):
 class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.select_all().order_by('-created_at')
     serializer_class = serializers.DoctorListSerializer
-    permission_classes = [IsSuperUser]
+    permission_classes = [AllowAny]
+
+    # filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    # search_fields = ['first_name', 'email']  # User.email이므로 filter_queryset 오버라이딩 필요
+    # ordering_fields = ['email']
 
     @swagger_auto_schema(**docs.doctor_list)
     def get(self, request, *args, **kwargs):
@@ -166,3 +171,24 @@ class PatientUpdateAPIView(UpdateAPIView):
     @swagger_auto_schema(**docs.patient_update)
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
+
+
+# choice api
+
+class DoctorChoicesAPIView(ListAPIView):
+    queryset = Doctor.objects.choice_fields()
+    # fields = full_name, major_name, department_name, medical_center_name
+    serializer_class = serializers.DoctorChoiceSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filter_class = DoctorFilter
+    filterset_fields = ['full_name', 'major_name', 'department_name', 'medical_center_name', 'user_id']
+
+
+class PatientChoicesAPIView(ListAPIView):
+    queryset = Patient.objects.choice_fields()
+    serializer_class = serializers.PatientChoiceSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filter_class = PatientFilter
+    filterset_fields = ['doctor_id', 'full_name', 'min_age', 'max_age', 'user_id']

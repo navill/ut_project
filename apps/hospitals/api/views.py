@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 
@@ -5,20 +6,38 @@ from hospitals.api import serializers
 from hospitals.models import MedicalCenter, Department, Major
 
 """
-Related Hospital view 
+Choice list
 """
 
 
-class MedicalCenterNestedChildAllList(generics.ListAPIView):
+class MedicalCenterChoiceAPIView(generics.ListAPIView):
     """
     테스트 - 병원 정보(병원, 부서, 전공)
 
     ---
+    - 특정 병원의 모든 전공 및 부서 리스트
 
     """
-    queryset = MedicalCenter.objects.prefetch_all()
-    serializer_class = serializers.MedicalCenterNestedDepartmentMajor
+    queryset = MedicalCenter.objects.choice_fields()
+    serializer_class = serializers.MedicalCenterChoiceSerializer
     permission_classes = [AllowAny]
+    filterset_fields = ['id', 'name']
+
+
+class DepartmentChoiceAPIView(generics.ListAPIView):
+    queryset = Department.objects.choice_fields()
+    serializer_class = serializers.DepartmentChoiceSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['medical_center_id', 'name']
+
+
+class MajorChoiceAPIView(generics.ListAPIView):
+    queryset = Major.objects.choice_fields()
+    serializer_class = serializers.MajorChoiceSerializer
+    permission_classes = [AllowAny]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['department_id', 'name']
 
 
 class DepartmentNestedChildList(generics.ListAPIView):

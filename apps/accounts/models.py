@@ -1,24 +1,18 @@
 from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
-from django.utils.translation import gettext as _
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import Q, Prefetch, Max
+from django.db.models import Q, Prefetch, Max, F
 from django.urls import reverse
 
 from accounts.database_function import CalculateAge
 from config.utils.utils import concatenate_name
 from core.api.fields import PatientFields, DoctorFields
-from hospitals.models import Major
+from hospitals.models import Major, MedicalCenter
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
-
-
-def get_defer_field_set(parent_field_name: str, *fields: Tuple[str]) -> List[str]:
-    fields = [f'{parent_field_name}__{field}' for field in fields]
-    return fields
 
 
 class CommonUserQuerySet(models.QuerySet):
@@ -173,6 +167,12 @@ class DoctorManager(CommonUserManager):
     def non_related_all(self) -> DoctorQuerySet:
         return self.defer('user', 'major')
 
+    def choice_fields(self) -> DoctorQuerySet:
+        # 병원이름, 부서, 전공, 의사 이름
+        return self.only('user_id', 'major_id', 'first_name', 'last_name', 'gender'). \
+            annotate(major_name=F('major__name'), department_name=F('major__department__name'),
+                     medical_center_name=F('major__department__medical_center__name'))
+
 
 class Doctor(AccountsModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
@@ -182,7 +182,7 @@ class Doctor(AccountsModel):
     objects = DoctorManager()
 
     def __str__(self) -> str:
-        return f'{self.get_full_name()}'
+        return self.get_full_name()
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:doctor-detail-update', kwargs={'pk': self.pk})
@@ -193,16 +193,11 @@ class PatientQuerySet(CommonUserQuerySet):
         return self.filter(prescriptions__checked=False).annotate(latest_prescription_id=Max('prescriptions__id'))
 
     def prefetch_prescription_with_writer(self) -> 'PatientQuerySet':
-        from prescriptions.models import Prescription
-
+        from prescriptions.models import Prescription  # models에 그냥 import할 경우 import error
         return self.prefetch_related(Prefetch('prescriptions__writer', queryset=Prescription.objects.select_all()))
 
-    def prefetch_prescription(self, prefetch: 'Prefetch' = None) -> 'PatientQuerySet':
-        if prefetch:
-            query = self.prefetch_related(prefetch)
-        else:
-            query = self.prefetch_related('prescriptions')
-        return query
+    def prefetch_prescription(self, prefetch: 'Prefetch' = 'prescription') -> 'PatientQuerySet':
+        return self.prefetch_related(prefetch)
 
     def prefetch_prescription_with_patient(self) -> 'PatientQuerySet':
         return self.prefetch_related('prescriptions__patient')
@@ -236,13 +231,29 @@ class PatientQuerySet(CommonUserQuerySet):
     def set_age(self) -> 'PatientQuerySet':
         return self.annotate(age=CalculateAge('birth'))
 
+    def filter_range_age(self, min_age: int, max_age: int) -> 'PatientQuerySet':
+        from accounts.api.utils import calculate_birthdate
+
+        # kwarg default가 적용되지 않음
+        min_age = min_age if min_age else 1
+        max_age = max_age if max_age else 999
+
+        max_date = calculate_birthdate(min_age)  # min 32(1989.03.23 ~ ...)  3월 23일 기준
+        min_date = calculate_birthdate(max_age, is_max=True)  # max 33(... ~ 1987.03.22)
+
+        return self.filter(birth__lte=max_date, birth__gte=min_date)
+
 
 class PatientManager(CommonUserManager):
     def get_queryset(self) -> PatientQuerySet:
         return PatientQuerySet(self.model, using=self._db). \
             annotate(full_name=concatenate_name(),
                      doctor_name=concatenate_name('doctor')). \
-            filter_user_active().set_age()
+            filter_user_active(). \
+            set_age()
+
+    def choice_fields(self) -> PatientQuerySet:
+        return self.only('user_id', 'doctor__first_name', 'doctor__last_name', 'gender')
 
 
 class Patient(AccountsModel):
@@ -254,7 +265,24 @@ class Patient(AccountsModel):
     objects = PatientManager()
 
     def __str__(self) -> str:
-        return f'이름: {self.get_full_name()},  성별: {self.get_gender_display()}'
+        return self.get_full_name()
+
+    def get_absolute_url(self) -> str:
+        return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})
+
+
+# m2m patient to doctor(보류)
+class M2MPatient(AccountsModel):
+    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, primary_key=True)
+    medical_center = models.ManyToManyField(MedicalCenter, related_name='patients_from')
+    doctor = models.ManyToManyField(Doctor, related_name='patients_by')
+    birth = models.DateField()
+    emergency_call = models.CharField(max_length=14, default='010')
+
+    objects = PatientManager()
+
+    def __str__(self) -> str:
+        return self.get_full_name()
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})

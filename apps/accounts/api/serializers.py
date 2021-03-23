@@ -121,6 +121,35 @@ class DoctorSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
         fields = ['url', 'gender', 'user', 'first_name', 'last_name', 'address', 'phone', 'description', 'major']
 
 
+# 의사를 선택해야할 때
+# 환자 계정 생성
+#   1. 병원 -> 부서 -> 전공 -> 의사 선택: Hospital.choice_fields 사용
+#       => /choices/doctors?major_id=1  # major_id는 병원마다 고유하기 때문에 의사를 최종 선택할 때 사용
+#   2. 의사 이름으로 검색: 병원, 부서, 전공이 출력되고 사용자가 선택
+class DoctorChoiceSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    gender = serializers.CharField(source='get_gender_display')
+    major_name = serializers.SerializerMethodField()
+    department_name = serializers.SerializerMethodField()
+    medical_center_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Doctor
+        fields = ['user_id', 'major_id', 'full_name', 'gender', 'major_name', 'department_name', 'medical_center_name']
+
+    def get_major_name(self, instance):
+        return instance.major_name
+
+    def get_full_name(self, instance):
+        return instance.full_name
+
+    def get_department_name(self, instance):
+        return instance.department_name
+
+    def get_medical_center_name(self, instance):
+        return instance.medical_center_name
+
+
 # Patient
 class PatientListSerializer(AccountSerializer):
     url = serializers.HyperlinkedIdentityField(
@@ -171,6 +200,32 @@ class PatientSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
         model = Patient
         fields = ['url', 'user', 'first_name', 'last_name', 'gender', 'birth', 'address', 'phone',
                   'emergency_call', 'doctor']
+
+
+# 환자를 선택해야할 때
+# 질병에 따른 환자 리스트 출력(질병코드를 이용한 필터(질병 코드는 아직 미구현))
+#     /choices/patients/disease_code=x1234
+# 의사가 담당하고 있는 환자 리스트
+#     /choices/patients/doctor_id=2
+#
+class PatientChoiceSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    gender = serializers.CharField(source='get_gender_display')
+    age = serializers.SerializerMethodField()
+    doctor_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Patient
+        fields = ['user_id', 'full_name', 'doctor_id', 'doctor_name', 'gender', 'age']
+
+    def get_full_name(self, instance):
+        return instance.full_name
+
+    def get_age(self, instance):
+        return instance.age
+
+    def get_doctor_name(self, instance):
+        return instance.doctor_name
 
 
 class AccountsTokenSerializer(TokenObtainPairSerializer):

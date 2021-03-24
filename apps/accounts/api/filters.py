@@ -19,8 +19,8 @@ class DoctorFilter(FilterSet):
 class PatientFilter(FilterSet):
     full_name = CharFilter(field_name='full_name', label='full name')
     doctor_id = NumberFilter(field_name='doctor_id', label='doctor id')
-    min_age = NumberFilter(label='min age')
-    max_age = NumberFilter(label='max age')
+    min_age = NumberFilter(label='min age', method='filter_min_age')
+    max_age = NumberFilter(label='max age', method='filter_max_age')
 
     # disease_code = CharFilter(field_name='disease_code')
 
@@ -30,12 +30,13 @@ class PatientFilter(FilterSet):
 
     def filter_queryset(self, queryset):
         cleaned_data = self.form.cleaned_data
-        min_age = cleaned_data.pop('min_age')
-        max_age = cleaned_data.pop('max_age')
+        min_age = cleaned_data.pop('min_age') or 1
+        max_age = cleaned_data.pop('max_age') or 999
+
+        if min_age > max_age:
+            raise ValidationError('must be minimum age less then maximum age')
 
         if max_age or min_age:
-            if max_age == min_age:
-                raise ValidationError('max and min age cannot be the same')
-            queryset = queryset.filter_range_age(min_age, max_age)
+            queryset = queryset.filter_between_age(min_age, max_age)
 
         return super().filter_queryset(queryset)

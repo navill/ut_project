@@ -6,8 +6,8 @@ class CalculateAge(Func):
     MySQL - FUNCTION
        CREATE DEFINER=`root`@`%` FUNCTION `calculate_age`(birth_date DATE) RETURNS int(11)
        BEGIN
-       declare result_age integer default 0;
-       set result_age = truncate((to_days(now())-(to_days(birth_date)))/365, 0);
+         declare result_age integer default 0;
+         set result_age = floor((cast(replace(current_date, '-', '') as unsigned) - cast(brith_date as unsigned)) / 10000);
        RETURN result_age;
        END
     """

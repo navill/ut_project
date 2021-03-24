@@ -1,6 +1,6 @@
 import datetime
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Union, NoReturn
+from typing import TYPE_CHECKING, Union, NoReturn, List
 
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
@@ -113,11 +113,15 @@ class PostProcessingUserDirector:
         builder.build()
 
 
-def calculate_birthdate(age: int, is_max: bool = False) -> datetime.date:
-    extra_day = 0
-    if is_max:
-        age += 1
-        extra_day = 1
-    calculated_year = datetime.datetime.now() - relativedelta(years=age)
-    calculated_age = calculated_year.date() + relativedelta(day=calculated_year.day - extra_day)
-    return calculated_age
+def calculate_birthdate(min_age: int, max_age: int) -> List[datetime.date]:
+    ages = [min_age, max_age]
+
+    result_date = []
+
+    for number, age in enumerate(ages):
+        calculated_year = datetime.datetime.now() - relativedelta(years=age + number)
+        calculated_age = calculated_year.date() + relativedelta(day=calculated_year.day + number)
+        result_date.append(calculated_age)
+
+    result_date.sort()  # 나이 많은 사람의 생년월일(min_date) 순서로 정렬
+    return result_date

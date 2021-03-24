@@ -231,15 +231,10 @@ class PatientQuerySet(CommonUserQuerySet):
     def set_age(self) -> 'PatientQuerySet':
         return self.annotate(age=CalculateAge('birth'))
 
-    def filter_range_age(self, min_age: int, max_age: int) -> 'PatientQuerySet':
+    def filter_between_age(self, min_age: int, max_age: int) -> 'PatientQuerySet':
         from accounts.api.utils import calculate_birthdate
 
-        # kwarg default가 적용되지 않음
-        min_age = min_age if min_age else 1
-        max_age = max_age if max_age else 999
-
-        max_date = calculate_birthdate(min_age)  # min 32(1989.03.23 ~ ...)  3월 23일 기준
-        min_date = calculate_birthdate(max_age, is_max=True)  # max 33(... ~ 1987.03.22)
+        min_date, max_date = calculate_birthdate(min_age, max_age)
 
         return self.filter(birth__lte=max_date, birth__gte=min_date)
 

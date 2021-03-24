@@ -11,6 +11,8 @@
 ### TIL
 
 -   Django & DRF
+    -   210324: [사용자의 생년월일을 이용한 만 나이 계산(with db function)](docs/210324.md)
+    -   210323: [Project 모델 구조 수정(예정)](docs/210323.md)
     -   210308: [MySQL Function을 이용한 만 나이 계산](docs/210308.md)
     -   210123: [DRF 다중 파일 업로드](docs/210123.md)
     -   210117: [Database(MySQL-docker) 변경](docs/210117.md)

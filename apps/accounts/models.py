@@ -1,4 +1,4 @@
-from typing import Union, TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
+from typing import TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -124,20 +124,20 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.token_expired = time
         self.save()
 
-    def get_child_account(self) -> Union['Doctor', 'Patient', None]:
-        if self.is_doctor:
-            return self.doctor
-        elif self.is_patient:
-            return self.patient
-        return None
-
-    def get_child_username(self) -> str:
-        name = ''
-        if self.is_doctor:
-            name = self.doctor.get_full_name()
-        elif self.is_patient:
-            name = self.patient.get_full_name()
-        return name
+    # def get_child_account(self) -> Union['Doctor', 'Patient', None]:
+    #     if self.is_doctor:
+    #         return self.doctor
+    #     elif self.is_patient:
+    #         return self.patient
+    #     return None
+    #
+    # def get_child_username(self) -> str:
+    #     name = ''
+    #     if self.is_doctor:
+    #         name = self.doctor.get_full_name()
+    #     elif self.is_patient:
+    #         name = self.patient.get_full_name()
+    #     return name
 
 
 class DoctorQuerySet(CommonUserQuerySet):
@@ -231,13 +231,6 @@ class PatientQuerySet(CommonUserQuerySet):
     def set_age(self) -> 'PatientQuerySet':
         return self.annotate(age=CalculateAge('birth'))
 
-    def filter_between_age(self, min_age: int, max_age: int) -> 'PatientQuerySet':
-        from accounts.api.utils import calculate_birthdate
-
-        min_date, max_date = calculate_birthdate(min_age, max_age)
-
-        return self.filter(birth__lte=max_date, birth__gte=min_date)
-
 
 class PatientManager(CommonUserManager):
     def get_queryset(self) -> PatientQuerySet:
@@ -259,9 +252,6 @@ class Patient(AccountsModel):
 
     objects = PatientManager()
 
-    def __str__(self) -> str:
-        return self.get_full_name()
-
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})
 
@@ -275,9 +265,6 @@ class M2MPatient(AccountsModel):
     emergency_call = models.CharField(max_length=14, default='010')
 
     objects = PatientManager()
-
-    def __str__(self) -> str:
-        return self.get_full_name()
 
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})

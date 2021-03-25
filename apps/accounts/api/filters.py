@@ -1,5 +1,7 @@
+import datetime
+
+from dateutil.relativedelta import relativedelta
 from django_filters.rest_framework import FilterSet, CharFilter, NumberFilter
-from rest_framework.exceptions import ValidationError
 
 from accounts.models import Patient, Doctor
 
@@ -28,15 +30,18 @@ class PatientFilter(FilterSet):
         model = Patient
         fields = ['full_name', 'doctor_id', 'min_age', 'max_age']  # + ['disease_code]
 
-    def filter_queryset(self, queryset):
-        cleaned_data = self.form.cleaned_data
-        min_age = cleaned_data.pop('min_age') or 1
-        max_age = cleaned_data.pop('max_age') or 999
+    def filter_min_age(self, queryset, name, value):
+        max_birth_date = self.calculate_birthdate(name, value)
+        return queryset.filter(birth__lte=max_birth_date)
 
-        if min_age > max_age:
-            raise ValidationError('must be minimum age less then maximum age')
+    def filter_max_age(self, queryset, name, value):
+        min_birth_date = self.calculate_birthdate(name, value)
+        return queryset.filter(birth__gte=min_birth_date)
 
-        if max_age or min_age:
-            queryset = queryset.filter_between_age(min_age, max_age)
-
-        return super().filter_queryset(queryset)
+    def calculate_birthdate(self, name: str, age: int) -> datetime.date:
+        extra_number = 0
+        if name == 'max_age':
+            extra_number = 1
+        calculated_year = datetime.datetime.now() - relativedelta(years=age + extra_number)
+        calculated_result = calculated_year.date() + relativedelta(day=calculated_year.day + extra_number)
+        return calculated_result

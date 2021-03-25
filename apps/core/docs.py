@@ -339,7 +339,7 @@ file_prescription_with_patient_file = {
             schema=Schema(
                 type=TYPE_OBJECT,
                 properties={
-                    'url': file_prescription_url_schema['update_url'],
+                    'url': file_prescription_url_schema['url'],
                     'id': file_prescription_schema['id'],
                     'prescriptions': Schema(
                         type=TYPE_ARRAY,

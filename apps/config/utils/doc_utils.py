@@ -1,10 +1,10 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
-from drf_yasg.inspectors import SwaggerAutoSchema
+from drf_yasg.inspectors import SwaggerAutoSchema, CoreAPICompatInspector, NotHandled
 from rest_framework import permissions
 
 
-# drf-yasg에서 x-code extension을 사용하기 위한 custom schema(https://stackoverflow.com/a/61772496)
 class CustomAutoSchema(SwaggerAutoSchema):
     def get_operation(self, operation_keys=None):
         operation = super().get_operation(operation_keys=operation_keys)
@@ -35,10 +35,20 @@ schema_view = get_schema_view(
             - WithRelated: 객체에 관계된 모든 계정이 읽기 및 쓰기 가능 
         
         """,
-        # terms_of_service="https://www.google.com/policies/terms/",
-        # contact=openapi.Contact(email="contact@snippets.local"),
-        # license=openapi.License(name="BSD License"),
     ),
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
+
+
+class CommonFilterDescriptionInspector(CoreAPICompatInspector):
+    def get_filter_parameters(self, filter_backend):
+        if isinstance(filter_backend, DjangoFilterBackend):
+            result = super().get_filter_parameters(filter_backend)
+            for param in result:
+                if not param.get('description', ''):
+                    param.description = "{field_name} 파라미터에 의해 필터링된 객체 리스트".format(field_name=param.name)
+
+            return result
+
+        return NotHandled

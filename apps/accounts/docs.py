@@ -77,6 +77,10 @@ user_schema = {
     ),
 }
 account_schema = {
+    'full_name': Schema(
+        description='사용자의 풀네임',
+        type=TYPE_STRING
+    ),
     'first_name': Schema(
         description='사용자의 이름',
         type=TYPE_STRING
@@ -106,6 +110,10 @@ account_schema = {
 }
 
 doctor_schema = {
+    'user_id': Schema(
+        description='의사 계정의 pk',
+        type=TYPE_INTEGER
+    ),
     'description': Schema(
         description='의사 소개',
         type=TYPE_STRING
@@ -120,6 +128,10 @@ doctor_schema = {
     )
 }
 patient_schema = {
+    'user_id': Schema(
+        description='환자 계정의 pk',
+        type=TYPE_INTEGER
+    ),
     'birth': Schema(
         description='환자의 생년월일',
         type=TYPE_STRING,
@@ -136,6 +148,10 @@ patient_schema = {
     'doctor': Schema(
         description='담당 의사 객체의 pk',
         type=TYPE_INTEGER
+    ),
+    'doctor_name': Schema(
+        description='담당 의사 이름',
+        type=TYPE_STRING
     )
 }
 
@@ -576,6 +592,147 @@ patient_update = {
         )
     }
 }
+
+doctor_choice = {
+    'operation_summary': '[LIST] 의사 선택 리스트',
+    'operation_description': """
+    - 기능: 의사를 구분할 수 있는 최소 정보를 갖는 리스트. query parameter 값을 이용한 필터링 기능을 포함
+    - 권한: IsSuperUser
+    ```python
+    # example - query param
+    ...accounts/choices/doctors?major_id=1&full_name=일+의사&major_name=정신의학&department_name=정신의학과&medical_center_name=서울병원
+    # output
+    {
+        "user_id": 2,
+        "major_id": 1,
+        "full_name": "일 의사",
+        "gender": "남",
+        "major_name": "정신의학",
+        "department_name": "정신의학과",
+        "medical_center_name": "서울병원"
+    }
+    """,
+    'responses': {
+        '200': Response(
+            schema=Schema(type=TYPE_OBJECT,
+                          properties={
+                              'user_id': doctor_schema['user_id'],
+                              'major_id': doctor_schema['major_pk'],
+                              'full_name': account_schema['full_name'],
+                              'gender': account_schema['gender'],
+                              'major_name': doctor_schema['major_name'],
+                              'department_name': Schema(
+                                  description='부서 이름',
+                                  type=TYPE_STRING
+                              ),
+                              'medical_center_name': Schema(
+                                  description='병원 이름',
+                                  type=TYPE_STRING
+                              )
+                          }
+                          ),
+            description='(최소 정보를 포함한)의사를 선택할 수 있는 리스트',
+            examples={
+                "application/json": [
+                    {
+                        "user_id": 2,
+                        "major_id": 1,
+                        "full_name": "일 의사",
+                        "gender": "남",
+                        "major_name": "정신의학",
+                        "department_name": "정신의학과",
+                        "medical_center_name": "서울병원"
+                    },
+                    {
+                        "user_id": 3,
+                        "major_id": 1,
+                        "full_name": "이 의사",
+                        "gender": "남",
+                        "major_name": "정신의학",
+                        "department_name": "정신의학과",
+                        "medical_center_name": "서울병원"
+                    },
+                ]
+            }
+
+        )
+    },
+
+}
+patient_choice = {
+    'operation_summary': '[LIST] 환자 선택 리스트',
+    'operation_description': """
+    - 기능: 환자를 구분할 수 있는 최소 정보를 갖는 리스트. query parameter 값을 이용한 필터링 기능을 포함
+    - 권한: IsDoctor
+    ```python
+    # example - query param
+    .../accounts/choices/patients?full_name=김 환자&doctor_id=5&min_age=32&max_age=33
+    # output
+    {
+    "user_id": 5,
+    "full_name": "일 환자",
+    "doctor_id": 2,
+    "doctor_name": "일 의사",
+    "gender": "남",
+    "age": 32
+    },
+    ```
+    """,
+    'responses': {
+        '200': Response(
+            schema=Schema(type=TYPE_OBJECT,
+                          properties={
+                              'user_id': patient_schema['user_id'],
+                              'full_name': account_schema['full_name'],
+                              'doctor_id': patient_schema['doctor'],
+                              'doctor_name': patient_schema['doctor_name'],
+                              'gender': account_schema['gender'],
+                              'age': patient_schema['age']
+                          }
+                          ),
+            description='(최소 정보를 포함한)환자를 선택할 수 있는 리스트',
+            examples={
+                "application/json": [
+                    {
+                        "user_id": 5,
+                        "full_name": "일 환자",
+                        "doctor_id": 2,
+                        "doctor_name": "일 의사",
+                        "gender": "남",
+                        "age": 32
+                    },
+                    {
+                        "user_id": 6,
+                        "full_name": "이 환자",
+                        "doctor_id": 2,
+                        "doctor_name": "일 의사",
+                        "gender": "남",
+                        "age": 33
+                    },
+                    {
+                        "user_id": 7,
+                        "full_name": "삼 환자",
+                        "doctor_id": 3,
+                        "doctor_name": "이 의사",
+                        "gender": "남",
+                        "age": 0
+                    },
+                    {
+                        "user_id": 8,
+                        "full_name": "사 환자",
+                        "doctor_id": 3,
+                        "doctor_name": "이 의사",
+                        "gender": "남",
+                        "age": 0
+                    },
+                ]
+            }
+
+        )
+    },
+
+}
+
 authentication_schema = {
     'next_url': Schema(
         type=TYPE_STRING,

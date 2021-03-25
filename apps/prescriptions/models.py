@@ -114,7 +114,7 @@ class Prescription(BasePrescription):
     def __str__(self) -> str:
         return f'{self.patient.get_full_name()}-{str(self.created_at)}'
 
-
+# [Deprecated]
 # @receiver(post_save, sender=Prescription)
 # def create_file_prescription_by_prescription(sender, **kwargs: Dict[str, Any]):
 #     instance = kwargs['instance']
@@ -226,7 +226,5 @@ def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
     checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id).values_list('checked')
 
     if not checked_queryset.filter(checked=False).exists():
-        # prescription의 자식 file_prescriptions가 모두 checked=True일 경우
-        # 해당 prescription.checked = True로 변경
         instance.prescription.checked = True
         instance.prescription.save()

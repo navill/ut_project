@@ -21,29 +21,6 @@ urlpatterns = [
                                     views.FilePrescriptionWithPatientFiles.as_view(),
                                     name='file-prescription-with-patient-file'),
 
-                               # main - detail
-                               # path('<int:pk>/detail',
-                               #      views.DoctorProfile.as_view(),
-                               #      name='doctor-profile'),
-                               # path('patient/<int:pk>/detail',
-                               #      views.PatientProfile.as_view(),
-                               #      name='patient-profile'),
-                               # path('prescriptions/create',
-                               #      views.PrescriptionCreate.as_view(),
-                               #      name='prescription-create'),
-                               # path('prescriptions/<int:pk>',
-                               #      views.PrescriptionDetail.as_view(),
-                               #      name='prescription-detail'),
-                               # path('file-prescriptions/<int:pk>',
-                               #      views.FilePrescriptionDetail.as_view(),
-                               #      name='file-prescription-detail'),
-                               # path('doctor-files/upload',
-                               #      views.DoctorFileUpload.as_view(),
-                               #      name='file-upload'),
-                               # path('doctor-files/<int:pk>',
-                               #      views.DoctorFileDetail.as_view(),
-                               #      name='file-detail'),
-
                                # histroy
                                path('histories/new-uploaded-file',  # 4
                                     views.UploadedPatientFileHistory.as_view(),
@@ -68,10 +45,6 @@ urlpatterns = [
                                      views.PrescriptionDetailForPatient.as_view(),
                                      name='prescription-detail'),
 
-                                # path('file-prescriptions',  # only patient
-                                #      views.FilePrescriptionListForPatient.as_view(),
-                                #      name='file-prescription-list'),
-
                                 path('prescriptions/<int:pk>/file-prescriptions',  # only patient
                                      views.FilePrescriptionListForPatient.as_view(),
                                      name='file-prescription-list'),
@@ -83,40 +56,6 @@ urlpatterns = [
                                 path('main/<int:pk>',
                                      views.PatientMain.as_view(),
                                      name='main'),
-
-                                # main - detail
-                                # path('<int:pk>/detail',
-                                #      views.PatientProfileForPatient.as_view(),
-                                #      name='patient-detail'),
-                                #
-                                # path('doctors/<int:pk>/detail',
-                                #      views.DoctorProfileForPatient.as_view,
-                                #      name='doctor-detail'),
-                                #
-                                # path('patient-files/upload',
-                                #      views.PatientFileUpload.as_view(),
-                                #      name='file-upload'),
-                                #
-                                # path('patient-files/<int:pk>/detail',
-                                #      views.PatientFileDetailForPatient.as_view(),
-                                #      name='file-detail')
-
                                 ], 'views'), namespace='patients')
          ),
 ]
-
-# temp = [
-#     path('doctors/<int:pk>/patients', views.DoctorNestedPatients.as_view(),
-#          name='doctor-with-patients'),
-#     path('patients/<int:pk>/prescriptions', views.PatientNestedPrescriptions.as_view(),
-#          name='patient-with-prescriptions'),
-#     path('prescription-nested-files/<int:pk>/file-prescriptions', views.PrescriptionNestedFilePrescriptions.as_view(),
-#          name='prescription-detail'),
-#     path('file-prescriptions/<int:pk>/patient-files', views.FilePrescriptionNestedPatientFiles.as_view(),
-#          name='file-prescription-detail'),
-
-# doctor-main histories
-
-# path('', views.xx.as_view(), name=''),  #
-# path('', views.xx.as_view(), name=''),  #
-# ]

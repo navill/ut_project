@@ -1,4 +1,5 @@
-from django.http import FileResponse
+from typing import TYPE_CHECKING
+
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.parsers import FileUploadParser
@@ -12,16 +13,25 @@ from files.api.serializers import (PatientFileUploadSerializer,
                                    PatientFileListSerializer,
                                    DoctorFlieRetrieveSerializer,
                                    PatientFlieRetrieveSerializer,
+                                   PatientFlieUpdateSerializer,
                                    DoctorFileDownloadSerializer,
-                                   PatientFileDownloadSerializer, PatientFlieUpdateSerializer)
+                                   PatientFileDownloadSerializer)
 from files.api.utils import Downloader
 from files.models import DoctorFile, PatientFile
+
+if TYPE_CHECKING:
+    from django.http import FileResponse
 
 
 class DoctorFileListAPIView(QuerySetMixin, ListAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = DoctorFileListSerializer
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return DoctorFile.objects.none()
+        return super().get_queryset()
 
     @swagger_auto_schema(**docs.doctor_file_list)
     def get(self, request, *args, **kwargs):
@@ -68,6 +78,11 @@ class PatientFileListAPIView(QuerySetMixin, ListAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
     serializer_class = PatientFileListSerializer
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return PatientFile.objects.none()
+        return super().get_queryset()
 
     @swagger_auto_schema(**docs.patient_file_list)
     def get(self, request, *args, **kwargs):
@@ -117,7 +132,7 @@ class DoctorFileDownloadAPIView(RetrieveAPIView):
     serializer_class = DoctorFileDownloadSerializer
     lookup_field = 'id'
 
-    @swagger_auto_schema(deprecated=True, operation_summary="의사 파일 다운로드")
+    @swagger_auto_schema(operation_summary="의사 파일 다운로드")
     def get(self, request, *args, **kwargs) -> 'FileResponse':
         file_object = self.get_object()
         downloader = Downloader(instance=file_object)
@@ -130,7 +145,7 @@ class PatientFileDownloadAPIView(RetrieveAPIView):
     serializer_class = PatientFileDownloadSerializer
     lookup_field = 'id'
 
-    @swagger_auto_schema(deprecated=True, operation_summary="환자 파일 다운로드")
+    @swagger_auto_schema(operation_summary="환자 파일 다운로드")
     def get(self, request, *args, **kwargs) -> 'FileResponse':
         file_object = self.get_object()
         downloader = Downloader(instance=file_object)

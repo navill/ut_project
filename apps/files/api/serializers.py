@@ -90,6 +90,7 @@ class DoctorFileUploadSerializer(DoctorFileSerializer):
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields
 
+    # [Deprecated]
     # def create(self, validated_data: Dict[str, Any]) -> Optional[Type[DoctorFile]]:
     #     uploader = validated_data.pop('uploader', None)
     #     prescription = validated_data.pop('prescription', None)
@@ -107,7 +108,6 @@ class DoctorFileUploadSerializer(DoctorFileSerializer):
     #         raise ValidationError(detail='This user can not access this prescription!!')
 
 
-# using Prescription
 class DoctorFileInPrescriptionSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(view_name='files:doctor-file-retrieve',
                                                lookup_field='id',
@@ -201,6 +201,7 @@ class PatientFileUploadSerializer(PatientFileSerializer):
     class Meta(PatientFileSerializer.Meta):
         fields = PatientFileSerializer.Meta.fields + ['file']
 
+    # [Deprecated]
     # def create(self, validated_data: Dict[str, Any]):
     #     uploader = validated_data.pop('uploader', None)
     #     file_prescription = validated_data.pop('file_prescription', None)
@@ -225,7 +226,7 @@ class PatientFileUploadSerializer(PatientFileSerializer):
     #         #                                          **validated_data)
     #         return {'message': 'upload complete'}
     #     return None
-
+    #
     # def _validate_relation(self, file_prescription, uploader):
     #     prescription = Prescription.objects.filter(file_prescriptions__id=file_prescription.id).first()
     #     if not (prescription.patient_id == uploader.id) and not (prescription.writer_id == uploader.doctor_id):

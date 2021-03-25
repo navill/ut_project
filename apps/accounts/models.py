@@ -124,6 +124,7 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.token_expired = time
         self.save()
 
+    # [Deprecated]
     # def get_child_account(self) -> Union['Doctor', 'Patient', None]:
     #     if self.is_doctor:
     #         return self.doctor

@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.serializers import Serializer
 
 from hospitals.models import MedicalCenter, Department, Major
 
@@ -36,6 +35,21 @@ class MedicalCenterRetrieveSerializer(DefaultMedicalCenterSerializer):
     pass
 
 
+class MedicalCenterUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MedicalCenter
+        fields = ['name', 'country', 'city', 'address', 'postal_code', 'main_call', 'sub_call']
+        extra_kwargs = {
+            "name": {"read_only": True},
+            "country": {"required": False},
+            "city": {"required": False},
+            "address": {"required": False},
+            "postal_code": {"required": False},
+            "main_call": {"required": False},
+            "sub_call": {"required": False},
+        }
+
+
 """
 Department serializers
 """
@@ -54,10 +68,10 @@ class RawDepartmentSerializer(serializers.ModelSerializer):
 
 
 class DefaultDepartmentSerializer(RawDepartmentSerializer):
-    medical_center = MedicalCenterSerializer(read_only=True)
+    # medical_center = MedicalCenterSerializer(read_only=True)
 
     class Meta(RawDepartmentSerializer.Meta):
-        fields = RawDepartmentSerializer.Meta.fields + ['medical_center']
+        fields = RawDepartmentSerializer.Meta.fields  # + ['medical_center']
 
 
 class DepartmentSerializer(DefaultDepartmentSerializer):
@@ -72,8 +86,16 @@ class DepartmentListSerializer(RawDepartmentSerializer):
 class DepartmentCreateSerializer(DefaultDepartmentSerializer):
     medical_center = serializers.PrimaryKeyRelatedField(queryset=MedicalCenter.objects.all())
 
+    class Meta:
+        model = Department
+        fields = DefaultDepartmentSerializer.Meta.fields + ['medical_center']
+
 
 class DepartmentRetreiveSerializer(DepartmentSerializer):
+    pass
+
+
+class DepartmentUpdateSerializer(DepartmentSerializer):
     pass
 
 
@@ -95,14 +117,15 @@ class RawMajorSerializer(serializers.ModelSerializer):
 
 
 class DefaultMajorSerializer(RawMajorSerializer):
-    department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.select_related())
+    # department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.select_related())
 
     class Meta(RawMajorSerializer.Meta):
-        fields = RawMajorSerializer.Meta.fields + ['department']
+        fields = RawMajorSerializer.Meta.fields  # + ['department']
 
 
 class MajorSerializer(DefaultMajorSerializer):
-    department = RawDepartmentSerializer(read_only=True)
+    # department = RawDepartmentSerializer(read_only=True)
+    pass
 
 
 class MajorListSerializer(RawMajorSerializer):
@@ -113,8 +136,16 @@ class MajorListSerializer(RawMajorSerializer):
 class MajorCreateSerializer(MajorSerializer):
     department = serializers.PrimaryKeyRelatedField(queryset=Department.objects.select_related('medical_center'))
 
+    class Meta:
+        model = Major
+        fields = MajorSerializer.Meta.fields + ['department']
+
 
 class MajorRetrieveSerializer(MajorSerializer):
+    pass
+
+
+class MajorUpdateSerializer(MajorSerializer):
     pass
 
 

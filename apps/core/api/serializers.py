@@ -6,8 +6,10 @@ from accounts.models import Patient, Doctor
 from core.api.core_serializers import (CoreFilePrescriptionSerializer,
                                        CoreDoctorFileSerializer,
                                        CorePatientFileSerializer,
-                                       CorePrescriptionListSerializer, CoreFilePrescriptionListSerializer,
-                                       CorePrescriptionDetailSerializer, CorePatientListSerializer)
+                                       CorePrescriptionListSerializer,
+                                       CoreFilePrescriptionListSerializer,
+                                       CorePrescriptionDetailSerializer,
+                                       CorePatientListSerializer)
 from core.api.fields import FilePrescriptionFields, PrescriptionFields, PatientFields, DoctorFields
 from prescriptions.models import FilePrescription
 
@@ -25,6 +27,9 @@ class PrescriptionWithDoctorFileSerializer(CorePrescriptionDetailSerializer):
 
 # 0: 의사 메인페이지(의사 정보 및 담당 환자 리스트)
 class DoctorWithPatientSerializer(serializers.ModelSerializer):
+    """
+    의사 계정으로 로그인 시 첫 로딩될 데이터를 포함한 serializer
+    """
     patients = CorePatientListSerializer(many=True)
 
     class Meta:
@@ -97,6 +102,9 @@ class FilePrescriptionsForPatientSerializer(CoreFilePrescriptionSerializer):  # 
 
 
 class PatientMainSerializer(PatientWithDoctorSerializer):
+    """
+    환자 계정으로 로그인 시 첫 로딩될 데이터를 포함한 serializer
+    """
     prescriptions = PrescriptionListForPatientSerializer(many=True)
     upload_schedules = serializers.SerializerMethodField()
 

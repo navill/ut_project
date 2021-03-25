@@ -3,13 +3,14 @@ from rest_framework.generics import RetrieveAPIView, CreateAPIView, UpdateAPIVie
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
 from prescriptions import docs
-from prescriptions.api.serializers import (
-    PrescriptionCreateSerializer,
-    FilePrescriptionListSerializer,
-    FilePrescriptionCreateSerializer,
-    PrescriptionListSerializer,
-    PrescriptionDetailSerializer, FilePrescriptionDetailSerializer, FilePrescriptionUpdateSerializer,
-    PrescriptionUpdateSerializer)
+from prescriptions.api.serializers import (PrescriptionCreateSerializer,
+                                           FilePrescriptionListSerializer,
+                                           FilePrescriptionCreateSerializer,
+                                           PrescriptionListSerializer,
+                                           PrescriptionDetailSerializer,
+                                           FilePrescriptionDetailSerializer,
+                                           FilePrescriptionUpdateSerializer,
+                                           PrescriptionUpdateSerializer)
 from prescriptions.api.utils import CommonListAPIView
 from prescriptions.models import Prescription, FilePrescription
 
@@ -19,6 +20,11 @@ class PrescriptionListAPIView(CommonListAPIView):
     serializer_class = PrescriptionListSerializer
     permission_classes = [IsDoctor | IsPatient]
     lookup_field = 'pk'
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Prescription.objects.none()
+        return super().get_queryset()
 
     @swagger_auto_schema(**docs.prescription_list)
     def get(self, request, *args, **kwargs):
@@ -65,6 +71,11 @@ class FilePrescriptionListAPIView(CommonListAPIView):
     queryset = FilePrescription.objects.all()
     serializer_class = FilePrescriptionListSerializer
     permission_classes = [IsDoctor | IsPatient]
+
+    def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Prescription.objects.none()
+        return super().get_queryset()
 
     @swagger_auto_schema(**docs.file_prescription_list)
     def get(self, request, *args, **kwargs):

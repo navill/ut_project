@@ -17,9 +17,10 @@ from accounts import docs
 from accounts.api import serializers
 from accounts.api.authentications import CustomJWTTokenUserAuthentication
 from accounts.api.filters import DoctorFilter, PatientFilter
-from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, IsSuperUser, RelatedPatientReadOnly
+from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly, RelatedPatientReadOnly
 from accounts.api.serializers import AccountsTokenSerializer, AccountsTokenRefreshSerializer, DoctorSignUpSerializer
 from accounts.models import Doctor, Patient
+from config.utils.doc_utils import CommonFilterDescriptionInspector
 
 
 class AccountsTokenPairView(TokenObtainPairView):
@@ -39,7 +40,6 @@ class AccountsTokenPairView(TokenObtainPairView):
 
 class AccountsTokenRefreshView(TokenRefreshView):
     serializer_class = AccountsTokenRefreshSerializer
-    # TokenRefreshView 상속받을 때 반드시 authentication_classes 추가(default authentication 적용 안됨)
     authentication_classes = [CustomJWTTokenUserAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -84,10 +84,6 @@ class DoctorListAPIView(ListAPIView):
     queryset = Doctor.objects.select_all().order_by('-created_at')
     serializer_class = serializers.DoctorListSerializer
     permission_classes = [AllowAny]
-
-    # filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    # search_fields = ['first_name', 'email']  # User.email이므로 filter_queryset 오버라이딩 필요
-    # ordering_fields = ['email']
 
     @swagger_auto_schema(**docs.doctor_list)
     def get(self, request, *args, **kwargs):
@@ -138,6 +134,9 @@ class PatientListAPIView(ListAPIView):
     lookup_field = 'pk'
 
     def get_queryset(self) -> Type[QuerySet]:
+        if getattr(self, 'swagger_fake_view', False):
+            return Patient.objects.none()
+
         queryset = super().get_queryset()
         doctor = self.request.user.doctor
         return queryset.filter(doctor=doctor)
@@ -173,8 +172,6 @@ class PatientUpdateAPIView(UpdateAPIView):
         return super().patch(request, *args, **kwargs)
 
 
-# choice api
-
 class DoctorChoicesAPIView(ListAPIView):
     queryset = Doctor.objects.choice_fields()
     # fields = full_name, major_name, department_name, medical_center_name
@@ -184,6 +181,10 @@ class DoctorChoicesAPIView(ListAPIView):
     filter_class = DoctorFilter
     filterset_fields = ['full_name', 'major_name', 'department_name', 'medical_center_name', 'user_id']
 
+    @swagger_auto_schema(**docs.doctor_choice, filter_inspectors=[CommonFilterDescriptionInspector])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
 
 class PatientChoicesAPIView(ListAPIView):
     queryset = Patient.objects.choice_fields()
@@ -192,3 +193,7 @@ class PatientChoicesAPIView(ListAPIView):
     filter_backends = [DjangoFilterBackend]
     filter_class = PatientFilter
     filterset_fields = ['doctor_id', 'full_name', 'min_age', 'max_age', 'user_id']
+
+    @swagger_auto_schema(**docs.patient_choice, filter_inspectors=[CommonFilterDescriptionInspector])
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)

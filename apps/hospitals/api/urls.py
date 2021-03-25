@@ -7,16 +7,16 @@ urlpatterns = [
     path('medical-centers', views.MedicalCenterListAPIView.as_view(), name='medicalcenter-list'),
     path('medical-centers/<int:pk>', views.MedicalCenterRetrieveAPIView.as_view(), name='medicalcenter-retrieve'),
     path('medical-centers/<int:pk>/update', views.MedicalCenterUpdateAPIView.as_view(), name='medicalcenter-update'),
-
     path('medical-centers/create', views.MedicalCenterCreateAPIView.as_view(), name='medicalcenter-create'),
 
     path('departments', views.DepartmentListAPIView.as_view(), name='department-list'),
     path('departments/<int:pk>', views.DepartmentRetrieveAPIView.as_view(), name='department-retrieve'),
-    path('dpeartments/<int:pk>/update', views.DepartmentUpdateAPIView.as_view(), name='department-update'),
+    path('departments/<int:pk>/update', views.DepartmentUpdateAPIView.as_view(), name='department-update'),
     path('departments/create', views.DepartmentCreateAPIView.as_view(), name='department-create'),
 
     path('majors', views.MajorListAPIView.as_view(), name='major-list'),
     path('majors/<int:pk>', views.MajorRetrieveAPIView.as_view(), name='major-retrieve'),
+    path('majors/<int:pk>/update', views.MajorUpdateAPIView.as_view(), name='major-update'),
     path('majors/create', views.MajorCreateAPIView.as_view(), name='major-create'),
 
     # nested view

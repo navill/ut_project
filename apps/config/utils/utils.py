@@ -12,7 +12,7 @@ def concatenate_name(target_field: str = None) -> Concat:
     if target_field:
         first_name = f'{target_field}__{first_name}'
         last_name = f'{target_field}__{last_name}'
-    full_name = Concat(F(last_name), Value(' '), F(first_name))
+    full_name = Concat(F(last_name), F(first_name))
     return full_name
 
 

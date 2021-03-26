@@ -1,7 +1,6 @@
 from typing import Type, NoReturn
 
 from django.db.models import QuerySet
-from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
@@ -174,12 +173,9 @@ class PatientUpdateAPIView(UpdateAPIView):
 
 class DoctorChoicesAPIView(ListAPIView):
     queryset = Doctor.objects.choice_fields()
-    # fields = full_name, major_name, department_name, medical_center_name
     serializer_class = serializers.DoctorChoiceSerializer
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend]
     filter_class = DoctorFilter
-    filterset_fields = ['full_name', 'major_name', 'department_name', 'medical_center_name', 'user_id']
 
     @swagger_auto_schema(**docs.doctor_choice, filter_inspectors=[CommonFilterDescriptionInspector])
     def get(self, request, *args, **kwargs):
@@ -190,9 +186,7 @@ class PatientChoicesAPIView(ListAPIView):
     queryset = Patient.objects.choice_fields()
     serializer_class = serializers.PatientChoiceSerializer
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend]
     filter_class = PatientFilter
-    filterset_fields = ['doctor_id', 'full_name', 'min_age', 'max_age', 'user_id']
 
     @swagger_auto_schema(**docs.patient_choice, filter_inspectors=[CommonFilterDescriptionInspector])
     def get(self, request, *args, **kwargs):

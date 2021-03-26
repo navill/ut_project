@@ -56,7 +56,7 @@ class AccountsModel(models.Model):
         abstract = True
 
     def get_full_name(self) -> str:
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.first_name}{self.last_name}'
 
 
 class BaseQuerySet(models.QuerySet):
@@ -69,8 +69,9 @@ class BaseQuerySet(models.QuerySet):
 
 class BaseManager(BaseUserManager):
     def get_queryset(self) -> 'BaseQuerySet':
-        # request에서 user에 대한 select_related를 적용해야할 경우 authentication 수정 필요
-        return BaseQuerySet(self.model, using=self._db).select_related('doctor').select_related('patient')
+        # authentication에 필요한 최소 필드(password는 제외: 보안상)
+        return BaseQuerySet(self.model, using=self._db).only('id', 'email', 'doctor__user_id',
+                                                             'patient__user_id')
 
     def select_all(self) -> 'BaseQuerySet':
         return self.get_queryset().select_all()

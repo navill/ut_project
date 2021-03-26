@@ -59,7 +59,7 @@ class PermissionMixin:
         user = request.user
         owner_id = None
 
-        if hasattr(obj, 'user'):
+        if hasattr(obj, 'user'):  # 체크하고자 하는 객체의 소유자(user)
             owner_id = obj.user if isinstance(obj.user, int) else obj.user.id
         return user.is_superuser or bool(user.id == owner_id)
 

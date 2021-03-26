@@ -1,4 +1,3 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny
@@ -8,9 +7,14 @@ from config.utils.doc_utils import CommonFilterDescriptionInspector
 from hospitals import docs
 from hospitals.api import serializers
 from hospitals.api.filters import DepartmentFilter, MajorFilter, MedicalCenterFilter
-from hospitals.api.serializers import DepartmentListSerializer, DepartmentCreateSerializer, \
-    DepartmentRetreiveSerializer, DepartmentUpdateSerializer, MajorListSerializer, MajorCreateSerializer, \
-    MajorRetrieveSerializer, MajorUpdateSerializer
+from hospitals.api.serializers import (DepartmentListSerializer,
+                                       DepartmentCreateSerializer,
+                                       DepartmentRetreiveSerializer,
+                                       DepartmentUpdateSerializer,
+                                       MajorListSerializer,
+                                       MajorCreateSerializer,
+                                       MajorRetrieveSerializer,
+                                       MajorUpdateSerializer)
 from hospitals.models import MedicalCenter, Department, Major
 
 """
@@ -22,7 +26,6 @@ class MedicalCenterChoiceAPIView(ListAPIView):
     queryset = MedicalCenter.objects.choice_fields()
     serializer_class = serializers.MedicalCenterChoiceSerializer
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend]
     filter_class = MedicalCenterFilter
 
     @swagger_auto_schema(**docs.medical_center_choice, filter_inspectors=[CommonFilterDescriptionInspector])
@@ -34,7 +37,6 @@ class DepartmentChoiceAPIView(ListAPIView):
     queryset = Department.objects.choice_fields()
     serializer_class = serializers.DepartmentChoiceSerializer
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend]
     filter_class = DepartmentFilter
 
     @swagger_auto_schema(**docs.department_choice, filter_inspectors=[CommonFilterDescriptionInspector])
@@ -46,7 +48,6 @@ class MajorChoiceAPIView(ListAPIView):
     queryset = Major.objects.choice_fields()
     serializer_class = serializers.MajorChoiceSerializer
     permission_classes = [AllowAny]
-    filter_backends = [DjangoFilterBackend]
     filter_class = MajorFilter
 
     @swagger_auto_schema(**docs.major_choice, filter_inspectors=[CommonFilterDescriptionInspector])

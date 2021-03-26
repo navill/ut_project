@@ -60,9 +60,9 @@ class PrescriptionUpdateAPIView(UpdateAPIView):
 
     @swagger_auto_schema(**docs.prescription_update)
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        return self.partial_update(request, *args, **kwargs)
 
-    @swagger_auto_schema(**docs.prescription_update)
+    @swagger_auto_schema(**docs.prescription_update, deprecated=True)
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
@@ -111,8 +111,8 @@ class FilePrescriptionUpdateAPIView(UpdateAPIView):
 
     @swagger_auto_schema(**docs.file_prescription_update)
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        return self.partial_update(request, *args, **kwargs)
 
-    @swagger_auto_schema(**docs.file_prescription_update)
+    @swagger_auto_schema(**docs.file_prescription_update, deprecated=True)
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)

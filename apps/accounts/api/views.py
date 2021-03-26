@@ -108,9 +108,9 @@ class DoctorUpdateAPIView(UpdateAPIView):
 
     @swagger_auto_schema(**docs.doctor_update)
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        return self.partial_update(request, *args, **kwargs)
 
-    @swagger_auto_schema(**docs.doctor_update)
+    @swagger_auto_schema(**docs.doctor_update, deprecated=True)
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
@@ -164,9 +164,9 @@ class PatientUpdateAPIView(UpdateAPIView):
 
     @swagger_auto_schema(**docs.patient_update)
     def put(self, request, *args, **kwargs):
-        return super().put(request, *args, **kwargs)
+        return self.partial_update(request, *args, **kwargs)
 
-    @swagger_auto_schema(**docs.patient_update)
+    @swagger_auto_schema(**docs.patient_update, deprecated=True)
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 

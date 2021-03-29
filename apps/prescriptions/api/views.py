@@ -1,8 +1,13 @@
+from django_filters import OrderingFilter
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import RetrieveAPIView, CreateAPIView, UpdateAPIView
+from rest_framework.response import Response
 
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
+from config.utils.doc_utils import CommonFilterDescriptionInspector
 from prescriptions import docs
+from prescriptions.api.filters import PrescriptionFilter
 from prescriptions.api.serializers import (PrescriptionCreateSerializer,
                                            FilePrescriptionListSerializer,
                                            FilePrescriptionCreateSerializer,
@@ -10,7 +15,9 @@ from prescriptions.api.serializers import (PrescriptionCreateSerializer,
                                            PrescriptionDetailSerializer,
                                            FilePrescriptionDetailSerializer,
                                            FilePrescriptionUpdateSerializer,
-                                           PrescriptionUpdateSerializer)
+                                           PrescriptionUpdateSerializer,
+                                           PrescriptionChoiceSerializer,
+                                           )
 from prescriptions.api.utils import CommonListAPIView
 from prescriptions.models import Prescription, FilePrescription
 
@@ -67,6 +74,18 @@ class PrescriptionUpdateAPIView(UpdateAPIView):
         return super().patch(request, *args, **kwargs)
 
 
+class PrescriptionChoiceAPIView(CommonListAPIView):
+    queryset = Prescription.objects.choice_fields()
+    serializer_class = PrescriptionChoiceSerializer
+    permission_classes = [IsDoctor]
+    filter_class = PrescriptionFilter
+    ordering_fields = []
+
+    @swagger_auto_schema(**docs.prescription_choice)
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+
 class FilePrescriptionListAPIView(CommonListAPIView):
     queryset = FilePrescription.objects.all()
     serializer_class = FilePrescriptionListSerializer
@@ -116,3 +135,13 @@ class FilePrescriptionUpdateAPIView(UpdateAPIView):
     @swagger_auto_schema(**docs.file_prescription_update, deprecated=True)
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
+
+# class FilePrescriptionChoiceAPIView(CommonListAPIView):
+#     queryset = FilePrescription.objects.all()
+#     serializer_class = FilePrescriptionChoiceSerializer
+#     permission_classes = [IsDoctor]
+#     # filter_class = FilePrescriptionFilter
+#
+#     # @swagger_auto_schema(**docs.file_prescription_choice, filter_inspectors=[CommonFilterDescriptionInspector])
+#     def get(self, request, *args, **kwargs):
+#         return super().get(request, *args, **kwargs)

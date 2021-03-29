@@ -1,9 +1,9 @@
 import datetime
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, List
 
 from django.db import models
-from django.db.models import F, Prefetch, Q
-from django.db.models.signals import post_save, pre_save
+from django.db.models import F, Prefetch
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from accounts.models import Patient, Doctor
@@ -60,7 +60,6 @@ class PrescriptionQuerySet(models.QuerySet):
     def prefetch_all(self) -> 'PrescriptionQuerySet':
         return self.prefetch_file_prescription_with_files()
 
-    # todo: 하드 코딩 -> 소프트 코딩으로 변경할 것
     def only_list(self, *others: List[str]):
         fields = PrescriptionFields.list_field + list(others)
         return self.only(*fields)
@@ -68,6 +67,10 @@ class PrescriptionQuerySet(models.QuerySet):
     def only_detail(self, *others: List[str]):
         fields = PrescriptionFields.detail_field + list(others)
         return self.only(*fields)
+
+    def choice_fields(self):
+        return self.only('id', 'writer_id', 'patient_id', 'start_date', 'end_date',
+                         'created_at', 'status', 'checked')
 
 
 class PrescriptionManager(models.Manager):
@@ -89,6 +92,9 @@ class PrescriptionManager(models.Manager):
     def nested_all(self) -> 'PrescriptionQuerySet':
         return self.get_queryset().select_all().prefetch_file_prescription_with_files(). \
             filter(deleted=False)
+
+    def choice_fields(self):
+        return self.get_queryset().choice_fields()
 
 
 """
@@ -113,6 +119,7 @@ class Prescription(BasePrescription):
 
     def __str__(self) -> str:
         return f'{self.patient.get_full_name()}-{str(self.created_at)}'
+
 
 # [Deprecated]
 # @receiver(post_save, sender=Prescription)
@@ -178,6 +185,10 @@ class FilePrescriptionQuerySet(models.QuerySet):
         fields = FilePrescriptionFields.detail_field + list(others)
         return self.only(*fields)
 
+    def choice_fields(self):
+        return self.only('id', 'writer_id', 'patient_id', 'wirter_name', 'patient_name', 'start_date', 'end_date',
+                         'created_at', 'status', 'checked')
+
 
 class FilePrescriptionManager(models.Manager):
     def get_queryset(self) -> 'FilePrescriptionQuerySet':
@@ -196,6 +207,9 @@ class FilePrescriptionManager(models.Manager):
 
     def nested_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().nested_all()
+
+    def choice_fields(self):
+        return self.get_queryset().choice_fields()
 
 
 """

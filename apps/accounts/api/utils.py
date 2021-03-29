@@ -33,8 +33,7 @@ class CreatedUserPair:
     def user_model_name(self, user: Union['Patient', 'Doctor']) -> NoReturn:
         model_name = user.__class__.__name__.lower()
         if model_name not in ('patient', 'doctor'):
-            print(model_name)
-            raise AttributeError()
+            raise AttributeError(f'{model_name} is invalid model name')
         self._user_model_name = model_name
 
     def validate_user(self) -> bool:
@@ -43,7 +42,24 @@ class CreatedUserPair:
         return True
 
 
+"""
+Builder Pattern 
+- 하나의 객체를 여러 단계로 나누어 작성해야하고(baseuser 생성->grouping->permission 부여), 
+각 단계를 구성하는 내용이 다른 출력(doctor or patient)을 요구할 때 사용
+Client(accounts.api.mixins.SignupSerializerMixin)
+- 실제 명령을 내리는 대상: 손님
+Director(PostProcessingUserDirector)
+- 명령을 수집하는 대상: 알바생
+Builder(GroupPermissionBuilder)
+- 명령을 실행하는 대상: (햄버거를 제조하는)알바생
+"""
+
+
 class GroupPermissionInterface(metaclass=ABCMeta):
+    @abstractmethod
+    def build(self) -> NoReturn:
+        raise NotImplementedError("This method must be implemented in subclasses!")
+
     @abstractmethod
     def set_permissions_for_models(self) -> NoReturn:
         raise NotImplementedError("This method must be implemented in subclasses!")

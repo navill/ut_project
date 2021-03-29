@@ -11,6 +11,7 @@
 ### TIL
 
 -   Django & DRF
+    -   210329: [Custom FilterSet 내에서 Try/Except 구문 사용 시 주의](docs/210329.md)
     -   210324: [개선된 만 나이 계산(with db function)](docs/210324.md)
     -   210323: [Project 모델 구조 수정(예정)](docs/210323.md)
     -   210308: [MySQL Function을 이용한 만 나이 계산](docs/210308.md)

@@ -29,14 +29,14 @@ DATABASES = {
     },
 }
 
-# celery for local setting
-djcelery.setup_loader()
-
-# redis for local setting
-REDIS_HOST = 'localhost'
-REDIS_PORT = 6001
-REDIS_DB = 1
-REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1, decode_responses=True)
+# # celery for local setting
+# djcelery.setup_loader()
+#
+# # redis for local setting
+# REDIS_HOST = 'localhost'
+# REDIS_PORT = 6001
+# REDIS_DB = 1
+# REDIS_CONN_POOL_1 = redis.ConnectionPool(host=REDIS_HOST, port=REDIS_PORT, db=1, decode_responses=True)
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),

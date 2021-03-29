@@ -1,0 +1,341 @@
+[
+{
+  "model": "accounts.baseuser",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$LcxqBdNCQ7oX$Ir3wQzJ9Q4/Y4YleNyThzGo+sskgGj76lcw+bwRFTlo=",
+    "last_login": "2021-03-06T14:43:24.741",
+    "email": "admin@admin.com",
+    "created_at": "2021-01-27T13:07:25.225",
+    "updated_at": "2021-01-27T13:07:25.225",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": true,
+    "is_staff": true,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$8mObeYJiTpf8$efFoY5IQOuNOicc7GSYPAS1jI+SDeiGVoTKB2xQ+yb0=",
+    "last_login": "2021-03-10T17:39:57.978",
+    "email": "doctor1@doctor.com",
+    "created_at": "2021-01-27T13:09:58.484",
+    "updated_at": "2021-03-22T15:45:05.121",
+    "token_expired": 1616514305,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      1
+    ],
+    "user_permissions": [
+      25,
+      26,
+      27,
+      28
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$2fVbmyndKE6g$0P1UYnqXsaVQu5QCWnbYZfywNGLObZrc6gh9opUyMPg=",
+    "last_login": "2021-02-04T10:51:01.874",
+    "email": "doctor2@doctor.com",
+    "created_at": "2021-01-27T13:10:12.729",
+    "updated_at": "2021-01-27T13:10:12.729",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      1
+    ],
+    "user_permissions": [
+      25,
+      26,
+      27,
+      28
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$ZU6j4SVyqwva$L32w6exMZn2X6tzO3c6V6wR6dr5AYoe1Gxt3PDjXbiY=",
+    "last_login": null,
+    "email": "doctor3@doctor.com",
+    "created_at": "2021-01-27T13:10:28.780",
+    "updated_at": "2021-01-27T13:10:28.780",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      1
+    ],
+    "user_permissions": [
+      25,
+      26,
+      27,
+      28
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$wVMfPQnAiwHE$yOc96Voqqr4X9LAlzSuYdEUtsX8RxpZw6qd06eGATqw=",
+    "last_login": "2021-03-26T15:00:09.405",
+    "email": "patient1@patient.com",
+    "created_at": "2021-01-27T13:12:08.547",
+    "updated_at": "2021-01-27T13:12:08.547",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      2
+    ],
+    "user_permissions": [
+      29,
+      30,
+      31,
+      32
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$ngJ6Wf8TqZ90$Xvt5AEyuJQ2csfuWfW9SwjhHADRSPL5yhmO+bBZecA0=",
+    "last_login": null,
+    "email": "patient2@patient.com",
+    "created_at": "2021-01-27T13:12:24.331",
+    "updated_at": "2021-01-27T13:12:24.331",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      2
+    ],
+    "user_permissions": [
+      29,
+      30,
+      31,
+      32
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$fX9C2goakfvC$kxE02oHedECX06hrgYL6UaaoU17GPtIZf9OuyZcnYv8=",
+    "last_login": "2021-02-04T10:56:40.160",
+    "email": "patient3@patient.com",
+    "created_at": "2021-01-27T13:15:28.470",
+    "updated_at": "2021-01-27T13:15:28.470",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 8,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$LxKegaf96sSl$MQ+MRNPLhqUQpmVGKF6ym8SlPX7Dodr4dus5lY3q5Kw=",
+    "last_login": null,
+    "email": "patient4@patient.com",
+    "created_at": "2021-01-27T13:15:44.743",
+    "updated_at": "2021-01-27T13:15:44.743",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 9,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$AyRgiZW3eR8V$mJVfqDvecJOAGgTiBpnps0HzlCGyf1fjvwsgLoDPVGs=",
+    "last_login": null,
+    "email": "patient0@patient.com",
+    "created_at": "2021-01-28T10:31:51.838",
+    "updated_at": "2021-01-28T10:31:51.838",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      2
+    ],
+    "user_permissions": [
+      29,
+      30,
+      31,
+      32
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 10,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$nmp4yfKYO6ST$PWrSFRgldaw/7yCBWzOvaEnGnRnlcXbRnHDXyU22Guw=",
+    "last_login": null,
+    "email": "patientz00@paitnet.com",
+    "created_at": "2021-01-31T18:09:23.983",
+    "updated_at": "2021-01-31T18:09:23.983",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      2
+    ],
+    "user_permissions": [
+      29,
+      30,
+      31,
+      32
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 11,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$aZSLHS0m3kur$s3CjPFeGN6N8LpmAezUQ0AGryj8WAYDcenjdyVkApk8=",
+    "last_login": null,
+    "email": "doctor_test00@test.com",
+    "created_at": "2021-03-08T16:08:31.149",
+    "updated_at": "2021-03-08T16:08:31.149",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      1
+    ],
+    "user_permissions": [
+      25,
+      26,
+      27,
+      28
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 13,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$RrIuClOZ8viL$oQOkMRVO3+NqNLUkMQKjXMIWW4repmIlHp+Shcpeq8g=",
+    "last_login": null,
+    "email": "patientz@patientzz.com",
+    "created_at": "2021-03-08T18:26:01.834",
+    "updated_at": "2021-03-08T18:26:01.834",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      2
+    ],
+    "user_permissions": [
+      29,
+      30,
+      31,
+      32
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 15,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$95JsDthF5fk4$toGxTKogmJLMdNy61KQqnMfAv9EJl+1NlSU7NOTEPOc=",
+    "last_login": null,
+    "email": "patientzz@patientzz.com",
+    "created_at": "2021-03-08T18:26:44.654",
+    "updated_at": "2021-03-08T18:26:44.654",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      2
+    ],
+    "user_permissions": [
+      29,
+      30,
+      31,
+      32
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 16,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$zIO4RDs1u4MS$bsc0jEryj8r3Dq3zBEkM0X0BtTKJ9I9WQAY/cSik6uU=",
+    "last_login": null,
+    "email": "doctor_t0@test.com",
+    "created_at": "2021-03-08T19:41:07.901",
+    "updated_at": "2021-03-08T19:41:07.901",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      1
+    ],
+    "user_permissions": [
+      25,
+      26,
+      27,
+      28
+    ]
+  }
+},
+{
+  "model": "accounts.baseuser",
+  "pk": 17,
+  "fields": {
+    "password": "pbkdf2_sha256$180000$eoiZBtsxfPrt$eP9DkCOt6kOlVsJjTp3YR54bpAL9396yxRYVy/yT99w=",
+    "last_login": null,
+    "email": "paentzz@patientzz.com",
+    "created_at": "2021-03-08T19:41:33.815",
+    "updated_at": "2021-03-08T19:41:33.815",
+    "token_expired": 0,
+    "is_active": true,
+    "is_superuser": false,
+    "is_staff": false,
+    "groups": [
+      2
+    ],
+    "user_permissions": [
+      29,
+      30,
+      31,
+      32
+    ]
+  }
+}
+]

@@ -1,0 +1,28 @@
+[
+{
+  "model": "hospitals.medicalcenter",
+  "pk": 1,
+  "fields": {
+    "country": "\ub300\ud55c\ubbfc\uad6d",
+    "city": "\uc11c\uc6b8\ud2b9\ubcc4\uc2dc",
+    "name": "\uc11c\uc6b8\ubcd1\uc6d0",
+    "address": "\uc11c\uc6b8\uc5b4\ub518\uac00",
+    "postal_code": "123-123",
+    "main_call": "02-1111-1111",
+    "sub_call": "02-1111-1112"
+  }
+},
+{
+  "model": "hospitals.medicalcenter",
+  "pk": 2,
+  "fields": {
+    "country": "\ub300\ud55c\ubbfc\uad6d",
+    "city": "\uad11\uc8fc\uad11\uc5ed\uc2dc",
+    "name": "\uc720\ud2f0\ubcd1\uc6d0",
+    "address": "\ubcc0\uacbd\ub41c \uc8fc\uc18c",
+    "postal_code": "11-2223",
+    "main_call": "062-11111",
+    "sub_call": "062-22222"
+  }
+}
+]

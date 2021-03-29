@@ -1,0 +1,29 @@
+[
+{
+  "model": "hospitals.major",
+  "pk": 1,
+  "fields": {
+    "department": 1,
+    "name": "\uc815\uc2e0\uc758\ud559",
+    "call": "1111"
+  }
+},
+{
+  "model": "hospitals.major",
+  "pk": 2,
+  "fields": {
+    "department": 1,
+    "name": "\ud749\ubd80\uc678\uacfc",
+    "call": "02-1123-1223"
+  }
+},
+{
+  "model": "hospitals.major",
+  "pk": 3,
+  "fields": {
+    "department": 2,
+    "name": "\ud749\ubd80\uc758\ud559",
+    "call": "0000"
+  }
+}
+]

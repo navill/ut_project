@@ -1,0 +1,20 @@
+[
+{
+  "model": "hospitals.department",
+  "pk": 1,
+  "fields": {
+    "medical_center": 1,
+    "name": "\uc815\uc2e0\uc758\ud559\uacfc",
+    "call": "0030"
+  }
+},
+{
+  "model": "hospitals.department",
+  "pk": 2,
+  "fields": {
+    "medical_center": 1,
+    "name": "\ud749\ubd80\uc678\uacfc",
+    "call": "1111"
+  }
+}
+]

@@ -1,0 +1,497 @@
+[
+{
+  "model": "files.doctorfile",
+  "pk": "073b3229-07a4-45ea-bbf8-34e1e7319dc7",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-15T21:57:34.444",
+    "file": "2021-02-15/md/doctor2doctor.com_215734_test_Ot4aqUj.md",
+    "deleted": false,
+    "prescription": 9
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "1ac14d3c-bc99-40fe-90e9-b335443d7c2e",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-03-05T20:54:28.487",
+    "file": "2021-03-05/pptx/doctor2doctor.com_205428_2-6\u1107\u1173\u1105\u1175\u1111\u1175\u11bc_\u110c\u1161\u1105\u116d.pptx",
+    "deleted": false,
+    "prescription": 13
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "1d921cf3-1ce3-4599-b330-f92514f73db9",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-09T17:27:13.984",
+    "file": "2021-02-09/pptx/doctor2doctor.com_172713_\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173_\u110b\u1168\u1109\u1161\u11bc_\u1103\u1175\u110c\u1161\u110b\u1175\u11ab.pptx",
+    "deleted": false,
+    "prescription": 5
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "1db278ab-f99a-4af8-a6c5-d7184d31a250",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-03-05T20:54:28.410",
+    "file": "2021-03-05/md/doctor2doctor.com_205428_test.md",
+    "deleted": false,
+    "prescription": 13
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "1e75c301-d43c-4b18-a71f-45b0e1a8753e",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:02:33.149",
+    "file": "2021-03-06/md/doctor1doctor.com_220233_test_nG6I9HG.md",
+    "deleted": false,
+    "prescription": 20
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "201e7ac6-72f5-4bb9-9a86-b2773041fd12",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:02:33.116",
+    "file": "2021-03-06/md/doctor1doctor.com_220233_test.md",
+    "deleted": false,
+    "prescription": 20
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "245370d3-686b-4f72-90ef-efeefe8123b1",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-03-06T17:39:49.463",
+    "file": "2021-03-06/md/doctor2doctor.com_173949_test.md",
+    "deleted": false,
+    "prescription": 14
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "26126582-5d79-424e-a915-2911b9d0e31a",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-25T21:16:43.161",
+    "file": "2021-02-25/pptx/doctor2doctor.com_211643_2-6\u1107\u1173\u1105\u1175\u1111\u1175\u11bc_\u110c\u1161\u1105\u116d.pptx",
+    "deleted": false,
+    "prescription": 11
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "2c69833c-ae78-4864-8d4f-c5ad70e3c9c9",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:05:38.297",
+    "file": "2021-03-06/md/doctor1doctor.com_220538_test.md",
+    "deleted": false,
+    "prescription": 21
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "2eb5ba26-4791-446d-8dcf-e8e5f890a91e",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-15T21:58:27.055",
+    "file": "2021-02-15/pptx/doctor2doctor.com_215827_2-6\u1107\u1173\u1105\u1175\u1111\u1175\u11bc_\u110c\u1161\u1105\u116d.pptx",
+    "deleted": false,
+    "prescription": 10
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "36429584-7247-4639-9340-588373f81b35",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:06:45.909",
+    "file": "2021-03-06/md/doctor1doctor.com_220645_test_3rEp4CF.md",
+    "deleted": false,
+    "prescription": 22
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "375f201c-84dc-4abd-9930-6d12baeb7865",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-01-27T15:14:30.153",
+    "file": "2021-01-27/pptx/doctor1doctor.com_151430_\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173_\u110b\u1168\u1109\u1161\u11bc_\u1103\u1175\u110c\u1161\u110b\u1175\u11ab.pptx",
+    "deleted": false,
+    "prescription": 1
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "444a2710-f10a-4893-b7a8-5a7d6f336dbb",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-09T17:30:51.641",
+    "file": "2021-03-09/md/doctor1doctor.com_175027_2-1_\ubaa8\ub378_\uc815\ub9ac.md",
+    "deleted": true,
+    "prescription": 22
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "4ef3848e-58f6-407d-8a5d-ec8c8e5ae163",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-10T21:31:19.767",
+    "file": "2021-03-10/md/doctor1doctor.com_213119_test.md",
+    "deleted": false,
+    "prescription": 23
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "5e129581-8ec9-4f9a-b856-137df0268836",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-09T22:28:34.568",
+    "file": "2021-03-09/md/doctor1doctor.com_222834_test.md",
+    "deleted": false,
+    "prescription": 22
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "638b8c4f-a27e-4f19-86ba-a443c54cb907",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:10:20.836",
+    "file": "2021-03-06/md/doctor1doctor.com_221020_test_oTkswZ2.md",
+    "deleted": false,
+    "prescription": 23
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "6a0a0553-37e2-4be6-8395-e7b70239d9df",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-25T21:16:43.112",
+    "file": "2021-02-25/md/doctor2doctor.com_211643_test.md",
+    "deleted": false,
+    "prescription": 11
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "6a302770-f90f-4881-b218-535f095853db",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-03-06T19:42:15.641",
+    "file": "2021-03-06/pptx/doctor2doctor.com_194215_2-6\u1107\u1173\u1105\u1175\u1111\u1175\u11bc_\u110c\u1161\u1105\u116d.pptx",
+    "deleted": false,
+    "prescription": 17
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "6b4f5a4a-2de4-4937-a38b-fbf4129de51d",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-15T21:58:27.017",
+    "file": "2021-02-15/md/doctor2doctor.com_215827_test.md",
+    "deleted": false,
+    "prescription": 10
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "6ee7e181-b167-430b-8b7c-c3fd79b6dd98",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T17:42:12.080",
+    "file": "2021-03-06/md/doctor1doctor.com_174212_test.md",
+    "deleted": false,
+    "prescription": 15
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "70b423de-5c93-400d-9b07-5020b68ac178",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-01-28T10:34:38.788",
+    "file": "2021-01-28/pptx/doctor1doctor.com_103438_\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173_\u110b\u1168\u1109\u1161\u11bc_\u1103\u1175\u110c\u1161\u110b\u1175\u11ab.pptx",
+    "deleted": false,
+    "prescription": 3
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "71dd65e0-aa03-414c-8c51-6db36ecd5602",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-04T10:53:07.562",
+    "file": "2021-02-04/pptx/doctor2doctor.com_105307_\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173_\u110b\u1168\u1109\u1161\u11bc_\u1103\u1175\u110c\u1161\u110b\u1175\u11ab.pptx",
+    "deleted": false,
+    "prescription": 4
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "8c0425ba-8ecc-4dfd-be40-de0584d30148",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T17:42:44.315",
+    "file": "2021-03-06/md/doctor1doctor.com_174244_test.md",
+    "deleted": false,
+    "prescription": 16
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "93eb2293-4012-49c8-b22b-2dd11a97bee3",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:01:31.203",
+    "file": "2021-03-06/md/doctor1doctor.com_220131_test_mqopngx.md",
+    "deleted": false,
+    "prescription": 19
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "9e89feea-4fb3-41d2-bfe1-ace60c8c632d",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T19:42:29.825",
+    "file": "2021-03-06/md/doctor1doctor.com_194229_test.md",
+    "deleted": false,
+    "prescription": 18
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "a222f1ac-9763-4b65-a0e5-9b784dcb1b76",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-01-27T15:14:30.189",
+    "file": "2021-01-27/png/doctor1doctor.com_151430_image-20210117202708313.png",
+    "deleted": false,
+    "prescription": 1
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "acefb67f-e41a-4a9d-82ce-0dec0a0b4fbb",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-09T17:10:01.141",
+    "file": "2021-03-09/md/doctor1doctor.com_171001_test.md",
+    "deleted": false,
+    "prescription": 22
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "ad38ea00-8ff8-49f4-b365-4b96fd9f5feb",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:01:31.155",
+    "file": "2021-03-06/md/doctor1doctor.com_220131_test.md",
+    "deleted": false,
+    "prescription": 19
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "b5a7b7d5-92b6-4577-817c-e1c9720d8a5d",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-05T21:12:39.180",
+    "file": "2021-03-05/md/doctor1doctor.com_211239_test.md",
+    "deleted": false,
+    "prescription": 1
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "b742f29d-1d7a-4915-bc70-ebd2f549ec8c",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-09T17:27:48.382",
+    "file": "2021-02-09/md/doctor2doctor.com_172748_\u1106\u116e\u110c\u1166_\u1107\u1169\u11a8\u1109\u1161\u1107\u1169\u11ab.md",
+    "deleted": false,
+    "prescription": 7
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "b8b479ac-44d8-462e-b675-29a8405a34af",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-09T17:27:48.347",
+    "file": "2021-02-09/pptx/doctor2doctor.com_172748_\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173_\u110b\u1168\u1109\u1161\u11bc_\u1103\u1175\u110c\u1161\u110b\u1175\u11ab.pptx",
+    "deleted": false,
+    "prescription": 7
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "be64c388-70a7-4c4b-afa4-ec7a229fac5a",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:06:45.879",
+    "file": "2021-03-06/md/doctor1doctor.com_220645_test.md",
+    "deleted": false,
+    "prescription": 22
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "c0417da8-f1a4-4d3d-aec4-895245dad456",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-09T17:27:32.942",
+    "file": "2021-02-09/pptx/doctor2doctor.com_172732_\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173_\u110b\u1168\u1109\u1161\u11bc_\u1103\u1175\u110c\u1161\u110b\u1175\u11ab.pptx",
+    "deleted": false,
+    "prescription": 6
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "c16f7176-8ebd-4222-992a-75ccda9f8778",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:10:20.734",
+    "file": "2021-03-06/md/doctor1doctor.com_221020_test.md",
+    "deleted": false,
+    "prescription": 23
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "c3ad9fea-54dc-4392-8bc1-5db48202b235",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-01-27T15:14:38.297",
+    "file": "2021-01-27/png/doctor1doctor.com_151438_image-20210117202708313.png",
+    "deleted": false,
+    "prescription": 2
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "c5b29d53-9245-4d4f-9885-576813efd736",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T17:42:44.358",
+    "file": "2021-03-06/md/doctor1doctor.com_174244_test_ZqpzX0f.md",
+    "deleted": false,
+    "prescription": 16
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "ca79bdef-31c5-4749-a85e-5ac1a68f00a0",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-15T21:56:02.968",
+    "file": "2021-02-15/md/doctor2doctor.com_215602_test_M1BVAS7.md",
+    "deleted": false,
+    "prescription": 8
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "cbdba368-0eec-4479-8552-9abacebe00b1",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-15T21:56:02.930",
+    "file": "2021-02-15/md/doctor2doctor.com_215602_test.md",
+    "deleted": false,
+    "prescription": 8
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "e760256c-8fbf-4cbe-bf84-bf2917599e45",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T17:42:12.161",
+    "file": "2021-03-06/md/doctor1doctor.com_174212_test_SBmWQji.md",
+    "deleted": false,
+    "prescription": 15
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "e7b28e05-4083-498f-9e9a-808f73a0e5b7",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-02-15T21:57:34.413",
+    "file": "2021-02-15/md/doctor2doctor.com_215734_test.md",
+    "deleted": false,
+    "prescription": 9
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "e8612713-34c1-439b-8a5d-bb24f182d573",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-01-27T15:14:38.238",
+    "file": "2021-01-27/pptx/doctor1doctor.com_151438_\u1111\u1173\u1105\u1169\u110c\u1166\u11a8\u1110\u1173_\u110b\u1168\u1109\u1161\u11bc_\u1103\u1175\u110c\u1161\u110b\u1175\u11ab.pptx",
+    "deleted": false,
+    "prescription": 2
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "f0bbfddd-fb0f-4d3c-8183-4e754c1b9082",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-03-06T17:39:49.496",
+    "file": "2021-03-06/pptx/doctor2doctor.com_173949_2-6\u1107\u1173\u1105\u1175\u1111\u1175\u11bc_\u110c\u1161\u1105\u116d.pptx",
+    "deleted": false,
+    "prescription": 14
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "f19959c2-c116-4aaf-8583-1a0c21e285bc",
+  "fields": {
+    "uploader": 3,
+    "created_at": "2021-03-06T19:42:15.497",
+    "file": "2021-03-06/md/doctor2doctor.com_194215_test.md",
+    "deleted": false,
+    "prescription": 17
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "f27b771d-d5a5-49c8-bef2-cedd09bc778d",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T19:42:29.874",
+    "file": "2021-03-06/md/doctor1doctor.com_194229_test_FrRt3sU.md",
+    "deleted": false,
+    "prescription": 18
+  }
+},
+{
+  "model": "files.doctorfile",
+  "pk": "faded588-1a24-4c3f-bd31-b8cea56031bd",
+  "fields": {
+    "uploader": 2,
+    "created_at": "2021-03-06T22:05:38.334",
+    "file": "2021-03-06/md/doctor1doctor.com_220538_test_nUff0iy.md",
+    "deleted": false,
+    "prescription": 21
+  }
+}
+]

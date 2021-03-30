@@ -181,20 +181,19 @@ class FilePrescriptionQuerySet(models.QuerySet):
         fields = FilePrescriptionFields.list_field + list(others)
         return self.only(*fields)
 
-    def only_detail(self, *others: List[str]):
+    def only_detail(self, *others: List[str]) -> 'FilePrescriptionQuerySet':
         fields = FilePrescriptionFields.detail_field + list(others)
         return self.only(*fields)
 
-    def choice_fields(self):
-        return self.only('id', 'writer_id', 'patient_id', 'wirter_name', 'patient_name', 'start_date', 'end_date',
-                         'created_at', 'status', 'checked')
+    def choice_fields(self) -> 'FilePrescriptionQuerySet':
+        return self.only('id', 'status', 'created_at', 'date', 'day_number', 'active', 'uploaded', 'checked')
 
 
 class FilePrescriptionManager(models.Manager):
     def get_queryset(self) -> 'FilePrescriptionQuerySet':
         return FilePrescriptionQuerySet(self.model, using=self._db). \
             annotate(user=F('prescription__writer_id'),
-                     doctor_id=F('prescription__writer_id'),  # 중복
+                     writer_id=F('prescription__writer_id'),
                      patient_id=F('prescription__patient_id'),
                      writer_name=concatenate_name('prescription__writer'),
                      patient_name=concatenate_name('prescription__patient'))
@@ -203,12 +202,12 @@ class FilePrescriptionManager(models.Manager):
         return self.get_queryset().prefetch_all()
 
     def select_all(self) -> 'FilePrescriptionQuerySet':
-        return self.get_queryset().select_all()  # prescription-doctorfile, prescription-writer, patient_file
+        return self.get_queryset().select_all()
 
     def nested_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().nested_all()
 
-    def choice_fields(self):
+    def choice_fields(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().choice_fields()
 
 

@@ -19,7 +19,13 @@ prescription_url_schema = {
         format=openapi.FORMAT_URI
     )
 }
-prescription_query_params = {
+prescription_query_parameters = {
+    'id': openapi.Parameter(
+        name='id',
+        description='소견서 객체의 id',
+        type=openapi.TYPE_INTEGER,
+        in_=openapi.IN_QUERY
+    ),
     'writer_id': openapi.Parameter(
         name='writer_id',
         description="작성자(의사) 계정의 id",
@@ -44,19 +50,19 @@ prescription_query_params = {
         type=openapi.TYPE_STRING,
         in_=openapi.IN_QUERY,
     ),
-    'min_date': openapi.Parameter(
-        name='min_date',
-        description="스케줄(FilePrescription) 검색 시 사용될 날짜의 최소값",
+    'start_date': openapi.Parameter(
+        name='start_date',
+        description="파일 업로드 시작일",
         type=openapi.TYPE_STRING,
         format=openapi.FORMAT_DATE,
-        in_=openapi.IN_QUERY,
+        in_=openapi.IN_QUERY
     ),
-    'max_date': openapi.Parameter(
-        name='max_date',
-        description="스케줄(FilePrescription) 검색 시 사용될 날짜의 최대값",
+    'end_date': openapi.Parameter(
+        name='end_date',
+        description='파일 업로드 종료일',
         type=openapi.TYPE_STRING,
         format=openapi.FORMAT_DATE,
-        in_=openapi.IN_QUERY,
+        in_=openapi.IN_QUERY
     ),
     'created_at': openapi.Parameter(
         name='created_at',
@@ -79,7 +85,26 @@ prescription_query_params = {
         type=openapi.TYPE_STRING,
         in_=openapi.IN_QUERY,
     ),
+    'ordering': openapi.Parameter(
+        name='ordering',
+        description=
+        """Prescription 객체의 필드를 기반으로 정렬.\n    
+    ex) id를 기반으로 정렬할 경우 ordering=id(오름차순), ordering=-id(내림차순)
+        """,
+        type=openapi.TYPE_STRING,
+        in_=openapi.IN_QUERY
+    )
 
+}
+prescription_choice_schema = {
+    'writer_name': openapi.Schema(
+        description='소견서를 작성한 의사의 이름',
+        type=openapi.TYPE_STRING
+    ),
+    'patient_name': openapi.Schema(
+        description='환자의 이름',
+        type=openapi.TYPE_STRING
+    ),
 }
 prescription_schema = {
     'id': openapi.Schema(
@@ -151,7 +176,87 @@ file_prescription_path_parameter = openapi.Parameter(
     in_=openapi.IN_PATH,
     type=openapi.TYPE_INTEGER
 )
-
+file_prescription_query_parameters = {
+    'prescription_id': openapi.Parameter(
+        name='prescription_id',
+        description='Prescription 객체의 id',
+        type=openapi.TYPE_INTEGER,
+        in_=openapi.IN_QUERY
+    ),
+    'writer_id': openapi.Parameter(
+        name='writer_id',
+        description="작성자(의사) 계정의 id",
+        type=openapi.TYPE_INTEGER,
+        in_=openapi.IN_QUERY,
+    ),
+    'writer_name': openapi.Parameter(
+        name='writer_name',
+        description="작성자(의사) 이름",
+        type=openapi.TYPE_STRING,
+        in_=openapi.IN_QUERY,
+    ),
+    'patient_id': openapi.Parameter(
+        name='patient_id',
+        description="소견서 대상(환자) 계정의 id",
+        type=openapi.TYPE_INTEGER,
+        in_=openapi.IN_QUERY,
+    ),
+    'patient_name': openapi.Parameter(
+        name='patient_name',
+        description="소견서 대상(환자) 이름",
+        type=openapi.TYPE_STRING,
+        in_=openapi.IN_QUERY,
+    ),
+    'uploaded': openapi.Parameter(
+        name='uploaded',
+        description='환자가 파일을 올렸는지 여부',
+        type=openapi.TYPE_BOOLEAN,
+        in_=openapi.IN_QUERY
+    ),
+    'status': openapi.Parameter(
+        name='status',
+        description='파일을 확인한 의사가 저장한 환자의 상태',
+        type=openapi.TYPE_STRING,
+        enum=['NONE', 'NORMAL', 'ABNORMAL', 'UNKNOWN'],
+        in_=openapi.IN_QUERY
+    ),
+    'date': openapi.Parameter(
+        name='date',
+        description="파일 업로드 날짜",
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
+        in_=openapi.IN_QUERY
+    ),
+    'created_at': openapi.Parameter(
+        name='created_at',
+        description="소견서 작성 날짜(시간 제외)",
+        type=openapi.TYPE_STRING,
+        format=openapi.FORMAT_DATE,
+        in_=openapi.IN_QUERY,
+    ),
+    'checked': openapi.Parameter(
+        name='checked',
+        description="의사가 기간내에 환자가 올린 파일을 모두 체크했는지 여부(prescription과 연결된 file_prescription객체 모두 체크(True) 했을 경우, True)",
+        type=openapi.TYPE_STRING,
+        format=openapi.TYPE_BOOLEAN,
+        in_=openapi.IN_QUERY,
+    ),
+    'active': openapi.Parameter(
+        name='active',
+        description='파일 업로드 일정 활성화 여부',
+        type=openapi.TYPE_STRING,
+        in_=openapi.IN_QUERY,
+    ),
+    'ordering': openapi.Parameter(
+        name='ordering',
+        description=
+        """FilePrescription 객체의 필드를 기반으로 정렬.\n    
+    ex) id를 기반으로 정렬할 경우 ordering=id(오름차순), ordering=-id(내림차순)
+        """,
+        type=openapi.TYPE_STRING,
+        in_=openapi.IN_QUERY
+    )
+}
 file_prescription_schema = {
     'id': openapi.Schema(
         description='file prescription 객체의 pk',
@@ -202,6 +307,25 @@ file_prescription_schema = {
         type=openapi.TYPE_BOOLEAN
     ),
 }
+file_prescription_choice_schema = {
+    'writer_id': openapi.Schema(
+        description='스케줄 등록자(의사)의 id',
+        type=openapi.TYPE_INTEGER
+    ),
+    "writer_name": openapi.Schema(
+        description='스케줄 등록자(의사)의 이름',
+        type=openapi.TYPE_STRING,
+    ),
+    "patient_id": openapi.Schema(
+        description='환자 계정의 id',
+        type=openapi.TYPE_INTEGER
+    ),
+    'patient_name': openapi.Schema(
+        description='환자의 이름',
+        type=openapi.TYPE_STRING,
+    ),
+}
+
 file_prescription_url_schema = {
     'url': openapi.Schema(
         description='file prescription detail url',
@@ -507,17 +631,31 @@ prescription_choice = {
     'operation_summary': '[LIST] Prescription 선택 리스트',
     'operation_description': """
     - 기능: 소견서에 대한 최소한의 정보를 출력하며, 주어진 필드를 통해 필터링 가능
+        - 범위 검색 필드: [created_at, start_date, end_date]
+        - 공통 lookup postfix: [exact, lte, gte] \n
+        [example] \n
+        ```...?created_at=2021-01-03&created_at_lookup=exact```\n
+        => 2021-01-03일에 작성된 모든 소견서 출력 
     - 권한: IsDoctor
     """,
     "manual_parameters": [
-        *prescription_query_params.values()
+        *prescription_query_parameters.values()
     ],
     'responses': {
         '200': openapi.Response(
             schema=openapi.Schema(
-                title='Prescription 수정 결과',
+                title='Prescription 필터링 결과',
                 type=openapi.TYPE_OBJECT,
-                properties=prescription_update_propoerties
+                properties={
+                    'id': prescription_schema['id'],
+                    'writer_id': prescription_schema['writer'],
+                    'patient_id': prescription_schema['patient'],
+                    'writer_name': prescription_choice_schema['writer_name'],
+                    'patient_name': prescription_choice_schema['patient_name'],
+                    'status': prescription_schema['status'],
+                    'checked': prescription_schema['checked'],
+                    'created_at': prescription_schema['created_at']
+                }
             ),
             description='prescription 수정 결과',
             examples={
@@ -528,7 +666,7 @@ prescription_choice = {
                             "writer_id": 2,
                             "patient_id": 5,
                             "writer_name": "일의사",
-                            "patient_name": "일환자",
+                            "patient_name": "삼환자",
                             "start_date": "2021-01-06",
                             "end_date": "2021-01-20",
                             "created_at": "2021-03-06T22:10:20.618187",
@@ -552,7 +690,7 @@ prescription_choice = {
                             "writer_id": 2,
                             "patient_id": 7,
                             "writer_name": "일의사",
-                            "patient_name": "삼환자",
+                            "patient_name": "일환자",
                             "start_date": "2021-03-01",
                             "end_date": "2021-03-06",
                             "created_at": "2021-03-06T22:05:38.261055",
@@ -871,4 +1009,88 @@ file_prescription_create = {
     },
 }
 
-file_prescription_choice = {}
+file_prescription_choice = {
+    'operation_summary': '[LIST] FilePrescription 선택 리스트',
+    'operation_description': """
+    - 기능: FilePrescription에 대한 최소한의 정보를 출력하며, 주어진 필드를 통해 필터링 가능
+        - 범위 검색 필드: [created_at, date]
+        - 공통 lookup postfix: [exact, lte, gte] \n
+        [example] \n
+        ```...?created_at=2021-01-03&created_at_lookup=exact```: 2021년 1월 3일날 작성된 소견서 리스트\n
+        ```...?created_at=2021-01-03&created_at_lookup=gte```: 2021년 1월 3일부터 작성된 소견서 리스트\n
+    - 권한: IsDoctor
+    """,
+    "manual_parameters": [
+        *file_prescription_query_parameters.values()
+    ],
+    'responses': {
+        '200': openapi.Response(
+            schema=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "id": file_prescription_schema['id'],
+                    "prescription_id": file_prescription_schema['prescription'],
+                    "writer_id": file_prescription_choice_schema['writer_id'],
+                    "writer_name": file_prescription_choice_schema['writer_name'],
+                    "patient_id": file_prescription_choice_schema['patient_id'],
+                    "patient_name": file_prescription_choice_schema['patient_name'],
+                    "status": file_prescription_schema['status'],
+                    "checked": file_prescription_schema['checked'],
+                    "created_at": file_prescription_schema['created_at'],
+                    "day_number": file_prescription_schema['day_number'],
+                    "date": file_prescription_schema['date'],
+                    "uploaded": file_prescription_schema['uploaded']
+                }
+            ),
+            description='file prescription 필터링 결과',
+            examples={
+                'application/json':
+                    [
+                        {
+                            "id": 248,
+                            "prescription_id": 3,
+                            "writer_id": 2,
+                            "writer_name": "일의사",
+                            "patient_id": 5,
+                            "patient_name": "일환자",
+                            "status": "UNKNOWN",
+                            "checked": "false",
+                            "created_at": "2021-03-06T22:17:09.097019",
+                            "day_number": 1,
+                            "date": "2021-03-07",
+                            "uploaded": "true"
+                        },
+                        {
+                            "id": 247,
+                            "prescription_id": 23,
+                            "writer_id": 2,
+                            "writer_name": "일의사",
+                            "patient_id": 5,
+                            "patient_name": "일환자",
+                            "status": "UNKNOWN",
+                            "checked": "false",
+                            "created_at": "2021-03-06T22:10:20.694952",
+                            "day_number": 10,
+                            "date": "2021-01-10",
+                            "uploaded": "true"
+                        },
+                        {
+                            "id": 246,
+                            "prescription_id": 23,
+                            "writer_id": 2,
+                            "writer_name": "일의사",
+                            "patient_id": 5,
+                            "patient_name": "일환자",
+                            "status": "UNKNOWN",
+                            "checked": "false",
+                            "created_at": "2021-03-06T22:10:20.694919",
+                            "day_number": 9,
+                            "date": "2021-01-09",
+                            "uploaded": "false"
+                        }
+                    ],
+            },
+
+        )
+    },
+}

@@ -130,7 +130,25 @@ class FilePrescriptionCreateSerializer(FilePrescriptionModelSerializer):
         fields = ['url', 'prescription', 'description', 'status', 'date', 'day_number', 'checked']
 
 
-# class FilePrescriptionChoiceSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = FilePrescription
-#         fields = ['']
+class FilePrescriptionChoiceSerializer(serializers.ModelSerializer):
+    writer_id = serializers.SerializerMethodField()
+    writer_name = serializers.SerializerMethodField()
+    patient_id = serializers.SerializerMethodField()
+    patient_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = FilePrescription
+        fields = ['id', 'prescription_id', 'writer_id', 'writer_name', 'patient_id', 'patient_name', 'status',
+                  'checked', 'created_at', 'day_number', 'date', 'uploaded']
+
+    def get_writer_id(self, instance):
+        return instance.writer_id
+
+    def get_writer_name(self, instance):
+        return instance.writer_name
+
+    def get_patient_id(self, instance):
+        return instance.patient_id
+
+    def get_patient_name(self, instance):
+        return instance.patient_name

@@ -22,6 +22,6 @@ urlpatterns = [
 
     path('choices/prescriptions', views.PrescriptionChoiceAPIView.as_view(),
          name='choice-prescription'),
-    # path('choices/file-prescriptions', views.FilePrescriptionChoiceAPIView.as_view(),
-    #      name='choice-file-prescription')
+    path('choices/file-prescriptions', views.FilePrescriptionChoiceAPIView.as_view(),
+         name='choice-file-prescription')
 ]

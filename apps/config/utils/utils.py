@@ -1,7 +1,8 @@
 import re
 import sys
+from urllib import parse
 
-from django.db.models import F, Value
+from django.db.models import F
 from django.db.models.functions import Concat
 from django.utils.timezone import now
 
@@ -25,7 +26,7 @@ def log_request(sender, environ, **kwargs):  # HTTP_USER_AGENT, HTTP_HOST, REMOT
         query = environ['QUERY_STRING']
         client_ip = environ['REMOTE_ADDR']
         client_agent = environ['HTTP_USER_AGENT']
-        query = '?' + query if query else ''
+        query = '?' + parse.unquote(query) if query else ''
 
         print(f'[{current_time}][{method}] {host}{path}{query} | IP_addr:{client_ip} | Agent: {client_agent}')
 

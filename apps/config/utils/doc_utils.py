@@ -22,7 +22,7 @@ schema_view = get_schema_view(
         - 로그인, 회원가입 제외한 모든 서비스 접근은 반드시 헤더에 로그인 시 받은 access token을 전달해야 합니다.
         ### Content-type
         ```bash
-            [POST, PUT, PATCH]: multipart/form-data
+            [POST, PUT]: multipart/form-data
             [GET]: application/json
         ```
         ### Permission
@@ -33,7 +33,6 @@ schema_view = get_schema_view(
             - PatientReadOnly: 환자 계정만 읽기 가능
             - RelatedPatientReadOnly: 객체에 연결된(related) 환자 계정만 읽기 가능
             - WithRelated: 객체에 관계된 모든 계정이 읽기 및 쓰기 가능 
-        
         """,
     ),
     public=True,

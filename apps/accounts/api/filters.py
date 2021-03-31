@@ -48,5 +48,5 @@ class PatientFilter(FilterSet):
             extra_number = 1
         calculated_year = datetime.datetime.now() - relativedelta(years=age + extra_number)
         calculated_result = calculated_year + relativedelta(days=extra_number)
-        print(calculated_result)
+
         return calculated_result.date()

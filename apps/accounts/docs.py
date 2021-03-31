@@ -1,5 +1,18 @@
 from drf_yasg.openapi import *
 
+from config.utils.doc_utils import converted_parameters_from
+
+hospital_schema = {
+    'department_name': Schema(
+        description='부서 이름',
+        type=TYPE_STRING
+    ),
+    'medical_center_name': Schema(
+        description='병원 이름',
+        type=TYPE_STRING
+    )
+}
+
 doctor_url_schema = {
     'url': Schema(
         description='doctor detail url',
@@ -75,6 +88,10 @@ user_schema = {
         },
         required=['email', 'password', 'password2']
     ),
+    'user_id': Schema(
+        description='계정의 id(pk)',
+        type=TYPE_INTEGER
+    )
 }
 account_schema = {
     'full_name': Schema(
@@ -110,7 +127,7 @@ account_schema = {
 }
 
 doctor_schema = {
-    'user_id': Schema(
+    'doctor_id': Schema(
         description='의사 계정의 pk',
         type=TYPE_INTEGER
     ),
@@ -122,7 +139,7 @@ doctor_schema = {
         description='전공 이름',
         type=TYPE_STRING
     ),
-    'major_pk': Schema(
+    'major_id': Schema(
         description='전공(객체) pk',
         type=TYPE_INTEGER
     )
@@ -154,6 +171,15 @@ patient_schema = {
         type=TYPE_STRING
     )
 }
+
+hospital_filter_parameters = converted_parameters_from(hospital_schema)
+
+account_filter_parameters = converted_parameters_from(account_schema)
+
+doctor_filter_parameters = converted_parameters_from(doctor_schema)
+
+patient_filter_parameters = converted_parameters_from(patient_schema)
+patient_filter_parameters['doctor'].name = 'doctor_id'
 
 doctor_signup = {
     'operation_summary': '[CREATE] 의사 계정 생성',
@@ -225,12 +251,6 @@ doctor_list = {
     'operation_description': """
     - 기능: 등록된 의사 리스트 출력
     - 권한: Admin
-    ```python
-    class DoctorListAPIView(ListAPIView):
-        queryset = Doctor.objects.select_all().order_by('-created_at')
-        serializer_class = serializers.DoctorListSerializer
-        permission_classes = [IsSuperUser]
-    ```
     """,
 
     'responses': {
@@ -594,10 +614,11 @@ patient_update = {
 }
 
 doctor_choice = {
-    'operation_summary': '[LIST] 의사 선택 리스트',
+    'operation_summary': '[LIST-CHOICE] 의사 선택 리스트',
     'operation_description': """
     - 기능: 의사를 구분할 수 있는 최소 정보를 갖는 리스트. query parameter 값을 이용한 필터링 기능을 포함
     - 권한: IsSuperUser
+
     ```python
     # example - query param
     ...accounts/choices/doctors?major_id=1&full_name=일+의사&major_name=정신의학&department_name=정신의학과&medical_center_name=서울병원
@@ -612,23 +633,25 @@ doctor_choice = {
         "medical_center_name": "서울병원"
     }
     """,
+    'manual_parameters': [
+        account_filter_parameters['full_name'],
+        doctor_filter_parameters['major_id'],
+        doctor_filter_parameters['major_name'],
+        hospital_filter_parameters['department_name'],
+        hospital_filter_parameters['medical_center_name'],
+    ],
+
     'responses': {
         '200': Response(
             schema=Schema(type=TYPE_OBJECT,
                           properties={
-                              'user_id': doctor_schema['user_id'],
-                              'major_id': doctor_schema['major_pk'],
+                              'user_id': doctor_schema['doctor_id'],
+                              'major_id': doctor_schema['major_id'],
                               'full_name': account_schema['full_name'],
                               'gender': account_schema['gender'],
                               'major_name': doctor_schema['major_name'],
-                              'department_name': Schema(
-                                  description='부서 이름',
-                                  type=TYPE_STRING
-                              ),
-                              'medical_center_name': Schema(
-                                  description='병원 이름',
-                                  type=TYPE_STRING
-                              )
+                              'department_name': hospital_schema['department_name'],
+                              'medical_center_name': hospital_schema['medical_center_name']
                           }
                           ),
             description='(최소 정보를 포함한)의사를 선택할 수 있는 리스트',
@@ -660,10 +683,11 @@ doctor_choice = {
 
 }
 patient_choice = {
-    'operation_summary': '[LIST] 환자 선택 리스트',
+    'operation_summary': '[LIST-CHOICE] 환자 선택 리스트',
     'operation_description': """
     - 기능: 환자를 구분할 수 있는 최소 정보를 갖는 리스트. query parameter 값을 이용한 필터링 기능을 포함
-    - 권한: IsDoctor
+    - 권한: IsDoctor\n
+    (* lookup exp 사용 불가)
     ```python
     # example - query param
     .../accounts/choices/patients?full_name=김 환자&doctor_id=5&min_age=32&max_age=33
@@ -678,6 +702,11 @@ patient_choice = {
     },
     ```
     """,
+    'manual_parameters': [
+        account_filter_parameters['full_name'],
+        patient_filter_parameters['doctor'],
+        patient_filter_parameters['user_id']
+    ],
     'responses': {
         '200': Response(
             schema=Schema(type=TYPE_OBJECT,

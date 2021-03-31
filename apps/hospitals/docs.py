@@ -288,7 +288,7 @@ medical_center_update = {
     }
 }
 medical_center_choice = {
-    "operation_summary": "[LIST] 병원 선택 리스트",
+    "operation_summary": "[LIST-CHOICE] 병원 선택 리스트",
     "operation_description":
         """
         - 기능: 병원에 대한 최소 정보(id, name) 리스트 및 필터링 기능
@@ -487,7 +487,7 @@ department_update = {
 }
 
 department_choice = {
-    "operation_summary": "[LIST] 부서 선택 리스트",
+    "operation_summary": "[LIST-CHOICE] 부서 선택 리스트",
     "operation_description":
         """
         - 기능: 부서에 대한 최소 정보(id, name) 리스트 및 필터링 기능
@@ -697,7 +697,7 @@ major_update = {
     }
 }
 major_choice = {
-    "operation_summary": "[LIST] 전공 선택 리스트",
+    "operation_summary": "[LIST-CHOICE] 전공 선택 리스트",
     "operation_description":
         """
         - 기능: 전공에 대한 최소 정보(id, name) 리스트 및 필터링 기능

@@ -130,34 +130,12 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'accounts.api.authentications.CustomJWTTokenUserAuthentication',
-    ]
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 30
 }
-# UPDATE_LAST_LOGIN = True
 
 SWAGGER_SETTINGS = {
     'DEFAULT_AUTO_SCHEMA_CLASS': 'config.utils.doc_utils.CustomAutoSchema',
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
-            'description':
-            """
-            ```bash            
-            curl -H "Authorization: Bearer eyJ0eXAiOiJKV1QiL..." -X GET http://localhost:8000/...
-            ```
-            - service access: 회원가입과 로그인을 제외한 모든 서비스 접근 시 헤더에 access token 값을 포함해야함.
-            
-            ```bash
-            curl -X POST -d"email=test@test.com&password=test1234" http://localhost:8000/token
-            ```
-            - login -> refresh, access token 반환(status_code=201) 
-            
-            ```bash
-            curl -H "Authorization: Bearer eyJ0eXAiOi...WbyjSVk" -X POST -d"refresh=eyJ0eXAiOiJK...0OSdp0" http://localhost:8000/token/logout 
-            ```
-            - logout -> None 반환(status_code=205)
-            """
-        },
-    }
+    'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomOpenAPISchemaGenerator',
 }

@@ -177,7 +177,7 @@ class DoctorChoicesAPIView(ListAPIView):
     permission_classes = [AllowAny]
     filter_class = DoctorFilter
 
-    @swagger_auto_schema(**docs.doctor_choice, filter_inspectors=[CommonFilterDescriptionInspector])
+    @swagger_auto_schema(**docs.doctor_choice)
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 

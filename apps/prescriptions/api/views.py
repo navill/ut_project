@@ -1,3 +1,4 @@
+from drf_yasg.inspectors import DjangoRestResponsePagination
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import RetrieveAPIView, CreateAPIView, UpdateAPIView
 
@@ -23,7 +24,6 @@ class PrescriptionListAPIView(CommonListAPIView):
     queryset = Prescription.objects.select_all().prefetch_doctor_file()
     serializer_class = PrescriptionListSerializer
     permission_classes = [IsDoctor | IsPatient]
-    lookup_field = 'pk'
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
@@ -146,9 +146,9 @@ class FilePrescriptionChoiceAPIView(CommonListAPIView):
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
-            return Prescription.objects.none()
+            return FilePrescription.objects.none()
         return super().get_queryset()
 
-    @swagger_auto_schema(**docs.file_prescription_choice)
+    @swagger_auto_schema(**docs.file_prescription_choice, filter_inspectors=[DjangoRestResponsePagination])
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)

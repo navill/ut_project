@@ -628,7 +628,7 @@ prescription_detail = {
     },
 }
 prescription_choice = {
-    'operation_summary': '[LIST] Prescription 선택 리스트',
+    'operation_summary': '[LIST-CHOICE] Prescription 선택 리스트',
     'operation_description': """
     - 기능: 소견서에 대한 최소한의 정보를 출력하며, 주어진 필드를 통해 필터링 가능
         - 범위 검색 필드: [created_at, start_date, end_date]
@@ -1010,7 +1010,7 @@ file_prescription_create = {
 }
 
 file_prescription_choice = {
-    'operation_summary': '[LIST] FilePrescription 선택 리스트',
+    'operation_summary': '[LIST-CHOICE] FilePrescription 선택 리스트',
     'operation_description': """
     - 기능: FilePrescription에 대한 최소한의 정보를 출력하며, 주어진 필드를 통해 필터링 가능
         - 범위 검색 필드: [created_at, date]

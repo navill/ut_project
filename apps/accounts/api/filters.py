@@ -23,6 +23,7 @@ class PatientFilter(FilterSet):
     full_name = CharFilter(field_name='full_name', label='full name')
     doctor_id = NumberFilter(field_name='doctor_id', label='doctor id')
 
+    # todo: PrescriptionFilter처럼 lookup exp 적용 가능하도록 변경해야함
     min_age = NumberFilter(label='min age', method='filter_min_age')
     max_age = NumberFilter(label='max age', method='filter_max_age')
 

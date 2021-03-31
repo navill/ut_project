@@ -42,9 +42,9 @@ class PatientFilter(FilterSet):
         return queryset.filter(birth__gte=min_birth_date)
 
     def _calculate_birthdate(self, name: str, age: int) -> datetime.date:
-        extra_number = 0
+        extra_year, extra_day = 1, 0
         if name == 'max_age':
-            extra_number = 1
-        calculated_year = datetime.datetime.now() - relativedelta(years=age + extra_number)
-        calculated_result = calculated_year.date() + relativedelta(day=calculated_year.day + extra_number)
-        return calculated_result
+            extra_year, extra_day = 2, 1
+        calculated_year = datetime.datetime.now() - relativedelta(years=age + extra_year)
+        calculated_result = calculated_year + relativedelta(days=extra_day)
+        return calculated_result.date()

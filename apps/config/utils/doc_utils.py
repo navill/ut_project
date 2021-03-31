@@ -117,11 +117,8 @@ schema_view = get_schema_view(
 def converted_parameters_from(schemas):
     result = {}
     for name, schema in schemas.items():
-        # print(name, getattr(schema, 'format', None))
         description = schema.description
         type_ = schema.type
         format_ = schema.format if hasattr(schema, 'format') else None
-        # print(name)
         result[name] = Parameter(name=name, description=description, type=type_, format=format_, in_=openapi.IN_QUERY)
-    print(result)
     return result

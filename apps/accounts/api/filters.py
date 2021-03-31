@@ -1,6 +1,7 @@
 import datetime
 
 from dateutil.relativedelta import relativedelta
+from django.db.models import QuerySet
 from django_filters.rest_framework import FilterSet, CharFilter, NumberFilter
 
 from accounts.models import Patient, Doctor
@@ -33,18 +34,19 @@ class PatientFilter(FilterSet):
         model = Patient
         fields = ['full_name', 'doctor_id', 'min_age', 'max_age', 'user_id']  # + ['disease_code]
 
-    def filter_min_age(self, queryset, name, value):
+    def filter_min_age(self, queryset: QuerySet, name: str, value: int):
         max_birth_date = self._calculate_birthdate(name, value)
         return queryset.filter(birth__lte=max_birth_date)
 
-    def filter_max_age(self, queryset, name, value):
+    def filter_max_age(self, queryset: QuerySet, name: str, value: int):
         min_birth_date = self._calculate_birthdate(name, value)
         return queryset.filter(birth__gte=min_birth_date)
 
     def _calculate_birthdate(self, name: str, age: int) -> datetime.date:
-        extra_year, extra_day = 1, 0
+        extra_number = 0
         if name == 'max_age':
-            extra_year, extra_day = 2, 1
-        calculated_year = datetime.datetime.now() - relativedelta(years=age + extra_year)
-        calculated_result = calculated_year + relativedelta(days=extra_day)
+            extra_number = 1
+        calculated_year = datetime.datetime.now() - relativedelta(years=age + extra_number)
+        calculated_result = calculated_year + relativedelta(days=extra_number)
+        print(calculated_result)
         return calculated_result.date()

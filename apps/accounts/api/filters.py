@@ -1,8 +1,10 @@
 import datetime
+from typing import Dict, NoReturn
 
 from dateutil.relativedelta import relativedelta
 from django.db.models import QuerySet
 from django_filters.rest_framework import FilterSet, CharFilter, NumberFilter
+from rest_framework.exceptions import ValidationError
 
 from accounts.models import Patient, Doctor
 
@@ -34,15 +36,19 @@ class PatientFilter(FilterSet):
         model = Patient
         fields = ['full_name', 'doctor_id', 'min_age', 'max_age', 'user_id']  # + ['disease_code]
 
-    def filter_min_age(self, queryset: QuerySet, name: str, value: int):
-        max_birth_date = self._calculate_birthdate(name, value)
+    def __init__(self, data=None, queryset=None, *, request=None, prefix=None):
+        super().__init__(data=data, queryset=queryset, request=request, prefix=prefix)
+        self._validation_age_data(data)
+
+    def filter_min_age(self, queryset: QuerySet, name: str, value: int) -> QuerySet:
+        max_birth_date = self._get_calculated_birth(name, value)
         return queryset.filter(birth__lte=max_birth_date)
 
-    def filter_max_age(self, queryset: QuerySet, name: str, value: int):
-        min_birth_date = self._calculate_birthdate(name, value)
+    def filter_max_age(self, queryset: QuerySet, name: str, value: int) -> QuerySet:
+        min_birth_date = self._get_calculated_birth(name, value)
         return queryset.filter(birth__gte=min_birth_date)
 
-    def _calculate_birthdate(self, name: str, age: int) -> datetime.date:
+    def _get_calculated_birth(self, name: str, age: int) -> datetime.date:
         extra_number = 0
         if name == 'max_age':
             extra_number = 1
@@ -50,3 +56,10 @@ class PatientFilter(FilterSet):
         calculated_result = calculated_year + relativedelta(days=extra_number)
 
         return calculated_result.date()
+
+    def _validation_age_data(self, data: Dict[str, str]) -> NoReturn:
+        try:
+            if int(data.get('min_age')) > int(data.get('max_age')):
+                raise ValidationError("'max_age' must be greater than or equal to 'min_age'")
+        except ValueError:  # 두 값중 하나라도 입력값이 없을(또는 빈 문자열)경우 -> pass
+            pass

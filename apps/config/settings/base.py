@@ -122,7 +122,9 @@ LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 
 REST_FRAMEWORK = {
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    # 'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_FILTER_BACKENDS': ['config.utils.filter_backends.CustomDjangoFilterBackend'],
+
     'DEFAULT_PERMISSION_CLASSES': [
         'accounts.api.permissions.IsSuperUser',
     ],

@@ -207,7 +207,6 @@ class PatientSignUpSerializer(SignupSerializerMixin, AccountSignupSerializer):
 #     /choices/patients/disease_code=x1234
 # 의사가 담당하고 있는 환자 리스트
 #     /choices/patients/doctor_id=2
-#
 class PatientChoiceSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     gender = serializers.CharField(source='get_gender_display')

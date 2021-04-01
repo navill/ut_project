@@ -2,6 +2,7 @@ import os
 import uuid
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -14,6 +15,15 @@ from files.models import DoctorFile, PatientFile
 from hospitals.models import Major, Department, MedicalCenter
 from prescriptions.models import Prescription
 from tests.constants import *
+
+
+@pytest.fixture(scope='session')
+def django_db_setup():
+    settings.DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': '127.0.0.1',
+        'NAME': 'project_test',
+    }
 
 
 @pytest.fixture(scope='function')
@@ -252,8 +262,6 @@ def doctor_file_bundle():
     upload_file_list = (SimpleUploadedFile(f"testfile{number}.txt", b"test file", content_type='multipart/form-data')
                         for number in range(3))
     yield upload_file_list
-
-
 
 # @pytest.fixture(scope='function')
 # def data_file_bundle_by_patient(prescription, patient_with_group):

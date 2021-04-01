@@ -4,6 +4,7 @@ from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.db.models import Q, Prefetch, Max, F
+from django.http import QueryDict
 from django.urls import reverse
 
 from accounts.database_function import CalculateAge
@@ -231,7 +232,12 @@ class PatientQuerySet(CommonUserQuerySet):
         return self.only(*fields)
 
     def set_age(self) -> 'PatientQuerySet':
-        return self.annotate(age=CalculateAge('birth'))
+        return self.annotate(age=CalculateAge('birth'))  # select에서 Function 실행
+
+    def add_extra_for_age(self, expression: str) -> 'PatientQuerySet':
+        if expression:
+            return self.extra(where=[expression])  # where에서 Function 실행
+        return self
 
 
 class PatientManager(CommonUserManager):

@@ -53,6 +53,7 @@ class AgeRangeLookupChoiceFilter(CustomLookupChoiceFilter):
 class PatientFilter(FilterSet):
     user_id = NumberFilter(field_name='user_id', label='user id')
     full_name = CharFilter(field_name='full_name', label='full name')
+    doctor_name = CharFilter(field_name='doctor_name', label='doctor name')
     doctor_id = NumberFilter(field_name='doctor_id', label='doctor id')
     age = AgeLookupChoiceFilter(
         field_class=NumberFilter.field_class,
@@ -72,4 +73,4 @@ class PatientFilter(FilterSet):
 
     class Meta:
         model = Patient
-        fields = ['full_name', 'doctor_id', 'user_id', 'age', 'age_range']  # + ['disease_code]
+        fields = ['full_name', 'doctor_name', 'doctor_id', 'user_id', 'age', 'age_range']  # + ['disease_code]

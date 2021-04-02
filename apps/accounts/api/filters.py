@@ -1,5 +1,7 @@
-from typing import NoReturn
+from typing import NoReturn, Type
 
+from django.db.models import QuerySet
+from django_filters.fields import Lookup
 from django_filters.rest_framework import FilterSet, CharFilter, NumberFilter, LookupChoiceFilter
 from rest_framework.exceptions import ValidationError
 
@@ -21,14 +23,16 @@ class DoctorFilter(FilterSet):
 
 class CustomLookupChoiceFilter(LookupChoiceFilter):
     def validate_value(self, value: str) -> NoReturn:
-        if not value.isnumeric():
+        try:
+            value = int(value)
+        except Exception:
             raise ValidationError(f"'{value}' can not be converted to integer")
 
 
 class AgeLookupChoiceFilter(CustomLookupChoiceFilter):
-    def filter(self, qs, lookup):
+    def filter(self, qs: Type[QuerySet], lookup: Lookup) -> QuerySet:
         if not lookup:
-            return super(LookupChoiceFilter, self).filter(qs, None)
+            return super().filter(qs, None)
 
         self.lookup_expr = lookup.lookup_expr
         self.validate_value(lookup.value)
@@ -37,9 +41,9 @@ class AgeLookupChoiceFilter(CustomLookupChoiceFilter):
 
 
 class AgeRangeLookupChoiceFilter(CustomLookupChoiceFilter):
-    def filter(self, qs, lookup):
+    def filter(self, qs: Type[QuerySet], lookup: Lookup) -> QuerySet:
         if not lookup:
-            return super(LookupChoiceFilter, self).filter(qs, None)
+            return super().filter(qs, None)
 
         self.lookup_expr = lookup.lookup_expr
         min_age, max_age = lookup.value.replace(' ', '').split('-')

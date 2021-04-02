@@ -11,6 +11,5 @@ class FasterPagination(LimitOffsetPagination):
             if issubclass(queryset.model, AccountsModel):
                 id_field = 'user_id'
             return queryset.values(id_field).count()
-            # return queryset.count()
         except (AttributeError, TypeError):
             return len(queryset)

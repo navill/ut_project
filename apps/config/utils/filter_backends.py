@@ -8,11 +8,6 @@ LOOKUP_OPERATOR = {
     'gte': '>='
 }
 
-OPERATOR = {
-    'and': 'AND',
-    'or': 'OR'
-}
-
 
 def create_extra_expression(target_expressions: Dict[str, int]) -> str:
     expr_container = []
@@ -29,5 +24,3 @@ def create_extra_expression(target_expressions: Dict[str, int]) -> str:
 
 class CustomDjangoFilterBackend(DjangoFilterBackend):
     pass
-
-

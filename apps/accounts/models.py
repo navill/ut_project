@@ -260,6 +260,9 @@ class Patient(AccountsModel):
 
     objects = PatientManager()
 
+    def __str__(self) -> str:
+        return self.get_full_name()
+
     def get_absolute_url(self) -> str:
         return reverse('accounts:patient-detail-update', kwargs={'pk': self.pk})
 

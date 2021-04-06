@@ -11,6 +11,7 @@
 ### TIL
 
 -   Django & DRF
+    -   210406: [request.user의 permission 검사 최적화](docs/210406.md)
     -   210402: [Pagination 최적화(get_count()](docs/210402.md)
     -   210401: [만 나이 계산 기능 개선 - 나이를 이용한 필터링](docs/210401.md)
     -   210329: [Custom FilterSet 내에서 Try/Except 구문 사용 시 주의](docs/210329.md)

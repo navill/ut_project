@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import Q, Prefetch, Max, F
 from django.http import QueryDict
 from django.urls import reverse
+from rest_framework.exceptions import ValidationError
 
 from accounts.database_function import CalculateAge
 from config.utils.utils import concatenate_name
@@ -17,14 +18,15 @@ if TYPE_CHECKING:
 
 
 class CommonUserQuerySet(models.QuerySet):
-    def filter_user_active(self) -> Type['QuerySet']:
+    def is_active(self) -> Type['QuerySet']:
         return self.filter(user__is_active=True)
 
-    def filter_doctor(self) -> Type['QuerySet']:
-        return self.filter(Q(is_doctor=True) & Q(is_patient=False))
-
-    def filter_patient(self) -> Type['QuerySet']:
-        return self.filter(Q(is_doctor=False) & Q(is_patient=True))
+    # [Deprecated]
+    # def is_doctor(self) -> Type['QuerySet']:
+    #     return self.filter(Q(is_doctor=True) & Q(is_patient=False))
+    #
+    # def is_patient(self) -> Type['QuerySet']:
+    #     return self.filter(Q(is_doctor=False) & Q(is_patient=True))
 
 
 class CommonUserManager(models.Manager):
@@ -96,6 +98,50 @@ class BaseManager(BaseUserManager):
         attributes.setdefault('is_active', True)
 
 
+class UserType:
+    def __init__(self, group_name: str):
+        self._doctor = False
+        self._patient = False
+        self.group_name = group_name
+        self.initialize()
+
+    @property
+    def doctor(self) -> bool:
+        return self._doctor
+
+    @doctor.setter
+    def doctor(self, is_doctor: bool) -> NoReturn:
+        self._doctor = is_doctor
+        self.validate_type()
+
+    @property
+    def patient(self) -> bool:
+        return self._patient
+
+    @patient.setter
+    def patient(self, is_patient: bool) -> NoReturn:
+        self._patient = is_patient
+        self.validate_type()
+
+    def validate_type(self) -> NoReturn:
+        if self.doctor and self.patient:
+            self.reset_user_type()
+            raise ValidationError('invalid user type')
+
+    def validate_group(self) -> NoReturn:
+        if self.group_name not in ['doctor', 'patient']:
+            raise ValidationError('invalid group name')
+
+    def initialize(self):
+        self.validate_group()
+        setattr(self, self.group_name, True)
+        self.validate_type()
+
+    def reset_user_type(self) -> NoReturn:
+        self.doctor = False
+        self.patient = False
+
+
 class BaseUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -111,13 +157,20 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'
 
-    @property
-    def is_doctor(self) -> bool:
-        return hasattr(self, 'doctor')
+    user_type = None
 
-    @property
-    def is_patient(self) -> bool:
-        return hasattr(self, 'patient')
+    # [Deprecated]
+    # @property
+    # def is_doctor(self) -> bool:
+    #     return self.groups.filter(name='doctor').exists()
+    #
+    # @property
+    # def is_doctor(self) -> bool:
+    #     return hasattr(self, 'doctor')
+    #
+    # @property
+    # def is_patient(self) -> bool:
+    #     return self.user_type.patient
 
     def __str__(self) -> str:
         return str(self.email)
@@ -125,6 +178,9 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     def set_token_expired(self, time: int) -> NoReturn:
         self.token_expired = time
         self.save()
+
+    def set_user_type(self, group_name: str):
+        self.user_type = UserType(group_name)  # Has-a(composition)
 
     # [Deprecated]
     # def get_child_account(self) -> Union['Doctor', 'Patient', None]:
@@ -165,13 +221,12 @@ class DoctorQuerySet(CommonUserQuerySet):
 class DoctorManager(CommonUserManager):
     def get_queryset(self) -> DoctorQuerySet:
         return DoctorQuerySet(self.model, using=self._db). \
-            annotate(full_name=concatenate_name()).filter_user_active()
+            annotate(full_name=concatenate_name()).is_active()
 
     def non_related_all(self) -> DoctorQuerySet:
         return self.defer('user', 'major')
 
     def choice_fields(self) -> DoctorQuerySet:
-        # 병원이름, 부서, 전공, 의사 이름
         return self.only('user_id', 'major_id', 'first_name', 'last_name', 'gender'). \
             annotate(major_name=F('major__name'), department_name=F('major__department__name'),
                      medical_center_name=F('major__department__medical_center__name'))
@@ -245,7 +300,7 @@ class PatientManager(CommonUserManager):
         return PatientQuerySet(self.model, using=self._db). \
             annotate(full_name=concatenate_name(),
                      doctor_name=concatenate_name('doctor')). \
-            filter_user_active(). \
+            is_active(). \
             set_age()
 
     def choice_fields(self) -> PatientQuerySet:

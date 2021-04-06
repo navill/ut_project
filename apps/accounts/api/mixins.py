@@ -64,14 +64,14 @@ class PermissionMixin:
         return user.is_superuser or bool(user.id == owner_id)
 
     def has_group(self, request, group_name: str) -> bool:
-        return hasattr(request.user, group_name)
+        return request.user.groups.filter(name=group_name).exists()
 
     def is_related(self, request, obj) -> bool:
         user = request.user
-        value = None
-        if user.is_patient:
-            value = 'doctor_id'
-        elif user.is_doctor:
-            value = 'patient_id'
+        id_field = ''
+        if user.user_type.doctor:
+            id_field = 'doctor_id'
+        elif user.user_type.patient:
+            id_field = 'patient_id'
 
-        return hasattr(obj, value)
+        return hasattr(obj, id_field)

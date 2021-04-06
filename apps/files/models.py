@@ -7,7 +7,7 @@ from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from files.api.mixins import BaseFileQuerySetMixin
+from files.api.mixins import FileQuerySetMixin
 from files.api.utils import delete_file, concatenate_name, directory_path
 from prescriptions.models import Prescription, FilePrescription
 
@@ -46,7 +46,7 @@ class BaseFile(models.Model):
         return f'hard delete [{obj_name}]'
 
 
-class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
+class DoctorFileQuerySet(FileQuerySetMixin, models.QuerySet):
     def select_doctor(self) -> 'DoctorFileQuerySet':
         return self.annotate(uploader_doctor_name=concatenate_name('uploader__doctor'))
 
@@ -60,7 +60,7 @@ class DoctorFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
         # 접속자가 환자일 경우 환자(current_user.id)가 올린 파일 제외
         return self.filter(prescription__writer_id=current_user.id)
 
-    def filter_patient(self, doctor_id: int) -> 'DoctorFileQuerySet':
+    def is_patient(self, doctor_id: int) -> 'DoctorFileQuerySet':
         return self.filter(uploader__patient__doctor_id=doctor_id)
 
 
@@ -79,7 +79,7 @@ class DoctorFile(BaseFile):
     objects = DoctorFileManager()
 
 
-class PatientFileQuerySet(BaseFileQuerySetMixin, models.QuerySet):
+class PatientFileQuerySet(FileQuerySetMixin, models.QuerySet):
     def filter_unchecked_list(self) -> 'PatientFileQuerySet':
         return self.filter(checked=False)
 

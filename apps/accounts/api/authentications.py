@@ -1,8 +1,9 @@
-from typing import Dict, AnyStr, Tuple, Union
+from typing import Dict, AnyStr, Tuple, Union, NoReturn
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
+from rest_framework.authentication import BasicAuthentication
 from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
@@ -10,6 +11,11 @@ from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token, BlacklistMixin, AccessToken
 
 User = get_user_model()
+
+
+def set_type_to(user: User) -> NoReturn:
+    group_name = list(user.groups.values_list('name', flat=True))[0]
+    user.set_user_type(group_name)
 
 
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
@@ -31,6 +37,7 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
 
         try:
             user = User.objects.only(api_settings.USER_ID_FIELD).get(**{api_settings.USER_ID_FIELD: user_id})
+            set_type_to(user)
         except User.DoesNotExist:
             raise AuthenticationFailed('User not found', code='user_not_found')
 
@@ -38,6 +45,13 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
             raise AuthenticationFailed('User is inactive', code='user_inactive')
 
         return user
+
+
+class CustomBaseAuthentication(BasicAuthentication):
+    def authenticate_credentials(self, userid, password, request=None):
+        user, _ = super().authenticate_credentials(userid, password, request=request)
+        set_type_to(user)
+        return user, _
 
 
 class CustomToken(Token):

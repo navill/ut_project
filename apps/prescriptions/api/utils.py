@@ -21,8 +21,6 @@ class CommonListAPIView(ListAPIView):
         return self.filter_currentuser(queryset, user)
 
     def filter_currentuser(self, queryset: QuerySet, user: 'User') -> QuerySet:
-        if user.is_superuser:
-            return queryset
         target_field = self.get_target_field(queryset, user)
         return queryset.filter(**{target_field: user.id})
 
@@ -30,10 +28,10 @@ class CommonListAPIView(ListAPIView):
         sub_field_name = 'prescription__' if hasattr(queryset.model, 'prescription') else ''
         target_field = ''
 
-        if user.is_doctor:
+        if user.user_type.doctor:
             target_field = f'{sub_field_name}writer_id'
 
-        elif user.is_patient:
+        elif user.user_type.patient:
             target_field = f'{sub_field_name}patient_id'
 
         return target_field

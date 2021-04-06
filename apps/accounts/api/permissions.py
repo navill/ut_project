@@ -23,8 +23,8 @@ class IsSuperUser(RootPermission):
 class IsDoctor(RootPermission):
     def has_permission(self, request: Request, view: View) -> bool:
         is_auth = self.is_authenticated(request)
-        is_doc = self.has_group(request, 'doctor')
-        return is_auth and is_doc
+        is_doc = request.user.user_type.doctor
+        return True if is_auth and is_doc else False
 
 
 class IsPatient(RootPermission):

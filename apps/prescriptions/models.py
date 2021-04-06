@@ -31,17 +31,17 @@ class BasePrescription(models.Model):
 
 
 class PrescriptionQuerySet(models.QuerySet):
-    def filter_writer(self, writer_id: int) -> 'PrescriptionQuerySet':
+    def is_writer(self, writer_id: int) -> 'PrescriptionQuerySet':
         return self.filter(writer_id=writer_id)
 
-    def filter_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
+    def is_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
         return self.filter(patient_id=patient_id)
 
     def select_patient(self) -> 'PrescriptionQuerySet':
         return self.select_related('patient')
 
     def select_writer(self) -> 'PrescriptionQuerySet':
-        return self.select_related('writer__user').select_related('writer__major')
+        return self.select_related('writer').select_related('writer__major')
 
     def select_all(self) -> 'PrescriptionQuerySet':
         return self.select_patient().select_writer()

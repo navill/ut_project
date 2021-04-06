@@ -13,7 +13,7 @@ class UserRequiredMixin(AccessMixin):
 class DoctorRequiredMixin(UserRequiredMixin):
     def dispatch(self, request, *args, **kwargs):
         request_handler = super().dispatch(request, *args, **kwargs)
-        if self.request.user.is_doctor:
+        if self.request.user.user_type.doctor:
             return request_handler
         else:
             return self.handle_no_permission()

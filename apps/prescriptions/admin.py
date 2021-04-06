@@ -32,7 +32,4 @@ class PrescriptionAdmin(admin.ModelAdmin):
         return obj.patient_name
 
 
-# class FilePrescriptionAdmin(admin.ModelAdmin):
-
-
 admin.site.register(Prescription, PrescriptionAdmin)

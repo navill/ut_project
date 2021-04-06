@@ -12,21 +12,21 @@ class QuerySetMixin:
     def get_queryset(self) -> Type[QuerySet]:
         user = self.request.user
         queryset = super().get_queryset()
-        if user.is_doctor:
+        if user.user_type.doctor:
             queryset = queryset.select_doctor().select_prescription(). \
                 filter_prescription_writer(user)
-        elif user.is_patient:
+        elif user.user_type.patient:
             queryset = queryset.select_patient().select_file_prescription().filter_uploader(user)
         return queryset if user.is_superuser else queryset
 
 
-class BaseFileQuerySetMixin:
-    def shallow_delete(self: Type['BaseFileQuerySetMixin']) -> str:
+class FileQuerySetMixin:
+    def shallow_delete(self: Type['FileQuerySetMixin']) -> str:
         obj_name_list = [str(obj_name) for obj_name in self]
         self.update(deleted=True)
         return f'finish shallow delete [{obj_name_list}]'
 
-    def hard_delete(self: Type['BaseFileQuerySetMixin']) -> str:
+    def hard_delete(self: Type['FileQuerySetMixin']) -> str:
         obj_name_list = []
         for doctor_file in self:
             obj_name_list.append(str(self))

@@ -26,7 +26,6 @@ class BaseUserAdmin(admin.ModelAdmin):
         return obj.groups.get(user=obj).name
 
     get_groups.short_description = "groups"
-    # get_groups.admin_order_field = "groups"
 
 
 class GroupsAdmin(GroupAdmin):

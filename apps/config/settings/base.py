@@ -143,3 +143,40 @@ SWAGGER_SETTINGS = {
     'DEFAULT_AUTO_SCHEMA_CLASS': 'config.utils.doc_utils.CustomAutoSchema',
     'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomOpenAPISchemaGenerator',
 }
+
+# https://github.com/nextghost/sciswarm/blob/e835c2e1ed331a1e436214c7fbd82849b3c37f52/sciswarm/settings_private_example.py
+# logging 샘플 코드
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'simple': {
+#             'format': '%(asctime)s %(levelname)s %(message)s'
+#         }
+#     },
+#     'handlers': {
+#         'sciswarm_file': {
+#             'level': 'DEBUG',
+#             'class': 'logging.FileHandler',
+#             'filename': '/var/log/django/sciswarm.log',
+#             'formatter': 'simple',
+#         },
+#         'stderr': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#             'formatter': 'simple',
+#         },
+#     },
+#     'loggers': {
+#         'sciswarm': {
+#             'handlers': ['sciswarm_file'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'sciswarm.harvest': {
+#             'handlers': ['stderr'],
+#             'level': 'DEBUG',
+#             'propagate': False,
+#         },
+#     },
+# }

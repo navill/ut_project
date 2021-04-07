@@ -20,8 +20,6 @@ def test_create_baseuser():
     assert new_user.is_active
     assert not new_user.is_staff
     assert not new_user.is_superuser
-    assert not new_user.is_doctor
-    assert not new_user.is_patient
 
 
 @pytest.mark.django_db
@@ -38,7 +36,7 @@ def test_create_doctor():
     major = Major.objects.first()
     doctor = Doctor.objects.create(user=user, major=major, **DOCTOR)
     assert doctor.user.email == 'testdoctor@doctor.com'
-    assert doctor.user.is_doctor
+    assert doctor.user.user_type.doctor
 
 
 @pytest.mark.django_db

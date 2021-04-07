@@ -13,7 +13,7 @@ from rest_framework_simplejwt.tokens import Token, BlacklistMixin, AccessToken
 User = get_user_model()
 
 
-def set_type_to(user: User) -> NoReturn:
+def set_type_for(user: User) -> NoReturn:
     group_name = list(user.groups.values_list('name', flat=True))[0]
     user.set_user_type(group_name)
 
@@ -37,20 +37,20 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
 
         try:
             user = User.objects.only(api_settings.USER_ID_FIELD).get(**{api_settings.USER_ID_FIELD: user_id})
-            set_type_to(user)
         except User.DoesNotExist:
             raise AuthenticationFailed('User not found', code='user_not_found')
 
         if not user.is_active:
             raise AuthenticationFailed('User is inactive', code='user_inactive')
 
+        set_type_for(user)
         return user
 
 
 class CustomBaseAuthentication(BasicAuthentication):
     def authenticate_credentials(self, userid, password, request=None):
         user, _ = super().authenticate_credentials(userid, password, request=request)
-        set_type_to(user)
+        set_type_for(user)
         return user, _
 
 
@@ -60,7 +60,7 @@ class CustomToken(Token):
 
     def __init__(self, token: AnyStr = None, verify: bool = True):
         super().__init__(token, verify)
-        self.current_time = timezone.now()  # local time 적ㅐ
+        self.current_time = timezone.now()  # local time 적용
         self.token = token
 
 

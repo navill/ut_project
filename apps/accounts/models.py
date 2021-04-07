@@ -3,8 +3,7 @@ from typing import TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
-from django.db.models import Q, Prefetch, Max, F
-from django.http import QueryDict
+from django.db.models import Prefetch, Max, F
 from django.urls import reverse
 from rest_framework.exceptions import ValidationError
 
@@ -157,7 +156,9 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'
 
-    user_type = None
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user_type = None
 
     # [Deprecated]
     # @property

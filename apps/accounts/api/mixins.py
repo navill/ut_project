@@ -64,7 +64,7 @@ class PermissionMixin:
         return user.is_superuser or bool(user.id == owner_id)
 
     def has_group(self, request, group_name: str) -> bool:
-        return request.user.groups.filter(name=group_name).exists()
+        return getattr(request.user.user_type, group_name)
 
     def is_related(self, request, obj) -> bool:
         user = request.user

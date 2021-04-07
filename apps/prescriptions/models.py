@@ -241,3 +241,15 @@ def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
     if not checked_queryset.filter(checked=False).exists():
         instance.prescription.checked = True
         instance.prescription.save()
+
+
+# TextField Lookup - Full-text search
+@models.Field.register_lookup
+class FullTextSearch(models.Lookup):
+    lookup_name = "search"
+
+    def as_mysql(self, compiler, connection):
+        lhs, lhs_params = self.process_lhs(compiler, connection)
+        rhs, rhs_params = self.process_rhs(compiler, connection)
+        params = lhs_params + rhs_params
+        return f"MATCH (%s) AGAINST (%s IN BOOLEAN MODE)" % (lhs, rhs), params

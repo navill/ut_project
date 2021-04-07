@@ -1,7 +1,7 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import RetrieveAPIView, CreateAPIView, UpdateAPIView
 
-from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient
+from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient, PatientReadOnly
 from prescriptions import docs
 from prescriptions.api.filters import PrescriptionFilter, FilePrescriptionFilter
 from prescriptions.api.serializers import (PrescriptionCreateSerializer,
@@ -22,7 +22,7 @@ from prescriptions.models import Prescription, FilePrescription
 class PrescriptionListAPIView(CommonListAPIView):
     queryset = Prescription.objects.all().only_list()
     serializer_class = PrescriptionListSerializer
-    permission_classes = [IsDoctor | IsPatient]
+    permission_classes = [IsDoctor | PatientReadOnly]
 
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):

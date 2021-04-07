@@ -11,6 +11,7 @@
 ### TIL
 
 -   Django & DRF
+    -   210407: [MySQL Full-Text Search(n-gram) 적용](docs/210407.md)
     -   210406: [request.user의 permission 검사 최적화](docs/210406.md)
     -   210402: [Pagination 최적화(get_count())](docs/210402.md)
     -   210401: [만 나이 계산 기능 개선 - 나이를 이용한 필터링](docs/210401.md)

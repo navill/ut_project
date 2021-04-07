@@ -244,7 +244,7 @@ def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
 
 
 # TextField Lookup - Full-text search
-@models.Field.register_lookup
+@models.TextField.register_lookup
 class FullTextSearch(models.Lookup):
     lookup_name = "search"
 

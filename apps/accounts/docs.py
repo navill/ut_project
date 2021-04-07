@@ -687,18 +687,17 @@ patient_choice = {
     'operation_description': """
     - 기능: 환자를 구분할 수 있는 최소 정보를 갖는 리스트. query parameter 값을 이용한 필터링 기능을 포함
     - 권한: IsDoctor\n
-    (* lookup exp 사용 불가)
     ```python
     # example - query param
-    .../accounts/choices/patients?full_name=김 환자&doctor_id=5&min_age=32&max_age=33
+    .../accounts/choices/patients?full_name=김환자&doctor_id=5&min_age=32&max_age=33
     # output
     {
-    "user_id": 5,
-    "full_name": "일 환자",
-    "doctor_id": 2,
-    "doctor_name": "일 의사",
-    "gender": "남",
-    "age": 32
+        "user_id": 5,
+        "full_name": "일환자",
+        "doctor_id": 2,
+        "doctor_name": "일의사",
+        "gender": "남",
+        "age": 32
     },
     ```
     """,
@@ -724,33 +723,33 @@ patient_choice = {
                 "application/json": [
                     {
                         "user_id": 5,
-                        "full_name": "일 환자",
+                        "full_name": "일환자",
                         "doctor_id": 2,
-                        "doctor_name": "일 의사",
+                        "doctor_name": "일의사",
                         "gender": "남",
                         "age": 32
                     },
                     {
                         "user_id": 6,
-                        "full_name": "이 환자",
+                        "full_name": "이환자",
                         "doctor_id": 2,
-                        "doctor_name": "일 의사",
+                        "doctor_name": "일의사",
                         "gender": "남",
                         "age": 33
                     },
                     {
                         "user_id": 7,
-                        "full_name": "삼 환자",
+                        "full_name": "삼환자",
                         "doctor_id": 3,
-                        "doctor_name": "이 의사",
+                        "doctor_name": "이의사",
                         "gender": "남",
                         "age": 0
                     },
                     {
                         "user_id": 8,
-                        "full_name": "사 환자",
+                        "full_name": "사환자",
                         "doctor_id": 3,
-                        "doctor_name": "이 의사",
+                        "doctor_name": "이의사",
                         "gender": "남",
                         "age": 0
                     },

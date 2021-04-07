@@ -152,3 +152,4 @@ class FilePrescriptionChoiceAPIView(CommonListAPIView):
     @swagger_auto_schema(**docs.file_prescription_choice)
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+

@@ -1,4 +1,4 @@
-from typing import Dict, AnyStr, Tuple, Union, NoReturn
+from typing import Dict, AnyStr, Tuple, Union
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -13,9 +13,8 @@ from rest_framework_simplejwt.tokens import Token, BlacklistMixin, AccessToken
 User = get_user_model()
 
 
-def set_type_for(user: User) -> NoReturn:
-    group_name = list(user.groups.values_list('name', flat=True))[0]
-    user.set_user_type(group_name)
+def get_group_name(user: User) -> str:
+    return list(user.groups.values_list('name', flat=True))[0]
 
 
 class CustomJWTTokenUserAuthentication(JWTAuthentication):
@@ -43,14 +42,17 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
         if not user.is_active:
             raise AuthenticationFailed('User is inactive', code='user_inactive')
 
-        set_type_for(user)
+        group_name = get_group_name(user)
+        user.set_user_type(group_name)
         return user
 
 
 class CustomBaseAuthentication(BasicAuthentication):
     def authenticate_credentials(self, userid, password, request=None):
         user, _ = super().authenticate_credentials(userid, password, request=request)
-        set_type_for(user)
+
+        group_name = get_group_name(user)
+        user.set_user_type(group_name)
         return user, _
 
 

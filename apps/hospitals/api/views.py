@@ -88,7 +88,7 @@ class MedicalCenterCreateAPIView(CreateAPIView):
 class MedicalCenterRetrieveAPIView(RetrieveAPIView):
     queryset = MedicalCenter.objects.all()
     serializer_class = serializers.MedicalCenterRetrieveSerializer
-    permission_classes = [IsSuperUser]
+    permission_classes = [AllowAny]
     lookup_field = 'pk'
 
     @swagger_auto_schema(**docs.medical_center_detail)
@@ -138,7 +138,8 @@ class DepartmentCreateAPIView(CreateAPIView):
 class DepartmentRetrieveAPIView(RetrieveAPIView):
     queryset = Department.objects.select_all()
     serializer_class = DepartmentRetreiveSerializer
-    permission_classes = [IsSuperUser]
+    permission_classes = [AllowAny]
+    lookup_field = 'pk'
 
     @swagger_auto_schema(**docs.department_detail)
     def get(self, request, *args, **kwargs):
@@ -187,7 +188,7 @@ class MajorCreateAPIView(CreateAPIView):
 class MajorRetrieveAPIView(RetrieveAPIView):
     queryset = Major.objects.select_all()
     serializer_class = MajorRetrieveSerializer
-    permission_classes = [IsSuperUser]
+    permission_classes = [AllowAny]
     lookup_field = 'pk'
 
     @swagger_auto_schema(**docs.major_detail)

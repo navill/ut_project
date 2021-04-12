@@ -8,19 +8,17 @@ if TYPE_CHECKING:
     from files.models import DoctorFileQuerySet, PatientFileQuerySet
 
 
-class QuerySetMixin:
-    def get_queryset(self) -> Type[QuerySet]:
-        user = self.request.user
-        queryset = super().get_queryset()
+class CommonUploaderCheckMixin:
+    def filter_with_uploader(self, user: 'User', queryset: Type[QuerySet]) -> Type[QuerySet]:
         if user.user_type.doctor:
             queryset = queryset.select_doctor().select_prescription(). \
-                filter_prescription_writer(user)
+                filter_uploader(user)
         elif user.user_type.patient:
             queryset = queryset.select_patient().select_file_prescription().filter_uploader(user)
         return queryset if user.is_superuser else queryset
 
 
-class FileQuerySetMixin:
+class CommonFileQuerysetMixin:
     def shallow_delete(self: Type['FileQuerySetMixin']) -> str:
         obj_name_list = [str(obj_name) for obj_name in self]
         self.update(deleted=True)

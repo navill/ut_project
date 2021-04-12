@@ -2,11 +2,10 @@ from typing import TYPE_CHECKING
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
-from rest_framework.parsers import FileUploadParser
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner, CareDoctorReadOnly
 from files import docs
-from files.api.mixins import QuerySetMixin
+from files.api.mixins import CommonUploaderCheckMixin
 from files.api.serializers import (PatientFileUploadSerializer,
                                    DoctorFileUploadSerializer,
                                    DoctorFileListSerializer,
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
     from django.http import FileResponse
 
 
-class DoctorFileListAPIView(QuerySetMixin, ListAPIView):
+class DoctorFileListAPIView(CommonUploaderCheckMixin, ListAPIView):
     queryset = DoctorFile.objects.select_all()
     permission_classes = [IsDoctor]
     serializer_class = DoctorFileListSerializer
@@ -31,7 +30,8 @@ class DoctorFileListAPIView(QuerySetMixin, ListAPIView):
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return DoctorFile.objects.none()
-        return super().get_queryset()
+        queryset = self.filter_with_uploader(self.request.user, super().get_queryset())
+        return queryset
 
     @swagger_auto_schema(**docs.doctor_file_list)
     def get(self, request, *args, **kwargs):
@@ -74,7 +74,7 @@ class DoctorFileUploadAPIView(CreateAPIView):
         return super().post(request, *args, **kwargs)
 
 
-class PatientFileListAPIView(QuerySetMixin, ListAPIView):
+class PatientFileListAPIView(CommonUploaderCheckMixin, ListAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsPatient]
     serializer_class = PatientFileListSerializer
@@ -82,7 +82,8 @@ class PatientFileListAPIView(QuerySetMixin, ListAPIView):
     def get_queryset(self):
         if getattr(self, 'swagger_fake_view', False):
             return PatientFile.objects.none()
-        return super().get_queryset()
+        queryset = self.filter_with_uploader(self.request.user, super().get_queryset())
+        return queryset
 
     @swagger_auto_schema(**docs.patient_file_list)
     def get(self, request, *args, **kwargs):
@@ -93,7 +94,6 @@ class PatientFileRetrieveAPIView(RetrieveAPIView):
     queryset = PatientFile.objects.select_all()
     permission_classes = [IsOwner | CareDoctorReadOnly]
     serializer_class = PatientFlieRetrieveSerializer
-    parser_classes = (FileUploadParser,)
     lookup_field = 'id'
 
     @swagger_auto_schema(**docs.patient_file_detail)

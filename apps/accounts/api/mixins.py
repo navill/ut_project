@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, NoReturn, Dict
+from typing import TYPE_CHECKING, NoReturn, Dict, Tuple, Union
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -6,6 +6,7 @@ from rest_framework import permissions
 from rest_framework_simplejwt.settings import api_settings
 
 from accounts.api.utils import PostProcessingUserDirector
+from accounts.models import BaseUser
 
 if TYPE_CHECKING:
     from accounts.api.authentications import CustomRefreshToken
@@ -64,7 +65,16 @@ class PermissionMixin:
         return user.is_superuser or bool(user.id == owner_id)
 
     def has_group(self, request, group_name: str) -> bool:
-        return getattr(request.user.user_type, group_name)
+        if not self.is_authenticated(request):
+            return False
+
+        user = request.user
+        user_type = user.user_type
+
+        if user_type is not None:
+            return getattr(user.user_type, group_name)
+        else:
+            return user.groups.filter(name=group_name).exists()
 
     def is_related(self, request, obj) -> bool:
         user = request.user
@@ -75,3 +85,26 @@ class PermissionMixin:
             id_field = 'patient_id'
 
         return hasattr(obj, id_field)
+
+
+class UserTypeForAuthMixin:
+    def set_user_type(self, results: Union[Tuple, None]):
+        if self._validate(results):
+            user, _ = results
+            _ = self.get_typed_user(user)
+
+    def get_typed_user(self, user: User) -> User:
+        group_name = self._get_group_name(user)
+        user.set_user_type(group_name)
+        return user
+
+    def _validate(self, results):
+        if isinstance(results, Tuple) and isinstance(results[0], BaseUser):
+            return True
+        else:
+            raise Exception('invalid user')
+
+    def _get_group_name(self, user: User) -> str:
+        group_list = user.groups.values_list('name')
+        if group_list:
+            return list(user.groups.values_list('name', flat=True))[0]

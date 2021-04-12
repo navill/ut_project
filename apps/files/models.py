@@ -7,7 +7,7 @@ from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from files.api.mixins import FileQuerySetMixin
+from files.api.mixins import CommonFileQuerysetMixin
 from files.api.utils import delete_file, concatenate_name, directory_path
 from prescriptions.models import Prescription, FilePrescription
 
@@ -46,7 +46,7 @@ class BaseFile(models.Model):
         return f'hard delete [{obj_name}]'
 
 
-class DoctorFileQuerySet(FileQuerySetMixin, models.QuerySet):
+class DoctorFileQuerySet(CommonFileQuerysetMixin, models.QuerySet):
     def select_doctor(self) -> 'DoctorFileQuerySet':
         return self.annotate(uploader_doctor_name=concatenate_name('uploader__doctor'))
 
@@ -79,7 +79,7 @@ class DoctorFile(BaseFile):
     objects = DoctorFileManager()
 
 
-class PatientFileQuerySet(FileQuerySetMixin, models.QuerySet):
+class PatientFileQuerySet(CommonFileQuerysetMixin, models.QuerySet):
     def filter_unchecked_list(self) -> 'PatientFileQuerySet':
         return self.filter(checked=False)
 

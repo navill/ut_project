@@ -27,7 +27,6 @@ def log_request(sender, environ, **kwargs):  # HTTP_USER_AGENT, HTTP_HOST, REMOT
         client_ip = environ['REMOTE_ADDR']
         client_agent = environ['HTTP_USER_AGENT']
         query = '?' + parse.unquote(query) if query else ''
-
         print(f'[{current_time}][{method}] {host}{path}{query} | IP_addr:{client_ip} | Agent: {client_agent}')
 
 

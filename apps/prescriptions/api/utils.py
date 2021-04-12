@@ -25,14 +25,19 @@ class CommonListAPIView(ListAPIView):
         return queryset.filter(**{target_field: user.id})
 
     def get_target_field(self, queryset: QuerySet, user) -> str:
-        sub_field_name = 'prescription__' if hasattr(queryset.model, 'prescription') else ''
+        prefix = 'prescription__' if hasattr(queryset.model, 'prescription') else ''
         target_field = ''
+        if user.user_type:
+            if user.user_type.doctor:
+                target_field = f'{prefix}writer_id'
+            elif user.user_type.patient:
+                target_field = f'{prefix}patient_id'
 
-        if user.user_type.doctor:
-            target_field = f'{sub_field_name}writer_id'
-
-        elif user.user_type.patient:
-            target_field = f'{sub_field_name}patient_id'
+        else:
+            if hasattr(user, 'doctor'):
+                target_field = f'{prefix}writer_id'
+            elif hasattr(user, 'patient'):
+                target_field = f'{prefix}patient_id'
 
         return target_field
 

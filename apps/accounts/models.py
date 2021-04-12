@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin
+from django.contrib.auth.models import PermissionsMixin, AbstractUser
 from django.db import models
 from django.db.models import Prefetch, Max, F
 from django.urls import reverse
@@ -142,6 +142,9 @@ class UserType:
 
 
 class BaseUser(AbstractBaseUser, PermissionsMixin):
+    """
+    BaseUser: django에서 사용자 계정(id, password, 계정 활성 상태 등)을 인증하기 위해 사용되는 모델.
+    """
     email = models.EmailField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -180,7 +183,7 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         self.token_expired = time
         self.save()
 
-    def set_user_type(self, group_name: str):
+    def set_user_type(self, group_name: str = None):
         self.user_type = UserType(group_name)  # Has-a(composition)
 
     # [Deprecated]

@@ -31,11 +31,12 @@ class BasePrescription(models.Model):
 
 
 class PrescriptionQuerySet(models.QuerySet):
-    def is_writer(self, writer_id: int) -> 'PrescriptionQuerySet':
-        return self.filter(writer_id=writer_id)
-
-    def is_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
-        return self.filter(patient_id=patient_id)
+    # [Deprecated]
+    # def is_writer(self, writer_id: int) -> 'PrescriptionQuerySet':
+    #     return self.filter(writer_id=writer_id)
+    #
+    # def is_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
+    #     return self.filter(patient_id=patient_id)
 
     def select_patient(self) -> 'PrescriptionQuerySet':
         return self.select_related('patient')
@@ -80,11 +81,9 @@ class PrescriptionManager(models.Manager):
                      writer_name=concatenate_name('writer'),
                      patient_name=concatenate_name('patient'))
 
-    def get_raw_queryset(self):
-        return PrescriptionQuerySet(self.model, using=self._db)
-
-    def prefetch_file_prescription(self) -> 'PrescriptionQuerySet':
-        return self.get_queryset().prefetch_file_prescription()
+    # [Deprecated]
+    # def prefetch_file_prescription(self) -> 'PrescriptionQuerySet':
+    #     return self.get_queryset().prefetch_file_prescription()
 
     def select_all(self) -> 'PrescriptionQuerySet':
         return self.get_queryset().select_all().order_by('-created_at').filter(deleted=False)
@@ -112,7 +111,7 @@ class Prescription(BasePrescription):
     objects = PrescriptionManager()
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-created_at']
 
     def get_writer_name(self) -> str:
         return self.writer.get_full_name()
@@ -122,6 +121,8 @@ class Prescription(BasePrescription):
 
 
 # [Deprecated]
+# 문제: 업데이트할 때 마다 signal 호출
+# => signal 대신 serializer에서 처리(PrescriptionSerializerMixin)
 # @receiver(post_save, sender=Prescription)
 # def create_file_prescription_by_prescription(sender, **kwargs: Dict[str, Any]):
 #     instance = kwargs['instance']
@@ -211,12 +212,6 @@ class FilePrescriptionManager(models.Manager):
         return self.get_queryset().choice_fields()
 
 
-"""
-FilePrescription
-- fields: id, description, status, created_at, updated_at, deleted, prescription, day_number, active, checked 
-"""
-
-
 class FilePrescription(BasePrescription):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='file_prescriptions')
     day_number = models.IntegerField()
@@ -227,7 +222,7 @@ class FilePrescription(BasePrescription):
     objects = FilePrescriptionManager()
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-created_at']
 
     def __str__(self) -> str:
         return f'prescription_id:{self.prescription.id}-{self.date}: {self.day_number}일'
@@ -236,7 +231,7 @@ class FilePrescription(BasePrescription):
 @receiver(post_save, sender=FilePrescription)
 def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
     instance = kwargs['instance']
-    checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id).values_list('checked')
+    checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id)
 
     if not checked_queryset.filter(checked=False).exists():
         instance.prescription.checked = True

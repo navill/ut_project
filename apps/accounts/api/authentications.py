@@ -3,29 +3,28 @@ from typing import Dict, AnyStr, Tuple, Union
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
-from rest_framework.authentication import BasicAuthentication
+from rest_framework.authentication import BasicAuthentication, SessionAuthentication
 from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import Token, BlacklistMixin, AccessToken
 
+from accounts.api.mixins import UserTypeForAuthMixin
+
 User = get_user_model()
 
 
-def get_group_name(user: User) -> str:
-    return list(user.groups.values_list('name', flat=True))[0]
-
-
-class CustomJWTTokenUserAuthentication(JWTAuthentication):
+class CustomJWTTokenUserAuthentication(UserTypeForAuthMixin, JWTAuthentication):
     def authenticate(self, request: Request) -> Union[Tuple[User, Dict[str, AnyStr]], None]:
         try:
             user, validated_token = super().authenticate(request)
         except TypeError:
             return None
-
         if user.token_expired != validated_token.payload['exp']:
             raise AuthenticationFailed("User don't have valid token", code='invalid_token')
+
+        user = self.get_typed_user(user)
         return user, validated_token
 
     def get_user(self, validated_token: Dict[str, AnyStr]) -> User:
@@ -42,18 +41,23 @@ class CustomJWTTokenUserAuthentication(JWTAuthentication):
         if not user.is_active:
             raise AuthenticationFailed('User is inactive', code='user_inactive')
 
-        group_name = get_group_name(user)
-        user.set_user_type(group_name)
         return user
 
 
-class CustomBaseAuthentication(BasicAuthentication):
-    def authenticate_credentials(self, userid, password, request=None):
-        user, _ = super().authenticate_credentials(userid, password, request=request)
+class CustomBaseAuthentication(UserTypeForAuthMixin, BasicAuthentication):
+    def authenticate(self, request):
+        results = super().authenticate(request)
+        if results:
+            self.set_user_type(results)
+        return results
 
-        group_name = get_group_name(user)
-        user.set_user_type(group_name)
-        return user, _
+
+class CustomSessionAuthentication(UserTypeForAuthMixin, SessionAuthentication):
+    def authenticate(self, request):
+        results = super().authenticate(request)
+        if results:
+            self.set_user_type(results)
+        return results
 
 
 class CustomToken(Token):

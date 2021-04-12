@@ -129,9 +129,10 @@ REST_FRAMEWORK = {
         'accounts.api.permissions.IsSuperUser',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'accounts.api.authentications.CustomBaseAuthentication',
+        # 'accounts.api.authentications.CustomBaseAuthentication',
+        # 'accounts.api.authentications.CustomSessionAuthentication',
         'accounts.api.authentications.CustomJWTTokenUserAuthentication',
     ],
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',

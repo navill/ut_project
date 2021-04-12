@@ -12,16 +12,13 @@ class PrescriptionFilter(FilterSet):
     status = ChoiceFilter(choices=HealthStatus.choices)
     ordering = OrderingFilter(
         fields={
-            # field_name: param_name
             'created_at': 'created_at',
         },
         field_labels={
             'created_at': '소견서 작성일',
         }
     )
-    # boolean field
     checked = BooleanFilter(field_name='checked')
-    # date field
     created_at = LookupChoiceFilter(
         field_class=DateFilter.field_class,
         field_name='created_at',

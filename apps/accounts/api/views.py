@@ -3,6 +3,7 @@ from typing import Type, NoReturn
 from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
@@ -130,7 +131,6 @@ class PatientListAPIView(ListAPIView):
     queryset = Patient.objects.select_all().order_by('-created_at')
     serializer_class = serializers.PatientListSerializer
     permission_classes = [IsDoctor]
-    lookup_field = 'pk'
 
     def get_queryset(self) -> Type[QuerySet]:
         if getattr(self, 'swagger_fake_view', False):
@@ -174,7 +174,7 @@ class PatientUpdateAPIView(UpdateAPIView):
 class DoctorChoicesAPIView(ListAPIView):
     queryset = Doctor.objects.choice_fields()
     serializer_class = serializers.DoctorChoiceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_class = DoctorFilter
 
     @swagger_auto_schema(**docs.doctor_choice)
@@ -185,9 +185,18 @@ class DoctorChoicesAPIView(ListAPIView):
 class PatientChoicesAPIView(ListAPIView):
     queryset = Patient.objects.choice_fields()
     serializer_class = serializers.PatientChoiceSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     filter_class = PatientFilter
 
     @swagger_auto_schema(**docs.patient_choice, filter_inspectors=[CommonFilterDescriptionInspector])
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def session_logout_view(request):
+    request.session.flush()
+    request.user.user_type = None
+    data = {'success': 'Sucessfully logged out'}
+    return Response(data=data, status=status.HTTP_200_OK)

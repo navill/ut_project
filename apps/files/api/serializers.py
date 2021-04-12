@@ -1,23 +1,29 @@
-from typing import Optional, Type, TYPE_CHECKING
+from typing import Optional, Type, Union
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
 from files.models import DoctorFile, PatientFile
-from prescriptions.models import Prescription, FilePrescription
-
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
+from prescriptions.models import Prescription, FilePrescription, PrescriptionQuerySet, FilePrescriptionQuerySet
 
 User = get_user_model()
 
 
 class CurrentUserPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self) -> Optional[Type['QuerySet']]:
+    def get_queryset(self) -> Union[PrescriptionQuerySet, FilePrescriptionQuerySet]:
         request = self.context.get('request', None)
+        user_id = request.user.id
         queryset = super().get_queryset()
-        return queryset.filter(user=request.user.id)
+
+        if isinstance(queryset, PrescriptionQuerySet):
+            query_param = {'user': user_id}
+        elif isinstance(queryset, FilePrescriptionQuerySet):
+            query_param = {'patient_id': user_id}
+        else:
+            raise Exception('invalid queryset')
+
+        return queryset.filter(**query_param)
 
 
 class CurrentPatientPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
@@ -167,7 +173,8 @@ class PatientFileSerializer(_BaseFileSerializer):
         lookup_field='id',
         read_only=True,
     )
-    file_prescription = CurrentPatientPrimaryKeyRelatedField(queryset=FilePrescription.objects.select_all())
+    file_prescription = CurrentPatientPrimaryKeyRelatedField(queryset=FilePrescription.objects.select_all(),
+                                                             write_only=True)
     uploader = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
@@ -195,7 +202,7 @@ class PatientFlieUpdateSerializer(PatientFileSerializer):
 
 class PatientFileUploadSerializer(PatientFileSerializer):
     uploader = serializers.HiddenField(default=CurrentUserDefault())
-    file_prescription = serializers.PrimaryKeyRelatedField(queryset=FilePrescription.objects.select_all())
+    file_prescription = CurrentUserPrimaryKeyRelatedField(queryset=FilePrescription.objects.select_all(), required=True)
     file = serializers.FileField(use_url=False)
 
     class Meta(PatientFileSerializer.Meta):
@@ -222,7 +229,8 @@ class PatientFileUploadSerializer(PatientFileSerializer):
     #
     #         file_objects = PatientFile.objects.bulk_create(file_list)
     #
-    #         # file_object = PatientFile.objects.create(uploader_id=uploader.id, file_prescription_id=file_prescription.id,
+    #         # file_object = PatientFile.objects.create(uploader_id=uploader.id,
+    #                                                    file_prescription_id=file_prescription.id,
     #         #                                          **validated_data)
     #         return {'message': 'upload complete'}
     #     return None

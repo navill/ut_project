@@ -239,9 +239,11 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
         return data
 
     def _add_next_url(self, data: Dict[str, str]):
-        if self.user.user_type.doctor:
+        # if self.user.user_type.doctor:
+        if hasattr(self.user, 'doctor'):
             data['main_url'] = reverse('core-api:doctors:detail', kwargs={'pk': self.user.id})
-        elif self.user.user_type.patient:
+        # elif self.user.user_type.patient:
+        elif hasattr(self.user, 'patient'):
             data['main_url'] = reverse('core-api:patients:main', kwargs={'pk': self.user.id})
 
 

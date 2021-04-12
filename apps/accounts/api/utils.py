@@ -1,8 +1,6 @@
-import datetime
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Union, NoReturn, List
+from typing import TYPE_CHECKING, Union, NoReturn
 
-from dateutil.relativedelta import relativedelta
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -14,7 +12,7 @@ if TYPE_CHECKING:
 User = get_user_model()
 
 
-class CreatedUserPair:
+class UserPair:
     def __init__(self, user: Union['Patient', 'Doctor'], baseuser: User):
         self.user = user
         self.baseuser = baseuser
@@ -122,7 +120,7 @@ class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
 
 class PostProcessingUserDirector:
     def __init__(self, user: Union['Doctor', 'Patient'] = None, baseuser: 'User' = None):
-        self.created_user = CreatedUserPair(user=user, baseuser=baseuser)
+        self.created_user = UserPair(user=user, baseuser=baseuser)
 
     def build_user_group_and_permission(self) -> NoReturn:
         builder = GroupPermissionBuilder(pair_user=self.created_user)

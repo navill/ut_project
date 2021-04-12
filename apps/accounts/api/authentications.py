@@ -1,3 +1,4 @@
+import time
 from typing import Dict, AnyStr, Tuple, Union
 
 from django.contrib.auth import get_user_model
@@ -66,7 +67,7 @@ class CustomToken(Token):
 
     def __init__(self, token: AnyStr = None, verify: bool = True):
         super().__init__(token, verify)
-        self.current_time = timezone.now()  # local time 적용
+        self.current_time = timezone.now()  # local time 적용.
         self.token = token
 
 

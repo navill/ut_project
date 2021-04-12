@@ -123,4 +123,5 @@ def post_save_patient_file(sender, **kwargs: Dict[str, Any]):
     file_prescription = instance.file_prescription
     if not file_prescription.uploaded:
         file_prescription.uploaded = True
+        file_prescription.checked = False  # 환자가 파일을 업로드한 시점은 의사가 확인을 하지 않은 상태
         file_prescription.save()

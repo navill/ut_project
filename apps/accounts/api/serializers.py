@@ -239,7 +239,7 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
         return data
 
     def _add_next_url(self, data: Dict[str, str]):
-        # if self.user.user_type.doctor:
+        # if self.user.user_type.doctor:  # Login은 AllowAny 권한을 갖기 때문에 Authentication 구문이 실행되지 않음
         if hasattr(self.user, 'doctor'):
             data['main_url'] = reverse('core-api:doctors:detail', kwargs={'pk': self.user.id})
         # elif self.user.user_type.patient:

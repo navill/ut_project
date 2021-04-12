@@ -91,10 +91,11 @@ class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
     def add_user_to_model_group(self) -> NoReturn:
         group, created = Group.objects.get_or_create(name=self.pair_user.user_model_name)
 
+        baseuser = self.pair_user.baseuser
         if created and self.permissions.exists():
             group.permissions.set(self.permissions)
 
-        self.pair_user.baseuser.groups.add(group)
+        self._add_usertype_to_instance(baseuser, group)
 
     def grant_permission_to_baseuser(self) -> NoReturn:
         self.pair_user.baseuser.user_permissions.set(self.permissions)
@@ -116,6 +117,10 @@ class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
         if model_name == 'doctor':
             query |= Q(model='prescription')  # 의사일 경우 perscription 모델에 대한 권한이 필요함
         return query
+
+    def _add_usertype_to_instance(self, baseuser, group):
+        baseuser.groups.add(group)
+        baseuser.set_user_type(group.name)
 
 
 class PostProcessingUserDirector:

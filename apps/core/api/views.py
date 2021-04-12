@@ -3,7 +3,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
-from accounts.api.permissions import IsDoctor, IsOwner
+from accounts.api.permissions import IsDoctor, IsOwner, CareDoctorReadOnly
 from accounts.models import Doctor, Patient
 from core import docs
 from core.api.serializers import (DoctorWithPatientSerializer,
@@ -34,7 +34,7 @@ class DoctorWithPatients(RetrieveAPIView):
 
 class PatientWithPrescriptions(RetrieveAPIView):
     queryset = Patient.objects.select_all().prefetch_prescription_with_writer()
-    permission_classes = [IsDoctor]
+    permission_classes = [CareDoctorReadOnly]
     serializer_class = PatientWithPrescriptionSerializer
     lookup_field = 'pk'
 
@@ -45,7 +45,7 @@ class PatientWithPrescriptions(RetrieveAPIView):
 
 class PrescriptionWithFilePrescriptions(RetrieveAPIView):
     queryset = Prescription.objects.select_all()
-    permission_classes = [IsDoctor]
+    permission_classes = [IsOwner]
     serializer_class = PrescriptionNestedFilePrescriptionSerializer
     lookup_field = 'pk'
 

@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from rest_framework.reverse import reverse
 from rest_framework_simplejwt.token_blacklist.models import *
@@ -8,16 +10,22 @@ from accounts.models import *
 
 
 @pytest.mark.django_db
-def test_custom_refresh_token(doctor_with_group):
-    token = CustomRefreshToken.for_user(doctor_with_group.user)
+def test_custom_refresh_token():
+    user = BaseUser.objects.get(id=2)
 
-    assert doctor_with_group.user.token_expired == token['exp']
+    # expired time
+    token = CustomRefreshToken.for_user(user)
+    assert user.token_expired == token.access_token['exp']
     assert BlacklistedToken.objects.all().exists() is False
 
     outstanding_token = OutstandingToken.objects.first()
     assert outstanding_token.token == str(token)
     assert outstanding_token.jti == token['jti']
     assert outstanding_token.expires_at == datetime_from_epoch(token['exp'])
+
+    token.blacklist()
+    black_token = BlacklistedToken.objects.get(token_id=outstanding_token.id)
+    assert black_token
 
 
 @pytest.mark.django_db

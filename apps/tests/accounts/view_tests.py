@@ -1,6 +1,7 @@
 import pytest
 from rest_framework.reverse import reverse
 
+from accounts.api.authentications import CustomRefreshToken
 from accounts.models import Doctor, Patient
 from tests.conftest import DOCTOR_PARAMETER, PATIENT_PARAMETER
 
@@ -19,6 +20,7 @@ def test_api_create_signup_doctor_with_parameters(api_client, major, user, first
         'major': major.id,
         'gender': 'MALE'
     }
+    assert major.id
     url = reverse('accounts:api-signup-doctor')
     response = api_client.post(url, data=data, format='json')
     assert response.status_code == status_code
@@ -29,7 +31,7 @@ def test_api_create_signup_doctor_with_parameters(api_client, major, user, first
 @pytest.mark.parametrize(*PATIENT_PARAMETER)
 @pytest.mark.django_db
 def test_api_create_signup_patient_with_parameters(api_client, doctor_with_group, user, first_name, last_name,
-                                                   address, phone, age, emergency_call, status_code):
+                                                   address, phone, birth, emergency_call, status_code):
     doctor = doctor_with_group
     data = {
         'doctor': doctor.user_id,
@@ -38,7 +40,7 @@ def test_api_create_signup_patient_with_parameters(api_client, doctor_with_group
         'last_name': last_name,
         'address': address,
         'phone': phone,
-        'age': age,
+        'birth': birth,
         'emergency_call': emergency_call,
         'gender': 'MALE'
     }
@@ -101,8 +103,7 @@ def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refre
 
     # list - success
     assert response.status_code == 200
-    assert url in response.data[0]['detail_url']
-
+    assert url in response.data['results'][0]['url']
     # fail - 유효하지 않은 인증 정보
     api_client.credentials()
     response = api_client.get(url, format='json')
@@ -111,22 +112,15 @@ def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refre
 
 def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refresh_token_from_doctor,
                                                  patient_with_group):
-    # create patient
-    # _, _ = patient_with_group
-    # create doctor & token
     refresh, access = get_access_and_refresh_token_from_doctor
     url = reverse('accounts:patient-list')
     # authenticate token
     api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
     response = api_client.get(url, format='json')
-    doctor = Doctor.objects.last()
-    patient = Patient.objects.last()
+
     # success
     assert response.status_code == 200
-    assert url in response.data[0]['detail_url']
-    assert response.data[0]['age'] == 30
-    # assert response.data[0]['full_name'] == f'{patient.full_name}'
-    # assert response.data[0]['doctor_name'] == f'{doctor.full_name}'
+    assert url in response.data['results'][0]['url']
 
     # fail - 인증 x
     api_client.credentials()
@@ -134,33 +128,33 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
     assert response.status_code == 401
 
 
-def test_api_retrieve_doctor(api_client, get_access_and_refresh_token_from_doctor):
-    refresh, access = get_access_and_refresh_token_from_doctor
-    # authenticate token
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
-    doctor = Doctor.objects.filter(user_id=2)[0]
-    # detail - success
-    url = reverse('accounts:doctor-detail-update', kwargs={'pk': doctor.user_id})
-    response = api_client.get(url, format='json')
-    assert response.status_code == 403  # temp
-    # fail - 인증 x
-    api_client.credentials()
-    response = api_client.get(url, format='json')
-    assert response.status_code == 401
-
-
-def test_api_update_doctor(api_client, get_access_and_refresh_token_from_doctor):
-    refresh, access = get_access_and_refresh_token_from_doctor
+@pytest.mark.django_db
+def test_api_retrieve_doctor(api_client):
     doctor = Doctor.objects.first()
-    # 토큰 인증
-    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(access))
-    url = reverse('accounts:doctor-detail-update', kwargs={'pk': doctor.user_id})
+    token = CustomRefreshToken.for_user(doctor.user)
+
+    # authenticate token
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    doctor = Doctor.objects.get(user_id=2)
+    # detail - success
+    url = reverse('accounts:doctor-detail', kwargs={'pk': doctor.user_id})
     response = api_client.get(url, format='json')
-    assert response.status_code == 403
-    doctor_id = doctor.user_id
-    # 데이터 변경(PATCH)
+    assert response.status_code == 200
+    # fail - 인증 x
+    api_client.credentials()
+    response = api_client.get(url, format='json')
+    assert response.status_code == 401
+
+
+@pytest.mark.django_db
+def test_api_update_doctor(api_client):
+    doctor = Doctor.objects.first()
+    token = CustomRefreshToken.for_user(doctor.user)
+    # 토큰 인증
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    url = reverse('accounts:doctor-update', kwargs={'pk': doctor.user_id})
+    # 데이터 변경(PUT)
     data = {'description': 'changed description'}
-    response = api_client.patch(url, data=data, format='json')
-    assert response.status_code == 403  # temp
-    # assert response.data['description'] == 'changed description'
-    # assert response.data['user_id'] == doctor_id
+    response = api_client.put(url, data=data, format='json')
+    assert response.status_code == 200
+    assert response.data['description'] == 'changed description'

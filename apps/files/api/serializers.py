@@ -119,7 +119,6 @@ class DoctorFileInPrescriptionSerializer(serializers.ModelSerializer):
                                                lookup_field='id',
                                                read_only=True,
                                                )
-
     download_url = serializers.HyperlinkedIdentityField(view_name='files:doctor-file-download',
                                                         lookup_field='id',
                                                         read_only=True,
@@ -128,7 +127,7 @@ class DoctorFileInPrescriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DoctorFile
-        fields = ['url', 'download_url', 'file', 'created_at']
+        fields = ['url', 'id', 'download_url', 'file', 'created_at', 'updated_at', 'deleted']
 
 
 class DoctorFileDownloadSerializer(DoctorFileSerializer):

@@ -18,6 +18,7 @@ class BaseFile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     uploader = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
     file = models.FileField(upload_to=directory_path, null=True)
     deleted = models.BooleanField(default=False)
 
@@ -47,6 +48,9 @@ class BaseFile(models.Model):
 
 
 class DoctorFileQuerySet(CommonFileQuerysetMixin, models.QuerySet):
+    def filter_not_deleted(self):
+        return self.filter(deleted=False)
+
     def select_doctor(self) -> 'DoctorFileQuerySet':
         return self.annotate(uploader_doctor_name=concatenate_name('uploader__doctor'))
 
@@ -72,9 +76,12 @@ class DoctorFileManager(models.Manager):
     def select_all(self) -> DoctorFileQuerySet:
         return self.get_queryset().select_all()
 
+    def filter_not_deleted(self):
+        return self.get_queryset().filter_not_deleted()
+
 
 class DoctorFile(BaseFile):
-    prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, related_name='doctor_files')
+    prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, null=True, related_name='doctor_files')
 
     objects = DoctorFileManager()
 
@@ -88,6 +95,9 @@ class PatientFileQuerySet(CommonFileQuerysetMixin, models.QuerySet):
 
     def filter_uploader(self, user_id) -> 'PatientFileQuerySet':
         return self.filter(uploader_id=user_id)
+
+    def filter_not_deleted(self):
+        return self.filter(deleted=False)
 
     def select_patient(self) -> 'PatientFileQuerySet':
         return self.annotate(uploader_patient_name=concatenate_name('uploader__patient'))
@@ -112,7 +122,8 @@ class PatientFileManager(models.Manager):
 
 
 class PatientFile(BaseFile):
-    file_prescription = models.ForeignKey(FilePrescription, on_delete=models.DO_NOTHING, related_name='patient_files')
+    file_prescription = models.ForeignKey(FilePrescription, on_delete=models.DO_NOTHING, null=True,
+                                          related_name='patient_files')
 
     objects = PatientFileManager()
 

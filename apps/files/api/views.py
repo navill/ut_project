@@ -1,7 +1,8 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.response import Response
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner, CareDoctorReadOnly
 from files import docs
@@ -133,8 +134,10 @@ class DoctorFileDownloadAPIView(RetrieveAPIView):
     lookup_field = 'id'
 
     @swagger_auto_schema(operation_summary="의사 파일 다운로드")
-    def get(self, request, *args, **kwargs) -> 'FileResponse':
+    def get(self, request, *args, **kwargs) -> Union['FileResponse', 'Response']:
         file_object = self.get_object()
+        if file_object.deleted:
+            return Response({"error": "this file is deleted"})
         downloader = Downloader(instance=file_object)
         return downloader.response()
 

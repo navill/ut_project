@@ -11,7 +11,7 @@ from files.models import DoctorFile
 from prescriptions.models import Prescription, FilePrescription
 
 if TYPE_CHECKING:
-    from django.db.models import QuerySet
+    from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 class PrescriptionModelSerializer(serializers.ModelSerializer):
@@ -25,16 +25,54 @@ class PrescriptionModelSerializer(serializers.ModelSerializer):
         model = Prescription
         fields = ['url']
 
+    def _create_file_prescriptions(self, prescription_id, start_date, end_date):
+        import datetime
+        bulk_list = (
+            FilePrescription(
+                prescription_id=prescription_id,
+                day_number=day_number + 1,
+                date=start_date + datetime.timedelta(days=day_number))
+            for day_number in range((end_date - start_date).days + 1))
+        FilePrescription.objects.bulk_create(bulk_list)
+
+
+class UpdateSupporterSerailzier(PrescriptionModelSerializer):
+    @transaction.atomic
+    def update(self, instance: Prescription, validated_data: Dict[str, Any]):
+        self.update_files(instance, validated_data)
+        self.new_file_prescriptions(instance, validated_data)
+
+        return super().update(instance, validated_data)
+
+    def update_files(self, instance: Prescription, validated_data: Dict[str, Any]) -> NoReturn:
+        files = validated_data.pop('update_files', None)
+        if files:
+            bulk_list = []
+            for file in files:
+                doctor_file = DoctorFile(prescription_id=instance.id, uploader_id=instance.writer_id, file=file)
+                bulk_list.append(doctor_file)
+            instance.doctor_files.update(deleted=True)
+            DoctorFile.objects.bulk_create(bulk_list)
+
+    def new_file_prescriptions(self, instance: Prescription, validated_data: Dict[str, Any]):
+        start_date = validated_data.pop('start_date', None)
+        end_date = validated_data.pop('end_date', None)
+        if start_date and end_date:
+            instance.file_prescriptions.update(deleted=True)
+            self._create_file_prescriptions(instance.id, start_date, end_date)
+
 
 class CreateSupporterSerializer(PrescriptionModelSerializer):
     @transaction.atomic
     def create(self, validated_data: Dict[str, Any]):
         field_name = 'doctor_upload_files'
         files = validated_data.pop(field_name, None)
-
+        start_date = validated_data.pop('start_date', None)
+        end_date = validated_data.pop('end_date', None)
         prescription = self._create_prescription(validated_data)
         self._create_file_prescriptions(prescription_id=prescription.id,
-                                        validated_data=validated_data)
+                                        start_date=start_date,
+                                        end_date=end_date)
         if files:
             self._create_doctor_files(writer_id=prescription.writer_id,
                                       prescription_id=prescription.id,
@@ -51,21 +89,10 @@ class CreateSupporterSerializer(PrescriptionModelSerializer):
                              prescription_id: int,
                              request_files: 'InMemoryUploadedFile') -> NoReturn:
         uploader_id = writer_id
+        file_list = []
         for file in request_files:
-            DoctorFile.objects.create(uploader_id=uploader_id, prescription_id=prescription_id, file=file)
-
-    def _create_file_prescriptions(self, prescription_id, validated_data):
-        start_date = validated_data['start_date']
-        end_date = validated_data['end_date']
-
-        import datetime
-        bulk_list = (
-            FilePrescription(
-                prescription_id=prescription_id,
-                day_number=day_number + 1,
-                date=start_date + datetime.timedelta(days=day_number))
-            for day_number in range((end_date - start_date).days + 1))
-        FilePrescription.objects.bulk_create(bulk_list)
+            file_list.append(DoctorFile(uploader_id=uploader_id, prescription_id=prescription_id, file=file))
+        DoctorFile.objects.bulk_create(file_list)
 
 
 class FilePrescriptionModelSerializer(serializers.ModelSerializer):
@@ -113,9 +140,21 @@ class PrescriptionDetailSerializer(PrescriptionListSerializer):
         fields = ['url'] + PrescriptionFields.detail_field
 
 
-class PrescriptionUpdateSerializer(PrescriptionModelSerializer):
-    class Meta(PrescriptionModelSerializer.Meta):
-        fields = ['url', 'status', 'description', 'start_date', 'end_date', 'checked']
+class PrescriptionUpdateSerializer(UpdateSupporterSerailzier):
+    writer = serializers.HiddenField(default=CurrentUserDefault())
+    doctor_files = serializers.SerializerMethodField()
+    update_files = serializers.ListField(child=serializers.FileField(), write_only=True)
+
+    class Meta:
+        model = Prescription
+        fields = ['url', 'writer', 'status', 'description', 'update_files', 'doctor_files',
+                  'start_date', 'end_date', 'checked']
+
+    def get_doctor_files(self, instance):
+        doctor_files = DoctorFile.objects.filter(prescription_id=instance.id).filter_not_deleted()
+        serializer = DoctorFileInPrescriptionSerializer(instance=doctor_files, many=True, read_only=True,
+                                                        context=self.context)
+        return serializer.data
 
 
 class PrescriptionCreateSerializer(CreateSupporterSerializer):

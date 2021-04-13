@@ -38,7 +38,7 @@ class PrescriptionListAPIView(CommonListAPIView):
 class PrescriptionCreateAPIView(CreateAPIView):
     queryset = Prescription.objects.select_all().prefetch_doctor_file()
     serializer_class = PrescriptionCreateSerializer
-    permission_classes = []
+    permission_classes = [IsDoctor]
 
     @swagger_auto_schema(**docs.prescription_create)
     def post(self, request, *args, **kwargs):

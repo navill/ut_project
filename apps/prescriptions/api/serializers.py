@@ -39,27 +39,30 @@ class PrescriptionModelSerializer(serializers.ModelSerializer):
 class UpdateSupporterSerailzier(PrescriptionModelSerializer):
     @transaction.atomic
     def update(self, instance: Prescription, validated_data: Dict[str, Any]):
-        self.update_files(instance, validated_data)
+        self.set_delete_old_instance(instance)
+        self.new_files(instance, validated_data)
         self.new_file_prescriptions(instance, validated_data)
 
         return super().update(instance, validated_data)
 
-    def update_files(self, instance: Prescription, validated_data: Dict[str, Any]) -> NoReturn:
+    def new_files(self, instance: Prescription, validated_data: Dict[str, Any]) -> NoReturn:
         files = validated_data.pop('update_files', None)
         if files:
             bulk_list = []
             for file in files:
                 doctor_file = DoctorFile(prescription_id=instance.id, uploader_id=instance.writer_id, file=file)
                 bulk_list.append(doctor_file)
-            instance.doctor_files.update(deleted=True)
             DoctorFile.objects.bulk_create(bulk_list)
 
     def new_file_prescriptions(self, instance: Prescription, validated_data: Dict[str, Any]):
         start_date = validated_data.pop('start_date', None)
         end_date = validated_data.pop('end_date', None)
         if start_date and end_date:
-            instance.file_prescriptions.update(deleted=True)
             self._create_file_prescriptions(instance.id, start_date, end_date)
+
+    def set_delete_old_instance(self, instance: Prescription) -> NoReturn:
+        instance.doctor_files.update(deleted=True)
+        instance.file_prescriptions.update(deleted=True)
 
 
 class CreateSupporterSerializer(PrescriptionModelSerializer):

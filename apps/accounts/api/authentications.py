@@ -1,4 +1,3 @@
-import time
 from typing import Dict, AnyStr, Tuple, Union
 
 from django.contrib.auth import get_user_model

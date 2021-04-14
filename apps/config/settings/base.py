@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'core',
     'files',
     # third party
+    'django_extensions',
     'rest_framework',
     'crispy_forms',
     'rest_framework_simplejwt.token_blacklist',

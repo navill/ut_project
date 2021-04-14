@@ -69,19 +69,19 @@ def test_create_and_update_prescription(api_client):
     assert response.status_code == 200
     assert response.data['description'] == updated_value['description']
     assert len(response.data['doctor_files']) == 1
-    doctor_files = DoctorFile.objects.filter(prescription_id=prescription.id).filter_not_deleted()
-    assert doctor_files.count() == 1
-    assert prescription.file_prescriptions.count() == 10  # 수정전 FilePrescription 객체의 수
+    assert prescription.doctor_files.filter_not_deleted().count() == 1
+    assert prescription.file_prescriptions.filter(deleted=False).count() == 10  # 수정전 FilePrescription 객체의 수
 
     # pass - file prescription update
     update_url = reverse('prescriptions:prescription-update', kwargs={'pk': prescription.id})
     updated_value = {
-        "description": "updated description",
+        "description": "file prescription update",
         "start_date": "2021-03-03",
         "end_date": "2021-03-06"
     }
     response = api_client.put(update_url, data=updated_value, formart='multipart')
     assert response.status_code == 200
+    assert response.data['description'] == updated_value['description']
     assert prescription.file_prescriptions.count() == 4  # 수정된 FilePrescription 객체의 수
 
     # cleanup(fixture cleanup -> yield): 테스트 파일 삭제

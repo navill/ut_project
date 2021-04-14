@@ -2,6 +2,7 @@ import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.reverse import reverse
 
+from accounts.api.authentications import CustomRefreshToken
 from accounts.models import Doctor, Patient
 from files.models import DoctorFile
 from prescriptions.models import Prescription, FilePrescription
@@ -28,7 +29,9 @@ def test_prescriptions_stored_in_test_db(db, django_db_setup):
 def test_create_and_update_prescription(api_client):
     # pass - prescription create
     doctor = Doctor.objects.get(user_id=2)
-    api_client.force_authenticate(user=doctor.user)
+    token = CustomRefreshToken.for_user(doctor.user)
+    # authenticate token
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
     patient = Patient.objects.get(user_id=5)
     url = reverse('prescriptions:prescription-create')
     file1 = SimpleUploadedFile('test_file1.md', b'test prescription 1', content_type='ultipart/form-data')
@@ -63,7 +66,7 @@ def test_create_and_update_prescription(api_client):
     test_file = SimpleUploadedFile('updated_file1.md', b'update prescription', content_type='multipart/form-data')
     updated_value = {
         "description": "updated description",
-        "update_files": [test_file],
+        "doctor_upload_files": [test_file],
     }
     response = api_client.put(update_url, data=updated_value, formart='multipart')
     assert response.status_code == 200

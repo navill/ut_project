@@ -55,8 +55,7 @@ class PrescriptionQuerySet(models.QuerySet):
 
     def prefetch_file_prescription_with_files(self) -> 'PrescriptionQuerySet':
         return self.prefetch_related(Prefetch('file_prescriptions',
-                                              queryset=FilePrescription.objects.prefetch_related('patient_files')
-                                              ))
+                                              queryset=FilePrescription.objects.prefetch_related('patient_files')))
 
     def prefetch_all(self) -> 'PrescriptionQuerySet':
         return self.prefetch_file_prescription_with_files()
@@ -142,6 +141,10 @@ class Prescription(BasePrescription):
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        super().update(**kwargs)
+        self.first().save()
+
     def filter_uploaded(self) -> 'FilePrescriptionQuerySet':
         return self.filter(uploaded=True)
 
@@ -231,11 +234,18 @@ class FilePrescription(BasePrescription):
 @receiver(post_save, sender=FilePrescription)
 def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
     instance = kwargs['instance']
-    checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id)
+    not_checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id).filter(
+        checked=False)
+    parent_prescription = instance.prescription
+    check_value = False
 
-    if not checked_queryset.filter(checked=False).exists():
-        instance.prescription.checked = True
-        instance.prescription.save()
+    if not not_checked_queryset.exists() and parent_prescription.checked is False:
+        check_value = True
+    elif parent_prescription.checked:
+        check_value = False
+
+    parent_prescription.checked = check_value
+    parent_prescription.save()
 
 
 # TextField Lookup - Full-text search

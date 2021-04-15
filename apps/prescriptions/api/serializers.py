@@ -148,6 +148,7 @@ class PrescriptionBuilder(BuilderInterface):
 
     def update_prescription(self, validated_data: Dict[str, Any]) -> NoReturn:
         Prescription.objects.filter(id=self.prescription.id).update(**validated_data)
+        self.prescription.refresh_from_db()
 
 
 class FilePrescriptionBuilder(BuilderInterface):

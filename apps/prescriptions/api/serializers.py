@@ -1,3 +1,4 @@
+import datetime
 from abc import ABCMeta, abstractmethod
 from typing import Type, Optional, TYPE_CHECKING, Any, Dict, NoReturn, Union, List, Tuple, NewType
 
@@ -13,7 +14,7 @@ from files.models import DoctorFile
 from prescriptions.models import Prescription, FilePrescription
 
 if TYPE_CHECKING:
-    pass
+    from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 class PrescriptionModelSerializer(serializers.ModelSerializer):
@@ -63,12 +64,12 @@ class BuilderInterface(metaclass=ABCMeta):
     status: bool
 
     @abstractmethod
-    def execute(self):
-        pass
+    def execute(self) -> NoReturn:
+        raise NotImplementedError
 
     @abstractmethod
-    def validate_status(self):
-        pass
+    def validate_status(self) -> NoReturn:
+        raise NotImplementedError
 
 
 class FileBuilder(BuilderInterface):
@@ -83,21 +84,21 @@ class FileBuilder(BuilderInterface):
         self.status = False
         self.validate_status()
 
-    def validate_status(self):
+    def validate_status(self) -> NoReturn:
         if self.upload_files:
             self.status = True
         else:
             self.status = False
 
-    def execute(self):
+    def execute(self) -> NoReturn:
         if self.is_update:
             self.delete_old_instance_for_update()
         self.create_doctor_files(self.upload_files, self.prescription)
 
-    def delete_old_instance_for_update(self):
+    def delete_old_instance_for_update(self) -> NoReturn:
         self.prescription.doctor_files.update(deleted=True)
 
-    def create_doctor_files(self, upload_files, instance):
+    def create_doctor_files(self, upload_files: 'InMemoryUploadedFile', instance: Prescription) -> NoReturn:
         bulk_list = []
         for file in upload_files:
             doctor_file = DoctorFile(prescription_id=instance.id, uploader_id=instance.writer_id, file=file)
@@ -163,23 +164,22 @@ class FilePrescriptionBuilder(BuilderInterface):
 
         self.validate_status()
 
-    def validate_status(self):
+    def validate_status(self) -> NoReturn:
         try:
             if self.start_date < self.end_date:
                 self.status = True
         except TypeError:
             self.status = False
 
-    def execute(self):
+    def execute(self) -> NoReturn:
         if self.is_update:
             self.delete_old_instance_for_update()
         self.create_file_prescriptions(self.prescription.id, self.start_date, self.end_date)
 
-    def delete_old_instance_for_update(self):
+    def delete_old_instance_for_update(self) -> NoReturn:
         self.prescription.file_prescriptions.update(deleted=True)
 
-    def create_file_prescriptions(self, prescription_id, start_date, end_date):
-        import datetime
+    def create_file_prescriptions(self, prescription_id: int, start_date: datetime, end_date: datetime) -> NoReturn:
         bulk_list = (
             FilePrescription(
                 prescription_id=prescription_id,
@@ -191,7 +191,7 @@ class FilePrescriptionBuilder(BuilderInterface):
 
 class UpdateSupporterSerailzier(PrescriptionModelSerializer):
     @transaction.atomic
-    def update(self, instance: Prescription, validated_data: Dict[str, Any]):
+    def update(self, instance: Prescription, validated_data: Dict[str, Any]) -> Prescription:
         director = PrescriptionDirector(validated_data, is_update=True)
         director.set_builders([PrescriptionBuilder, FilePrescriptionBuilder, FileBuilder])
         director.prescription = instance
@@ -201,7 +201,7 @@ class UpdateSupporterSerailzier(PrescriptionModelSerializer):
 
 class CreateSupporterSerializer(PrescriptionModelSerializer):
     @transaction.atomic
-    def create(self, validated_data: Dict[str, Any]):
+    def create(self, validated_data: Dict[str, Any]) -> Prescription:
         director = PrescriptionDirector(validated_data)
         director.set_builders([PrescriptionBuilder, FilePrescriptionBuilder, FileBuilder])
         director.build()

@@ -1,19 +1,19 @@
 from abc import ABCMeta, abstractmethod
-from typing import Type, Optional, TYPE_CHECKING, Any, Dict, NoReturn
+from typing import Type, Optional, TYPE_CHECKING, Any, Dict, NoReturn, Union, List, Tuple, NewType
 
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.fields import CurrentUserDefault
 
-from accounts.models import Patient
+from accounts.models import Patient, Doctor
 from core.api.fields import PrescriptionFields, FilePrescriptionFields
 from files.api.serializers import DoctorFileInPrescriptionSerializer
 from files.models import DoctorFile
 from prescriptions.models import Prescription, FilePrescription
 
 if TYPE_CHECKING:
-    from django.core.files.uploadedfile import InMemoryUploadedFile
+    pass
 
 
 class PrescriptionModelSerializer(serializers.ModelSerializer):
@@ -28,7 +28,40 @@ class PrescriptionModelSerializer(serializers.ModelSerializer):
         fields = ['url']
 
 
-class NewAbstract(metaclass=ABCMeta):
+class PrescriptionDirector:
+    def __init__(self, validated_data: Dict[str, Any], is_update: bool = False):
+        self.writer = validated_data.pop('writer', None)
+        self.start_date = validated_data.get('start_date', None)
+        self.end_date = validated_data.get('end_date', None)
+        self.upload_files = validated_data.pop('doctor_upload_files', None)
+        self.validated_data = validated_data
+
+        self.is_update = is_update
+        self.prescription = None
+        self.builder_list = []
+
+    def build(self) -> NoReturn:
+        for extra_class in self.builder_list:
+            extra_instance = extra_class(self)
+            if extra_instance.status:
+                extra_instance.execute()
+        return self.prescription
+
+    def set_builders(self, builders: Union[List, Tuple]):
+        if isinstance(builders, list):
+            if len(self.builder_list) == 0:
+                self.builder_list = builders
+            else:
+                self.builder_list.extend(builders)
+        else:
+            raise TypeError
+
+
+class BuilderInterface(metaclass=ABCMeta):
+    prescription: Prescription
+    is_update: bool
+    status: bool
+
     @abstractmethod
     def execute(self):
         pass
@@ -38,15 +71,15 @@ class NewAbstract(metaclass=ABCMeta):
         pass
 
 
-class NewFiles(NewAbstract):
+class FileBuilder(BuilderInterface):
     """
     CREATE OR UPDATE
     """
 
-    def __init__(self, invoker):
-        self.upload_files = invoker.upload_files
-        self.instance = invoker.prescription
-        self.is_update = invoker.is_update
+    def __init__(self, director):
+        self.upload_files = director.upload_files
+        self.prescription = director.prescription
+        self.is_update = director.is_update
         self.status = False
         self.validate_status()
 
@@ -59,10 +92,10 @@ class NewFiles(NewAbstract):
     def execute(self):
         if self.is_update:
             self.delete_old_instance_for_update()
-        self.create_doctor_files(self.upload_files, self.instance)
+        self.create_doctor_files(self.upload_files, self.prescription)
 
     def delete_old_instance_for_update(self):
-        self.instance.doctor_files.update(deleted=True)
+        self.prescription.doctor_files.update(deleted=True)
 
     def create_doctor_files(self, upload_files, instance):
         bulk_list = []
@@ -72,55 +105,60 @@ class NewFiles(NewAbstract):
         DoctorFile.objects.bulk_create(bulk_list)
 
 
-class NewPrescription(NewAbstract):
+class PrescriptionBuilder(BuilderInterface):
     """
     ONLY CREATE
     """
 
-    def __init__(self, invoker):
-        self.invoker = invoker
-        self.old_instance = invoker.prescription
-        self.is_update = invoker.is_update
+    def __init__(self, director: PrescriptionDirector):
+        self.director = director
+        self.prescription = director.prescription
+        self.is_update = director.is_update
         self.status = False
 
         self.validate_status()
 
-    def validate_status(self):
+    def validate_status(self) -> NoReturn:
         if not self.is_update:
-            is_doctor = self.invoker.writer.user_type.doctor
+            is_doctor = self.director.writer.user_type.doctor
             if is_doctor:
                 self.status = True
+
         elif self.is_update:
             self.status = True
+
         else:
             raise AuthenticationFailed
 
-    def execute(self):
-        validated_data = self.invoker.validated_data
+    def execute(self) -> NoReturn:
+        validated_data = self.director.validated_data
         if self.is_update:
             self.update_prescription(validated_data)
-        else:
-            doctor = self.invoker.writer.doctor
+
+        elif self.prescription is None:
+            doctor = self.director.writer.doctor
             self.create_prescription(doctor, validated_data)
 
-    def create_prescription(self, doctor, validated_data):
-        self.invoker.prescription = Prescription.objects.create(writer=doctor, **validated_data)
+        else:
+            raise Exception(f'{self.__class__.__name__} can not execute.')  # ValidationError?? 어떤 에러?
 
-    def update_prescription(self, validated_data):
-        Prescription.objects.filter(id=self.old_instance.id).update(**validated_data)
-        self.old_instance.refresh_from_db()
+    def create_prescription(self, doctor: Doctor, validated_data: Dict[str, Any]) -> NoReturn:
+        self.director.prescription = Prescription.objects.create(writer=doctor, **validated_data)
+
+    def update_prescription(self, validated_data: Dict[str, Any]) -> NoReturn:
+        Prescription.objects.filter(id=self.prescription.id).update(**validated_data)
 
 
-class NewFilePrescriptions(NewAbstract):
+class FilePrescriptionBuilder(BuilderInterface):
     """
     CREATE OR UPDATE
     """
 
-    def __init__(self, invoker):
-        self.start_date = invoker.start_date
-        self.end_date = invoker.end_date
-        self.instance = invoker.prescription
-        self.is_update = invoker.is_update
+    def __init__(self, director):
+        self.start_date = director.start_date
+        self.end_date = director.end_date
+        self.prescription = director.prescription
+        self.is_update = director.is_update
         self.status = False
 
         self.validate_status()
@@ -135,10 +173,10 @@ class NewFilePrescriptions(NewAbstract):
     def execute(self):
         if self.is_update:
             self.delete_old_instance_for_update()
-        self.create_file_prescriptions(self.instance.id, self.start_date, self.end_date)
+        self.create_file_prescriptions(self.prescription.id, self.start_date, self.end_date)
 
     def delete_old_instance_for_update(self):
-        self.instance.file_prescriptions.update(deleted=True)
+        self.prescription.file_prescriptions.update(deleted=True)
 
     def create_file_prescriptions(self, prescription_id, start_date, end_date):
         import datetime
@@ -151,41 +189,23 @@ class NewFilePrescriptions(NewAbstract):
         FilePrescription.objects.bulk_create(bulk_list)
 
 
-class PrescriptionInvoker:
-    def __init__(self, validated_data, update=False):
-        self.writer = validated_data.pop('writer', None)
-        self.start_date = validated_data.get('start_date', None)
-        self.end_date = validated_data.get('end_date', None)
-        self.upload_files = validated_data.pop('doctor_upload_files', None)
-        self.validated_data = validated_data
-
-        self.is_update = update
-        self.prescription = None
-
-
 class UpdateSupporterSerailzier(PrescriptionModelSerializer):
     @transaction.atomic
     def update(self, instance: Prescription, validated_data: Dict[str, Any]):
-        invoker = PrescriptionInvoker(validated_data, update=True)
-        invoker.prescription = instance
-
-        for extra_class in [NewPrescription, NewFiles, NewFilePrescriptions]:
-            extra_instance = extra_class(invoker)
-            if extra_instance.status:
-                extra_instance.execute()
-        return invoker.prescription
+        director = PrescriptionDirector(validated_data, is_update=True)
+        director.set_builders([PrescriptionBuilder, FilePrescriptionBuilder, FileBuilder])
+        director.prescription = instance
+        director.build()
+        return director.prescription
 
 
 class CreateSupporterSerializer(PrescriptionModelSerializer):
     @transaction.atomic
     def create(self, validated_data: Dict[str, Any]):
-        invoker = PrescriptionInvoker(validated_data)
-
-        for extra_class in [NewPrescription, NewFiles, NewFilePrescriptions]:
-            extra_instance = extra_class(invoker)
-            if extra_instance.status:
-                extra_instance.execute()
-        return invoker.prescription
+        director = PrescriptionDirector(validated_data)
+        director.set_builders([PrescriptionBuilder, FilePrescriptionBuilder, FileBuilder])
+        director.build()
+        return director.prescription
 
 
 class FilePrescriptionModelSerializer(serializers.ModelSerializer):

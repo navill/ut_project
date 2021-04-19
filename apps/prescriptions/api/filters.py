@@ -4,6 +4,12 @@ from django_filters.rest_framework import FilterSet, NumberFilter, DateFilter, C
 from prescriptions.models import Prescription, HealthStatus, FilePrescription
 
 
+class DateLookupChoiceFilter(LookupChoiceFilter):
+    def __init__(self, field_name=None, lookup_choices=None, field_class=None, **kwargs):
+        self.field_name = field_name + '__date' if field_name else None
+        super().__init__(self.field_name, lookup_choices, field_class, **kwargs)
+
+
 class PrescriptionFilter(FilterSet):
     writer_id = NumberFilter(field_name='writer', label='작성자(의사) 계정의 pk')
     writer_name = CharFilter(field_name='writer_name', label='작성자(의사)의 이름')
@@ -19,7 +25,7 @@ class PrescriptionFilter(FilterSet):
         }
     )
     checked = BooleanFilter(field_name='checked')
-    created_at = LookupChoiceFilter(
+    created_at = DateLookupChoiceFilter(
         field_class=DateFilter.field_class,
         field_name='created_at',
         lookup_choices=[
@@ -57,7 +63,7 @@ class FilePrescriptionFilter(FilterSet):
     patient_id = NumberFilter(label='환자 계정의 id')
     patient_name = CharFilter(label='환자의 이름')
     status = ChoiceFilter(field_name='status', choices=HealthStatus.choices)
-    created_at = LookupChoiceFilter(
+    created_at = DateLookupChoiceFilter(
         field_class=DateFilter.field_class,
         field_name='created_at',
         lookup_choices=[

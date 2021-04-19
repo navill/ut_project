@@ -1,5 +1,5 @@
 import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 
 from django.db import models
 from django.db.models import F, Prefetch
@@ -141,10 +141,6 @@ class Prescription(BasePrescription):
 
 
 class FilePrescriptionQuerySet(models.QuerySet):
-    def update(self, **kwargs):
-        super().update(**kwargs)
-        self.first().save()
-
     def filter_uploaded(self) -> 'FilePrescriptionQuerySet':
         return self.filter(uploaded=True)
 
@@ -231,9 +227,7 @@ class FilePrescription(BasePrescription):
         return f'prescription_id:{self.prescription.id}-{self.date}: {self.day_number}일'
 
 
-@receiver(post_save, sender=FilePrescription)
-def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
-    instance = kwargs['instance']
+def set_prescription_checked(instance):
     not_checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id).filter(
         checked=False)
     parent_prescription = instance.prescription
@@ -246,6 +240,13 @@ def set_prescription_checked(sender, **kwargs: Dict[str, Any]):
 
     parent_prescription.checked = check_value
     parent_prescription.save()
+
+
+# 단일 FilePrescription 업데이트 시
+@receiver(post_save, sender=FilePrescription)
+def post_save_file_prescription(sender, **kwargs: Dict[str, Any]):
+    instance = kwargs['instance']
+    set_prescription_checked(instance)
 
 
 # TextField Lookup - Full-text search

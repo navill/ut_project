@@ -1,6 +1,6 @@
 import datetime
 from abc import ABCMeta, abstractmethod
-from typing import Type, Optional, TYPE_CHECKING, Any, Dict, NoReturn, Union, List, Tuple, NewType
+from typing import Type, Optional, TYPE_CHECKING, Any, Dict, NoReturn, Union, List, Tuple
 
 from django.db import transaction
 from rest_framework import serializers
@@ -178,7 +178,14 @@ class FilePrescriptionBuilder(BuilderInterface):
         self.create_file_prescriptions(self.prescription.id, self.start_date, self.end_date)
 
     def delete_old_instance_for_update(self) -> NoReturn:
-        self.prescription.file_prescriptions.update(deleted=True)
+        file_prescription_list = []
+        file_prescriptions = self.prescription.file_prescriptions.all()
+
+        for file_prescription in file_prescriptions:
+            file_prescription.deleted = True
+            file_prescription_list.append(file_prescription)
+
+        file_prescriptions.bulk_update(file_prescription_list, ['deleted'])
 
     def create_file_prescriptions(self, prescription_id: int, start_date: datetime, end_date: datetime) -> NoReturn:
         bulk_list = (
@@ -187,7 +194,12 @@ class FilePrescriptionBuilder(BuilderInterface):
                 day_number=day_number + 1,
                 date=start_date + datetime.timedelta(days=day_number))
             for day_number in range((end_date - start_date).days + 1))
-        FilePrescription.objects.bulk_create(bulk_list)
+        _ = FilePrescription.objects.bulk_create(bulk_list)
+        self.apply_check_to_prescription()
+
+    def apply_check_to_prescription(self):
+        self.prescription.checked = False
+        self.prescription.save()
 
 
 class UpdateSupporterSerailzier(PrescriptionModelSerializer):

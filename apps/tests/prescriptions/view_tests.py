@@ -8,23 +8,6 @@ from files.models import DoctorFile
 from prescriptions.models import Prescription, FilePrescription
 
 
-def test_prescriptions_stored_in_test_db(db, django_db_setup):
-    prescription = Prescription.objects.first()
-    assert prescription.id
-    assert prescription.status in ['NORMAL', 'ABNORMAL', 'UNKNOWN']
-    assert prescription.deleted is False
-    assert isinstance(prescription.writer, Doctor)
-    assert isinstance(prescription.patient, Patient)
-
-    prescriptions = Prescription.objects.select_all()
-    for prescription in prescriptions:
-        assert prescription.id
-        assert prescription.status in ['NORMAL', 'ABNORMAL', 'UNKNOWN']
-        assert prescription.deleted is False
-        assert isinstance(prescription.writer, Doctor)
-        assert isinstance(prescription.patient, Patient)
-
-
 @pytest.mark.django_db
 def test_create_and_update_prescription(api_client):
     # pass - prescription create
@@ -86,7 +69,6 @@ def test_create_and_update_prescription(api_client):
     assert response.status_code == 200
     assert response.data['description'] == updated_value['description']
     assert prescription.file_prescriptions.count() == 4  # 수정된 FilePrescription 객체의 수
-
     # cleanup(fixture cleanup -> yield): 테스트 파일 삭제
     for file in DoctorFile.objects.filter(prescription_id=prescription.id):
         file.hard_delete()

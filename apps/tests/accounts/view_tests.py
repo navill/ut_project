@@ -107,7 +107,7 @@ def test_api_view_doctor_list_with_doctor_token(api_client, get_access_and_refre
     # fail - 유효하지 않은 인증 정보
     api_client.credentials()
     response = api_client.get(url, format='json')
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refresh_token_from_doctor,
@@ -125,7 +125,7 @@ def test_api_view_patient_list_with_doctor_token(api_client, get_access_and_refr
     # fail - 인증 x
     api_client.credentials()
     response = api_client.get(url, format='json')
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 @pytest.mark.django_db
@@ -143,7 +143,7 @@ def test_api_retrieve_doctor(api_client):
     # fail - 인증 x
     api_client.credentials()
     response = api_client.get(url, format='json')
-    assert response.status_code == 401
+    assert response.status_code == 403  # 401: 익명, 403: 로그인은 했지만 권한이 없음
 
 
 @pytest.mark.django_db

@@ -137,7 +137,7 @@ class DoctorFileDownloadAPIView(RetrieveAPIView):
     def get(self, request, *args, **kwargs) -> Union['FileResponse', 'Response']:
         file_object = self.get_object()
         if file_object.deleted:
-            return Response({"error": "this file is deleted"})
+            return Response({"error": "this file was deleted"})
         downloader = Downloader(instance=file_object)
         return downloader.response()
 

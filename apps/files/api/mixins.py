@@ -1,11 +1,14 @@
 from typing import Type, Union, TYPE_CHECKING
 
+from django.contrib.auth import get_user_model
 from django.db.models import QuerySet
 
 from files.api.utils import delete_file
 
 if TYPE_CHECKING:
     from files.models import DoctorFileQuerySet, PatientFileQuerySet
+
+User = get_user_model()
 
 
 class CommonUploaderCheckMixin:

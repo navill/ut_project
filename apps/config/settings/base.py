@@ -130,8 +130,8 @@ REST_FRAMEWORK = {
         'accounts.api.permissions.IsSuperUser',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         # 'accounts.api.authentications.CustomBaseAuthentication',
         # 'accounts.api.authentications.CustomSessionAuthentication',
         'accounts.api.authentications.CustomJWTTokenUserAuthentication',

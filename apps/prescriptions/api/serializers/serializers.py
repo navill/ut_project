@@ -1,6 +1,5 @@
 from typing import Type, Optional, TYPE_CHECKING, Any, Dict
 
-from django.db import transaction
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
@@ -13,7 +12,7 @@ from prescriptions.api.serializers.patterns import (PrescriptionDirector, Prescr
 from prescriptions.models import Prescription, FilePrescription
 
 if TYPE_CHECKING:
-    pass
+    from django.db.models import QuerySet
 
 
 class PrescriptionModelSerializer(serializers.ModelSerializer):
@@ -29,7 +28,6 @@ class PrescriptionModelSerializer(serializers.ModelSerializer):
 
 
 class UpdateSupporterSerailzier(PrescriptionModelSerializer):
-    @transaction.atomic
     def update(self, instance: Prescription, validated_data: Dict[str, Any]) -> Prescription:
         director = PrescriptionDirector(validated_data, is_update=True)
         director.set_builders([PrescriptionBuilder, FilePrescriptionBuilder, FileBuilder])
@@ -39,7 +37,6 @@ class UpdateSupporterSerailzier(PrescriptionModelSerializer):
 
 
 class CreateSupporterSerializer(PrescriptionModelSerializer):
-    @transaction.atomic
     def create(self, validated_data: Dict[str, Any]) -> Prescription:
         director = PrescriptionDirector(validated_data)
         director.set_builders([PrescriptionBuilder, FilePrescriptionBuilder, FileBuilder])
@@ -81,7 +78,7 @@ class PrescriptionListSerializer(PrescriptionModelSerializer):
         fields = ['url'] + PrescriptionFields.list_field
 
 
-class PrescriptionDetailSerializer(PrescriptionListSerializer):
+class PrescriptionDetailSerializer(PrescriptionModelSerializer):
     url = serializers.HyperlinkedIdentityField(
         view_name='prescriptions:prescription-update',
         lookup_field='pk',
@@ -90,6 +87,13 @@ class PrescriptionDetailSerializer(PrescriptionListSerializer):
     class Meta:
         model = Prescription
         fields = ['url'] + PrescriptionFields.detail_field
+
+    def get_fields(self):
+        ret = super().get_fields()
+        request = self.context['request']
+        if request.user.user_type.patient:
+            ret.pop('url')
+        return ret
 
 
 class PrescriptionUpdateSerializer(UpdateSupporterSerailzier):

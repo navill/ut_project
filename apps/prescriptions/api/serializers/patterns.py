@@ -2,7 +2,8 @@ import datetime
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Any, Dict, NoReturn, List
 
-from rest_framework.exceptions import AuthenticationFailed
+from django.db import transaction
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 
 from accounts.models import Doctor
 from files.models import DoctorFile
@@ -10,6 +11,10 @@ from prescriptions.models import Prescription, FilePrescription
 
 if TYPE_CHECKING:
     from django.core.files.uploadedfile import InMemoryUploadedFile
+
+PRESCRIPTION_ATTRS = ['writer']  # pop
+FILEPRESCRIPTION_ATTRS = ['start_date', 'end_date']  # get
+DOCTORFILE_ATTRS = ['doctor_upload_files']  # pop
 
 
 class PrescriptionDirector:
@@ -19,8 +24,11 @@ class PrescriptionDirector:
         self.prescription = None
         self.builder_list = []
 
+    @transaction.atomic
     def build(self) -> NoReturn:
+        self.validate_before_build()
         builders = [builder(self) for builder in self.builder_list]  # initialize_attr + validate
+
         for builder in builders:
             if builder.status:
                 builder.execute()
@@ -28,13 +36,25 @@ class PrescriptionDirector:
         return self.prescription
 
     def set_builders(self, builders: List) -> NoReturn:
-        if isinstance(builders, list):
-            if len(self.builder_list) == 0:
-                self.builder_list = builders
-            else:
-                self.builder_list.extend(builders)
+        self.validate_builders(builders)
+        if len(self.builder_list) == 0:
+            self.builder_list = builders
         else:
-            raise TypeError
+            self.builder_list.extend(builders)
+
+    def validate_before_build(self):
+        if len(self.builder_list) == 0:
+            raise ValidationError("'builder_list' should not be empty")
+
+        if self.builder_list[0] != PrescriptionBuilder:
+            raise ValidationError("'PrescriptionBuilder' must be placed in the first")
+
+    def validate_builders(self, builders):
+        if not isinstance(builders, list):
+            raise ValidationError("argument 'builders' must be list type")
+
+        if len(builders) == 0:
+            raise ValidationError("'set_builders()' arguments must be list of builder classes")
 
 
 class BuilderInterface(metaclass=ABCMeta):
@@ -51,28 +71,25 @@ class BuilderInterface(metaclass=ABCMeta):
     def initialize_attributes(self) -> NoReturn:
         raise NotImplementedError
 
-    @abstractmethod
-    def validate_status(self) -> NoReturn:
-        raise NotImplementedError
-
 
 class FileBuilder(BuilderInterface):
     def __init__(self, director):
         self.director = director
-        self.upload_files = None
+        self.doctor_upload_files = None
         self.is_update = False
         self.status = False
 
         self.initialize_attributes()
-        self.validate_status()
+        self.validate_builder()
 
     def initialize_attributes(self):
         director = self.director
-        self.upload_files = director.validated_data.pop('doctor_upload_files', None)
+        for attr in DOCTORFILE_ATTRS:
+            setattr(self, attr, director.validated_data.pop(attr, None))
         self.is_update = director.is_update
 
-    def validate_status(self) -> NoReturn:
-        if self.upload_files:
+    def validate_builder(self) -> NoReturn:
+        if self.doctor_upload_files:
             self.status = True
         else:
             self.status = False
@@ -80,7 +97,7 @@ class FileBuilder(BuilderInterface):
     def execute(self) -> NoReturn:
         if self.is_update:
             self.delete_old_instance_for_update()
-        self.create_doctor_files(self.upload_files, self.director.prescription)
+        self.create_doctor_files(self.doctor_upload_files, self.director.prescription)
 
     def delete_old_instance_for_update(self) -> NoReturn:
         self.director.prescription.doctor_files.update(deleted=True)
@@ -100,14 +117,15 @@ class PrescriptionBuilder(BuilderInterface):
         self.is_update = False
         self.status = False
         self.initialize_attributes()
-        self.validate_status()
+        self.validate_builder()
 
     def initialize_attributes(self):
         director = self.director
-        self.writer = director.validated_data.pop('writer', None)
+        for attr in PRESCRIPTION_ATTRS:
+            setattr(self, attr, director.validated_data.pop(attr, None))
         self.is_update = director.is_update
 
-    def validate_status(self) -> NoReturn:
+    def validate_builder(self) -> NoReturn:
         if not self.is_update:
             is_doctor = self.writer.user_type.doctor
             if is_doctor:
@@ -123,13 +141,9 @@ class PrescriptionBuilder(BuilderInterface):
         validated_data = self.director.validated_data
         if self.is_update:
             self.update_prescription(validated_data)
-
-        elif not self.is_update and self.director.prescription is None:
+        else:
             doctor = self.writer.doctor
             self.create_prescription(doctor, validated_data)
-
-        else:
-            raise Exception(f'{self.__class__.__name__} can not execute.')  # ValidationError?? 어떤 에러?
 
     def create_prescription(self, doctor: Doctor, validated_data: Dict[str, Any]) -> NoReturn:
         self.director.prescription = Prescription.objects.create(writer=doctor, **validated_data)
@@ -147,15 +161,15 @@ class FilePrescriptionBuilder(BuilderInterface):
         self.is_update = False
         self.status = False
         self.initialize_attributes()
-        self.validate_status()
+        self.validate_builder()
 
     def initialize_attributes(self):
         director = self.director
-        self.start_date = director.validated_data.get('start_date', None)
-        self.end_date = director.validated_data.get('end_date', None)
+        for attr in FILEPRESCRIPTION_ATTRS:
+            setattr(self, attr, director.validated_data.get(attr, None))
         self.is_update = director.is_update
 
-    def validate_status(self) -> NoReturn:
+    def validate_builder(self) -> NoReturn:
         try:
             if self.start_date < self.end_date:
                 self.status = True

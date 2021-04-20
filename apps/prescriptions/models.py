@@ -1,5 +1,5 @@
 import datetime
-from typing import Dict, Any, List, Union
+from typing import Dict, Any, List, NoReturn
 
 from django.db import models
 from django.db.models import F, Prefetch
@@ -119,27 +119,6 @@ class Prescription(BasePrescription):
         return f'{self.patient.get_full_name()}-{str(self.created_at)}'
 
 
-# [Deprecated]
-# 문제: 업데이트할 때 마다 signal 호출
-# => signal 대신 serializer에서 처리(PrescriptionSerializerMixin)
-# @receiver(post_save, sender=Prescription)
-# def create_file_prescription_by_prescription(sender, **kwargs: Dict[str, Any]):
-#     instance = kwargs['instance']
-#     start_date = instance.start_date
-#     end_date = instance.end_date
-#
-#     if not start_date or not end_date:
-#         return None
-#
-#     bulk_list = (
-#         FilePrescription(
-#             prescription_id=instance.id,
-#             day_number=day_number + 1,
-#             date=start_date + datetime.timedelta(days=day_number))
-#         for day_number in range((end_date - start_date).days + 1))
-#     FilePrescription.objects.bulk_create(bulk_list)
-
-
 class FilePrescriptionQuerySet(models.QuerySet):
     def filter_uploaded(self) -> 'FilePrescriptionQuerySet':
         return self.filter(uploaded=True)
@@ -227,7 +206,7 @@ class FilePrescription(BasePrescription):
         return f'prescription_id:{self.prescription.id}-{self.date}: {self.day_number}일'
 
 
-def set_prescription_checked(instance):
+def set_prescription_checked(instance: FilePrescription) -> NoReturn:
     not_checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id).filter(
         checked=False)
     parent_prescription = instance.prescription

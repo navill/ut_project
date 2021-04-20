@@ -31,24 +31,20 @@ class PrescriptionModelSerializer(serializers.ModelSerializer):
 
 class PrescriptionDirector:
     def __init__(self, validated_data: Dict[str, Any], is_update: bool = False):
-        self.writer = validated_data.pop('writer', None)
-        self.start_date = validated_data.get('start_date', None)
-        self.end_date = validated_data.get('end_date', None)
-        self.upload_files = validated_data.pop('doctor_upload_files', None)
         self.validated_data = validated_data
-
         self.is_update = is_update
         self.prescription = None
         self.builder_list = []
 
     def build(self) -> NoReturn:
-        for extra_class in self.builder_list:
-            extra_instance = extra_class(self)
-            if extra_instance.status:
-                extra_instance.execute()
+        builders = [builder(self) for builder in self.builder_list]  # initialize_attr + validate
+        for builder in builders:
+            if builder.status:
+                builder.execute()
+
         return self.prescription
 
-    def set_builders(self, builders: Union[List, Tuple]):
+    def set_builders(self, builders: Union[List, Tuple]) -> NoReturn:
         if isinstance(builders, list):
             if len(self.builder_list) == 0:
                 self.builder_list = builders
@@ -59,7 +55,8 @@ class PrescriptionDirector:
 
 
 class BuilderInterface(metaclass=ABCMeta):
-    prescription: Prescription
+    prescription: Prescription or None
+    director: PrescriptionDirector
     is_update: bool
     status: bool
 
@@ -68,21 +65,28 @@ class BuilderInterface(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
+    def initialize_attributes(self) -> NoReturn:
+        raise NotImplementedError
+
+    @abstractmethod
     def validate_status(self) -> NoReturn:
         raise NotImplementedError
 
 
 class FileBuilder(BuilderInterface):
-    """
-    CREATE OR UPDATE
-    """
-
     def __init__(self, director):
-        self.upload_files = director.upload_files
-        self.prescription = director.prescription
-        self.is_update = director.is_update
+        self.director = director
+        self.upload_files = None
+        self.is_update = False
         self.status = False
+
+        self.initialize_attributes()
         self.validate_status()
+
+    def initialize_attributes(self):
+        director = self.director
+        self.upload_files = director.validated_data.pop('doctor_upload_files', None)
+        self.is_update = director.is_update
 
     def validate_status(self) -> NoReturn:
         if self.upload_files:
@@ -93,10 +97,10 @@ class FileBuilder(BuilderInterface):
     def execute(self) -> NoReturn:
         if self.is_update:
             self.delete_old_instance_for_update()
-        self.create_doctor_files(self.upload_files, self.prescription)
+        self.create_doctor_files(self.upload_files, self.director.prescription)
 
     def delete_old_instance_for_update(self) -> NoReturn:
-        self.prescription.doctor_files.update(deleted=True)
+        self.director.prescription.doctor_files.update(deleted=True)
 
     def create_doctor_files(self, upload_files: 'InMemoryUploadedFile', instance: Prescription) -> NoReturn:
         bulk_list = []
@@ -107,21 +111,22 @@ class FileBuilder(BuilderInterface):
 
 
 class PrescriptionBuilder(BuilderInterface):
-    """
-    ONLY CREATE
-    """
-
     def __init__(self, director: PrescriptionDirector):
         self.director = director
-        self.prescription = director.prescription
-        self.is_update = director.is_update
+        self.writer = None
+        self.is_update = False
         self.status = False
-
+        self.initialize_attributes()
         self.validate_status()
+
+    def initialize_attributes(self):
+        director = self.director
+        self.writer = director.validated_data.pop('writer', None)
+        self.is_update = director.is_update
 
     def validate_status(self) -> NoReturn:
         if not self.is_update:
-            is_doctor = self.director.writer.user_type.doctor
+            is_doctor = self.writer.user_type.doctor
             if is_doctor:
                 self.status = True
 
@@ -136,8 +141,8 @@ class PrescriptionBuilder(BuilderInterface):
         if self.is_update:
             self.update_prescription(validated_data)
 
-        elif self.prescription is None:
-            doctor = self.director.writer.doctor
+        elif not self.is_update and self.director.prescription is None:
+            doctor = self.writer.doctor
             self.create_prescription(doctor, validated_data)
 
         else:
@@ -147,23 +152,28 @@ class PrescriptionBuilder(BuilderInterface):
         self.director.prescription = Prescription.objects.create(writer=doctor, **validated_data)
 
     def update_prescription(self, validated_data: Dict[str, Any]) -> NoReturn:
-        Prescription.objects.filter(id=self.prescription.id).update(**validated_data)
-        self.prescription.refresh_from_db()
+        Prescription.objects.filter(id=self.director.prescription.id).update(**validated_data)
+        self.director.prescription.refresh_from_db()
 
 
 class FilePrescriptionBuilder(BuilderInterface):
-    """
-    CREATE OR UPDATE
-    """
-
     def __init__(self, director):
-        self.start_date = director.start_date
-        self.end_date = director.end_date
+        self.director = director
+        self.start_date = director.validated_data.get('start_date', None)
+        self.end_date = director.validated_data.get('end_date', None)
+        self.prescription = director.prescription
+        self.is_update = False
+        self.status = False
+        self.initialize_attributes()
+        self.validate_status()
+
+    def initialize_attributes(self):
+        director = self.director
+
+        self.start_date = director.validated_data.get('start_date', None)
+        self.end_date = director.validated_data.get('end_date', None)
         self.prescription = director.prescription
         self.is_update = director.is_update
-        self.status = False
-
-        self.validate_status()
 
     def validate_status(self) -> NoReturn:
         try:
@@ -175,7 +185,7 @@ class FilePrescriptionBuilder(BuilderInterface):
     def execute(self) -> NoReturn:
         if self.is_update:
             self.delete_old_instance_for_update()
-        self.create_file_prescriptions(self.prescription.id, self.start_date, self.end_date)
+        self.create_file_prescriptions(self.director.prescription.id, self.start_date, self.end_date)
 
     def delete_old_instance_for_update(self) -> NoReturn:
         file_prescription_list = []
@@ -198,8 +208,8 @@ class FilePrescriptionBuilder(BuilderInterface):
         self.apply_check_to_prescription()
 
     def apply_check_to_prescription(self):
-        self.prescription.checked = False
-        self.prescription.save()
+        self.director.prescription.checked = False
+        self.director.prescription.save()
 
 
 class UpdateSupporterSerailzier(PrescriptionModelSerializer):

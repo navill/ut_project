@@ -71,6 +71,10 @@ class BuilderInterface(metaclass=ABCMeta):
     def initialize_attributes(self) -> NoReturn:
         raise NotImplementedError
 
+    @abstractmethod
+    def validate_builder(self) -> NoReturn:
+        raise NotImplementedError
+
 
 class FileBuilder(BuilderInterface):
     def __init__(self, director):
@@ -130,12 +134,11 @@ class PrescriptionBuilder(BuilderInterface):
             is_doctor = self.writer.user_type.doctor
             if is_doctor:
                 self.status = True
+            else:
+                raise AuthenticationFailed
 
         elif self.is_update:
             self.status = True
-
-        else:
-            raise AuthenticationFailed
 
     def execute(self) -> NoReturn:
         validated_data = self.director.validated_data

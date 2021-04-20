@@ -72,3 +72,107 @@ def test_create_and_update_prescription(api_client):
     # cleanup(fixture cleanup -> yield): 테스트 파일 삭제
     for file in DoctorFile.objects.filter(prescription_id=prescription.id):
         file.hard_delete()
+
+
+@pytest.mark.django_db
+def test_prescription_list(api_client):
+    # pass
+    doctor = Doctor.objects.get(user_id=2)
+    token = CustomRefreshToken.for_user(doctor.user)
+    url = reverse('prescriptions:prescription-list')
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    response = api_client.get(url)
+    assert response.status_code == 200
+    result_data = response.data['results'][0]
+    result_dic = {key: value for key, value in result_data.items() if key == 'writer_id'}
+
+    # pass: 접근한 의사 계정으로 작성한 prescription만 출력되는지 테스트
+    for writer_id in result_dic.values():
+        assert writer_id == doctor.user_id
+
+    # pass: 환자 계정으로 접근 + 자신과 관련된 소견서 리스트
+    patient = Patient.objects.first()
+    token = CustomRefreshToken.for_user(patient.user)
+    url = reverse('prescriptions:prescription-list')
+
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    response = api_client.get(url)
+    assert response.status_code == 200
+
+    result_list = response.data['results']
+    for result in result_list:
+        patient_id = result['patient']
+        assert patient.user_id == patient_id
+
+    # prescription-list 결과와 환자 계정으로 필터링된 Prescription 모델 수 비교
+    prescription_count = Prescription.objects.filter(patient_id=patient.user_id).count()
+    assert prescription_count == len(result_list)
+
+    # fail: 미인증
+    api_client.credentials()
+    response = api_client.get(url)
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_prescription_detail(api_client):
+    # prescription.writer_id=2, prescription.patient_id=5
+    doctor = Doctor.objects.get(user_id=2)
+    patient = Patient.objects.get(user_id=5)
+
+    prescription = Prescription.objects.filter(writer_id=doctor.user_id).first()
+    url = reverse('prescriptions:prescription-detail', kwargs={'pk': prescription.id})
+
+    # pass: writer 접근
+    token = CustomRefreshToken.for_user(doctor.user)
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    response = api_client.get(url)
+    assert response.status_code == 200
+    update_url = response.data.get('url', None)
+    assert update_url is not None
+
+    # pass: patient 접근
+    token = CustomRefreshToken.for_user(patient.user)
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    response = api_client.get(url)
+    assert response.status_code == 200
+    update_url = response.data.get('url', None)
+    assert update_url is None
+
+    # fail: 잘못된 writer 접근
+    other_doctor = Doctor.objects.get(user_id=3)
+    token = CustomRefreshToken.for_user(other_doctor.user)
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    response = api_client.get(url)
+    assert response.status_code == 403
+
+    # fail: 잘못된 patient 접근
+    other_patient = Patient.objects.get(user_id=6)
+    token = CustomRefreshToken.for_user(other_patient.user)
+    api_client.credentials(HTTP_AUTHORIZATION='Bearer ' + str(token.access_token))
+    response = api_client.get(url)
+    assert response.status_code == 403
+
+    # fail: 미인증
+    api_client.credentials()
+    response = api_client.get(url)
+    assert response.status_code == 403
+
+
+@pytest.mark.xfail
+@pytest.mark.django_db
+def test_file_prescription_list(api_client):
+    pass
+
+
+@pytest.mark.xfail
+@pytest.mark.django_db
+def test_file_prescription_detail(api_client):
+    pass
+
+
+@pytest.mark.xfail
+@pytest.mark.django_db
+def test_file_prescription_create_and_update(api_client):
+    pass

@@ -4,17 +4,17 @@ from rest_framework.generics import RetrieveAPIView, CreateAPIView, UpdateAPIVie
 from accounts.api.permissions import IsDoctor, IsOwner, RelatedPatientReadOnly, IsPatient, PatientReadOnly
 from prescriptions import docs
 from prescriptions.api.filters import PrescriptionFilter, FilePrescriptionFilter
-from prescriptions.api.serializers import (PrescriptionCreateSerializer,
-                                           FilePrescriptionListSerializer,
-                                           FilePrescriptionCreateSerializer,
-                                           PrescriptionListSerializer,
-                                           PrescriptionDetailSerializer,
-                                           FilePrescriptionDetailSerializer,
-                                           FilePrescriptionUpdateSerializer,
-                                           PrescriptionUpdateSerializer,
-                                           PrescriptionChoiceSerializer,
-                                           FilePrescriptionChoiceSerializer,
-                                           )
+from prescriptions.api.serializers.serializers import (PrescriptionCreateSerializer,
+                                                       FilePrescriptionListSerializer,
+                                                       FilePrescriptionCreateSerializer,
+                                                       PrescriptionListSerializer,
+                                                       PrescriptionDetailSerializer,
+                                                       FilePrescriptionDetailSerializer,
+                                                       FilePrescriptionUpdateSerializer,
+                                                       PrescriptionUpdateSerializer,
+                                                       PrescriptionChoiceSerializer,
+                                                       FilePrescriptionChoiceSerializer,
+                                                       )
 from prescriptions.api.utils import CommonListAPIView
 from prescriptions.models import Prescription, FilePrescription
 

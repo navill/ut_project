@@ -58,7 +58,13 @@ class PrescriptionWithFilePrescriptions(RetrieveAPIView):
 
 
 class FilePrescriptionWithPatientFiles(RetrieveAPIView):
-    queryset = FilePrescription.objects.nested_all()
+    queryset = FilePrescription.origin_objects.prefetch_related(
+        Prefetch('prescription',
+                 queryset=Prescription.origin_objects.prefetch_related(
+                     Prefetch('doctor_files', queryset=DoctorFile.objects.filter(deleted=False),
+                              to_attr='not_deleted'))
+                 )
+    )
     permission_classes = [IsOwner]
     serializer_class = FilePrescriptionNestedPatientFileSerializer
     lookup_field = 'pk'

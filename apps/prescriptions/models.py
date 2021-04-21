@@ -31,12 +31,6 @@ class BasePrescription(models.Model):
 
 
 class PrescriptionQuerySet(models.QuerySet):
-    # [Deprecated]
-    # def is_writer(self, writer_id: int) -> 'PrescriptionQuerySet':
-    #     return self.filter(writer_id=writer_id)
-    #
-    # def is_patient(self, patient_id: int) -> 'PrescriptionQuerySet':
-    #     return self.filter(patient_id=patient_id)
 
     def select_patient(self) -> 'PrescriptionQuerySet':
         return self.select_related('patient')
@@ -79,10 +73,6 @@ class PrescriptionManager(models.Manager):
             annotate(user=F('writer_id'),
                      writer_name=concatenate_name('writer'),
                      patient_name=concatenate_name('patient'))
-
-    # [Deprecated]
-    # def prefetch_file_prescription(self) -> 'PrescriptionQuerySet':
-    #     return self.get_queryset().prefetch_file_prescription()
 
     def select_all(self) -> 'PrescriptionQuerySet':
         return self.get_queryset().select_all().order_by('-created_at').filter(deleted=False)

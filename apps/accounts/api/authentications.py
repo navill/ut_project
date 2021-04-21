@@ -44,7 +44,7 @@ class CustomJWTTokenUserAuthentication(UserTypeForAuthMixin, JWTAuthentication):
         return user
 
 
-class CustomBaseAuthentication(UserTypeForAuthMixin, BasicAuthentication):
+class CustomBasicAuthentication(UserTypeForAuthMixin, BasicAuthentication):
     def authenticate(self, request):
         results = super().authenticate(request)
         if results:

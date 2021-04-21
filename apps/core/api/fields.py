@@ -22,7 +22,7 @@ PRESCRIPTION_BASEFIELD = ['id', 'writer', 'patient', 'status', 'checked', 'creat
 PRESCRIPTION_OPTION_FIELD = COMMON_PRESCRIPTION_FIELD + ['start_date', 'end_date']
 
 FILEPRESCRIPTION_BASEFIELD = ['id', 'prescription', 'uploaded', 'checked', 'date', 'status', 'created_at']
-FILEPRESCRIPTION_OPTION_FIELD = COMMON_PRESCRIPTION_FIELD + ['day_number', 'active']
+FILEPRESCRIPTION_OPTION_FIELD = COMMON_PRESCRIPTION_FIELD + ['day_number', 'active', 'deleted']
 
 
 class RootField:

@@ -20,13 +20,6 @@ class CommonUserQuerySet(models.QuerySet):
     def is_active(self) -> Type['QuerySet']:
         return self.filter(user__is_active=True)
 
-    # [Deprecated]
-    # def is_doctor(self) -> Type['QuerySet']:
-    #     return self.filter(Q(is_doctor=True) & Q(is_patient=False))
-    #
-    # def is_patient(self) -> Type['QuerySet']:
-    #     return self.filter(Q(is_doctor=False) & Q(is_patient=True))
-
 
 class CommonUserManager(models.Manager):
     def select_all(self) -> Type['CommonUserQuerySet']:
@@ -163,19 +156,6 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
         super().__init__(*args, **kwargs)
         self.user_type = None
 
-    # [Deprecated]
-    # @property
-    # def is_doctor(self) -> bool:
-    #     return self.groups.filter(name='doctor').exists()
-    #
-    # @property
-    # def is_doctor(self) -> bool:
-    #     return hasattr(self, 'doctor')
-    #
-    # @property
-    # def is_patient(self) -> bool:
-    #     return self.user_type.patient
-
     def __str__(self) -> str:
         return str(self.email)
 
@@ -185,22 +165,6 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
     def set_user_type(self, group_name: str = None):
         self.user_type = UserType(group_name)  # Has-a(composition)
-
-    # [Deprecated]
-    # def get_child_account(self) -> Union['Doctor', 'Patient', None]:
-    #     if self.is_doctor:
-    #         return self.doctor
-    #     elif self.is_patient:
-    #         return self.patient
-    #     return None
-    #
-    # def get_child_username(self) -> str:
-    #     name = ''
-    #     if self.is_doctor:
-    #         name = self.doctor.get_full_name()
-    #     elif self.is_patient:
-    #         name = self.patient.get_full_name()
-    #     return name
 
 
 class DoctorQuerySet(CommonUserQuerySet):

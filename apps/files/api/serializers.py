@@ -1,4 +1,4 @@
-from typing import Optional, Type, Union
+from typing import Optional, Type, Union, TYPE_CHECKING
 
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
@@ -6,6 +6,9 @@ from rest_framework.fields import CurrentUserDefault
 
 from files.models import DoctorFile, PatientFile
 from prescriptions.models import Prescription, FilePrescription, PrescriptionQuerySet, FilePrescriptionQuerySet
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
 
 User = get_user_model()
 
@@ -95,23 +98,6 @@ class DoctorFileUploadSerializer(DoctorFileSerializer):
 
     class Meta(DoctorFileSerializer.Meta):
         fields = DoctorFileSerializer.Meta.fields
-
-    # [Deprecated]
-    # def create(self, validated_data: Dict[str, Any]) -> Optional[Type[DoctorFile]]:
-    #     uploader = validated_data.pop('uploader', None)
-    #     prescription = validated_data.pop('prescription', None)
-    #     # files = validated_data.pop('doctor_upload_files', None)
-    #     self._validate_relation(prescription, uploader.id)
-    #     # for file in files:
-    #     #     DoctorFile.objects.create(uploader_id=uploader.id, prescription_id=prescription.id,
-    #     #                               file=file)
-    #     file_object = DoctorFile.objects.create(uploader_id=uploader.id, prescription_id=prescription.id,
-    #                                             **validated_data)
-    #     return file_object
-    #
-    # def _validate_relation(self, prescription, uploader_id) -> NoReturn:
-    #     if prescription.writer_id != uploader_id:
-    #         raise ValidationError(detail='This user can not access this prescription!!')
 
 
 class DoctorFileInPrescriptionSerializer(serializers.ModelSerializer):
@@ -206,38 +192,6 @@ class PatientFileUploadSerializer(PatientFileSerializer):
 
     class Meta(PatientFileSerializer.Meta):
         fields = PatientFileSerializer.Meta.fields + ['file']
-
-    # [Deprecated]
-    # def create(self, validated_data: Dict[str, Any]):
-    #     uploader = validated_data.pop('uploader', None)
-    #     file_prescription = validated_data.pop('file_prescription', None)
-    #     files = validated_data.pop('patient_upload_files', None)
-    #
-    #     if files is None:
-    #         raise ValueError("'doctor_upload_files' field must be not empty")
-    #
-    #     self._validate_relation(file_prescription, uploader)
-    #
-    #     if uploader and file_prescription:
-    #         file_list = []
-    #
-    #         for file in files:
-    #             file_list.append(PatientFile(uploader_id=uploader.id,
-    #                                          file_prescription_id=file_prescription.id,
-    #                                          file=file))
-    #
-    #         file_objects = PatientFile.objects.bulk_create(file_list)
-    #
-    #         # file_object = PatientFile.objects.create(uploader_id=uploader.id,
-    #                                                    file_prescription_id=file_prescription.id,
-    #         #                                          **validated_data)
-    #         return {'message': 'upload complete'}
-    #     return None
-    #
-    # def _validate_relation(self, file_prescription, uploader):
-    #     prescription = Prescription.objects.filter(file_prescriptions__id=file_prescription.id).first()
-    #     if not (prescription.patient_id == uploader.id) and not (prescription.writer_id == uploader.doctor_id):
-    #         raise ValidationError(detail='This user can not upload to file prescription!!')
 
 
 class PatientFileDownloadSerializer(PatientFileSerializer):

@@ -3,7 +3,7 @@ from typing import Dict, Any
 
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Prefetch
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -68,11 +68,7 @@ class DoctorFileQuerySet(CommonFileQuerysetMixin, models.QuerySet):
         return self.filter(uploader__patient__doctor_id=doctor_id)
 
 
-class DoctorFileManager(models.Manager):
-    def get_queryset(self) -> DoctorFileQuerySet:
-        return DoctorFileQuerySet(self.model, using=self._db). \
-            annotate(user=F('uploader_id')).order_by('-created_at')
-
+class ParentDoctorFileManager(models.Manager):
     def select_all(self) -> DoctorFileQuerySet:
         return self.get_queryset().select_all()
 
@@ -80,10 +76,23 @@ class DoctorFileManager(models.Manager):
         return self.get_queryset().filter_not_deleted()
 
 
+class OriginDoctorFileManager(ParentDoctorFileManager):
+    def get_queryset(self) -> DoctorFileQuerySet:
+        return DoctorFileQuerySet(self.model, using=self._db). \
+            annotate(user=F('uploader_id'))
+
+
+class DoctorFileManager(ParentDoctorFileManager):
+    def get_queryset(self) -> DoctorFileQuerySet:
+        return DoctorFileQuerySet(self.model, using=self._db). \
+            annotate(user=F('uploader_id')).order_by('-created_at')
+
+
 class DoctorFile(BaseFile):
     prescription = models.ForeignKey(Prescription, on_delete=models.DO_NOTHING, null=True, related_name='doctor_files')
 
     objects = DoctorFileManager()
+    origin_objects = OriginDoctorFileManager()
 
 
 class PatientFileQuerySet(CommonFileQuerysetMixin, models.QuerySet):
@@ -112,13 +121,21 @@ class PatientFileQuerySet(CommonFileQuerysetMixin, models.QuerySet):
         return self.select_doctor().select_patient().select_file_prescription()
 
 
-class PatientFileManager(models.Manager):
+class ParentPatientFileManager(models.Manager):
+    def select_all(self) -> PatientFileQuerySet:
+        return self.get_queryset().select_all()
+
+
+class OriginalPatientFileManager(ParentPatientFileManager):
+    def get_queryset(self) -> PatientFileQuerySet:
+        return PatientFileQuerySet(self.model, using=self._db). \
+            annotate(user=F('uploader_id'))
+
+
+class PatientFileManager(ParentPatientFileManager):
     def get_queryset(self) -> PatientFileQuerySet:
         return PatientFileQuerySet(self.model, using=self._db). \
             annotate(user=F('uploader_id')).order_by('-created_at')
-
-    def select_all(self) -> PatientFileQuerySet:
-        return self.get_queryset().select_all()
 
 
 class PatientFile(BaseFile):
@@ -126,6 +143,7 @@ class PatientFile(BaseFile):
                                           related_name='patient_files')
 
     objects = PatientFileManager()
+    original_objects = OriginalPatientFileManager()
 
 
 @receiver(post_save, sender=PatientFile)

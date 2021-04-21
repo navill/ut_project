@@ -31,7 +31,6 @@ class BasePrescription(models.Model):
 
 
 class PrescriptionQuerySet(models.QuerySet):
-
     def select_patient(self) -> 'PrescriptionQuerySet':
         return self.select_related('patient')
 
@@ -67,13 +66,7 @@ class PrescriptionQuerySet(models.QuerySet):
                          'created_at', 'status', 'checked')
 
 
-class PrescriptionManager(models.Manager):
-    def get_queryset(self) -> 'PrescriptionQuerySet':
-        return PrescriptionQuerySet(self.model, using=self._db). \
-            annotate(user=F('writer_id'),
-                     writer_name=concatenate_name('writer'),
-                     patient_name=concatenate_name('patient'))
-
+class ParentPrescriptionManager(models.Manager):
     def select_all(self) -> 'PrescriptionQuerySet':
         return self.get_queryset().select_all().order_by('-created_at').filter(deleted=False)
 
@@ -83,6 +76,20 @@ class PrescriptionManager(models.Manager):
 
     def choice_fields(self):
         return self.get_queryset().choice_fields()
+
+
+class OriginPrescriptionManager(ParentPrescriptionManager):
+    def get_queryset(self) -> 'PrescriptionQuerySet':
+        return PrescriptionQuerySet(self.model, using=self._db). \
+            annotate(user=F('writer_id'))
+
+
+class PrescriptionManager(ParentPrescriptionManager):
+    def get_queryset(self) -> 'PrescriptionQuerySet':
+        return PrescriptionQuerySet(self.model, using=self._db). \
+            annotate(user=F('writer_id'),
+                     writer_name=concatenate_name('writer'),
+                     patient_name=concatenate_name('patient'))
 
 
 """
@@ -98,6 +105,7 @@ class Prescription(BasePrescription):
     end_date = models.DateField(null=True)
 
     objects = PrescriptionManager()
+    origin_objects = OriginPrescriptionManager()
 
     class Meta:
         ordering = ['-created_at']
@@ -157,16 +165,11 @@ class FilePrescriptionQuerySet(models.QuerySet):
     def choice_fields(self) -> 'FilePrescriptionQuerySet':
         return self.only('id', 'status', 'created_at', 'date', 'day_number', 'active', 'uploaded', 'checked')
 
+    def annotate_user(self):
+        return self.annotate(user=F('prescription__writer_id'))
 
-class FilePrescriptionManager(models.Manager):
-    def get_queryset(self) -> 'FilePrescriptionQuerySet':
-        return FilePrescriptionQuerySet(self.model, using=self._db). \
-            filter(deleted=False).annotate(user=F('prescription__writer_id'),
-                                           writer_id=F('prescription__writer_id'),
-                                           patient_id=F('prescription__patient_id'),
-                                           writer_name=concatenate_name('prescription__writer'),
-                                           patient_name=concatenate_name('prescription__patient'))
 
+class ParentFilePrescriptionManager(models.Manager):
     def prefetch_all(self) -> 'FilePrescriptionQuerySet':
         return self.get_queryset().prefetch_all()
 
@@ -180,6 +183,20 @@ class FilePrescriptionManager(models.Manager):
         return self.get_queryset().choice_fields()
 
 
+class OriginalFilePrescriptionManager(ParentFilePrescriptionManager):
+    def get_queryset(self) -> 'FilePrescriptionQuerySet':
+        return FilePrescriptionQuerySet(self.model, using=self._db).annotate_user()
+
+
+class FilePrescriptionManager(ParentFilePrescriptionManager):
+    def get_queryset(self) -> 'FilePrescriptionQuerySet':
+        return FilePrescriptionQuerySet(self.model, using=self._db). \
+            filter(deleted=False).annotate_user().annotate(writer_id=F('prescription__writer_id'),
+                                                           patient_id=F('prescription__patient_id'),
+                                                           writer_name=concatenate_name('prescription__writer'),
+                                                           patient_name=concatenate_name('prescription__patient'))
+
+
 class FilePrescription(BasePrescription):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='file_prescriptions')
     day_number = models.IntegerField()
@@ -188,6 +205,7 @@ class FilePrescription(BasePrescription):
     uploaded = models.BooleanField(default=False)
 
     objects = FilePrescriptionManager()
+    origin_objects = OriginalFilePrescriptionManager()
 
     class Meta:
         ordering = ['-created_at']

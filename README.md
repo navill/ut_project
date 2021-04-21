@@ -9,6 +9,7 @@
 ### TIL
 
 -   Django & DRF
+    -   210421: [중복값 출력 문제 해결 & 추가내용: Model Manager](docs/210421.md)
     -   210407: [MySQL Full-Text Search(n-gram) 적용](docs/210407.md)
     -   210406: [request.user의 permission 검사 최적화](docs/210406.md)
     -   210402: [Pagination 최적화(get_count())](docs/210402.md)

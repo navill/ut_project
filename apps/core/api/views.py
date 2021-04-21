@@ -16,6 +16,7 @@ from core.api.serializers import (DoctorWithPatientSerializer,
                                   PatientMainSerializer,
                                   PrescriptionWithDoctorFileSerializer,
                                   PrescriptionListForPatientSerializer)
+from files.models import DoctorFile
 from prescriptions.api.mixins import HistoryMixin
 from prescriptions.models import Prescription, FilePrescription
 
@@ -44,7 +45,9 @@ class PatientWithPrescriptions(RetrieveAPIView):
 
 
 class PrescriptionWithFilePrescriptions(RetrieveAPIView):
-    queryset = Prescription.objects.select_all()
+    queryset = Prescription.objects.select_all().prefetch_related(
+        Prefetch('doctor_files', queryset=DoctorFile.objects.filter(deleted=False),
+                 to_attr='not_deleted'))
     permission_classes = [IsOwner]
     serializer_class = PrescriptionNestedFilePrescriptionSerializer
     lookup_field = 'pk'

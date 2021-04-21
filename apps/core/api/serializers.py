@@ -19,7 +19,7 @@ Doctor Serializer
 
 
 class PrescriptionWithDoctorFileSerializer(CorePrescriptionDetailSerializer):
-    doctor_files = CoreDoctorFileSerializer(many=True)
+    doctor_files = CoreDoctorFileSerializer(many=True, source='not_deleted')
 
     class Meta(CorePrescriptionDetailSerializer.Meta):
         fields = CorePrescriptionDetailSerializer.Meta.fields + ['doctor_files']
@@ -47,11 +47,12 @@ class PatientWithPrescriptionSerializer(PatientDetailSerializer):
 
 
 # 2: 소견서에 연결된 중계 모델(FilePrescription)에 업로드된 환자의 파일 정보
-class PrescriptionNestedFilePrescriptionSerializer(PrescriptionWithDoctorFileSerializer):
+class PrescriptionNestedFilePrescriptionSerializer(CorePrescriptionDetailSerializer):
+    doctor_files = CoreDoctorFileSerializer(many=True, source='not_deleted')
     file_prescriptions = CoreFilePrescriptionListSerializer(many=True)
 
-    class Meta(PrescriptionWithDoctorFileSerializer.Meta):
-        fields = PrescriptionWithDoctorFileSerializer.Meta.fields + ['file_prescriptions']
+    class Meta(CorePrescriptionDetailSerializer.Meta):
+        fields = CorePrescriptionDetailSerializer.Meta.fields + ['doctor_files', 'file_prescriptions']
 
 
 # 3  /file-prescription/<int:pk>/patient-files

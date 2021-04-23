@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Union, NoReturn
+from typing import TYPE_CHECKING, Union, NoReturn, Optional
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group, Permission
@@ -14,9 +14,9 @@ User = get_user_model()
 
 class UserPair:
     def __init__(self, user: Union['Patient', 'Doctor'], baseuser: User):
-        self.user = user
-        self.baseuser = baseuser
-        self._user_model_name = None
+        self.user: Union['Patient', 'Doctor'] = user
+        self.baseuser: User = baseuser
+        self._user_model_name: Optional[str] = None
 
         if self.validate_user():
             self.user_model_name = user
@@ -72,9 +72,9 @@ class GroupPermissionInterface(metaclass=ABCMeta):
 
 
 class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
-    def __init__(self, pair_user: 'CreatedUserPair' = None, permissions: 'Permission' = None):
-        self.pair_user = pair_user
-        self.permissions = permissions
+    def __init__(self, pair_user: 'UserPair' = None, permissions: 'Permission' = None):
+        self.pair_user: 'UserPair' = pair_user
+        self.permissions: 'Permission' = permissions
 
     def build(self):
         self.set_permissions_for_models()
@@ -125,7 +125,7 @@ class GroupPermissionBuilder(GroupPermissionInterface):  # base builder pattern
 
 class PostProcessingUserDirector:
     def __init__(self, user: Union['Doctor', 'Patient'] = None, baseuser: 'User' = None):
-        self.created_user = UserPair(user=user, baseuser=baseuser)
+        self.created_user: UserPair = UserPair(user=user, baseuser=baseuser)
 
     def build_user_group_and_permission(self) -> NoReturn:
         builder = GroupPermissionBuilder(pair_user=self.created_user)

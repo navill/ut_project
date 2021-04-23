@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django_filters.rest_framework import FilterSet, NumberFilter, DateFilter, CharFilter, BooleanFilter, ChoiceFilter, \
     OrderingFilter, LookupChoiceFilter
 
@@ -6,7 +8,7 @@ from prescriptions.models import Prescription, HealthStatus, FilePrescription
 
 class DateLookupChoiceFilter(LookupChoiceFilter):
     def __init__(self, field_name=None, lookup_choices=None, field_class=None, **kwargs):
-        self.field_name = field_name + '__date' if field_name else None
+        self.field_name: Optional[str] = field_name + '__date' if field_name else None
         super().__init__(self.field_name, lookup_choices, field_class, **kwargs)
 
 

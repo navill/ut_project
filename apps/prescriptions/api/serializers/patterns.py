@@ -1,6 +1,6 @@
 import datetime
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, NoReturn, List
+from typing import TYPE_CHECKING, Any, Dict, NoReturn, List, Optional, Type
 
 from django.db import transaction
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
@@ -10,7 +10,10 @@ from files.models import DoctorFile
 from prescriptions.models import Prescription, FilePrescription
 
 if TYPE_CHECKING:
-    from django.core.files.uploadedfile import InMemoryUploadedFile
+    from django.core.files.uploadedfile import UploadedFile
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
 
 PRESCRIPTION_ATTRS = ['writer']  # pop
 FILEPRESCRIPTION_ATTRS = ['start_date', 'end_date']  # get
@@ -19,10 +22,10 @@ DOCTORFILE_ATTRS = ['doctor_upload_files']  # pop
 
 class PrescriptionDirector:
     def __init__(self, validated_data: Dict[str, Any], is_update: bool = False):
-        self.validated_data = validated_data
-        self.is_update = is_update
-        self.prescription = None
-        self.builder_list = []
+        self.validated_data: Dict[str, Any] = validated_data
+        self.is_update: bool = is_update
+        self.prescription: Optional[Prescription] = None
+        self.builder_list: List[Type[BuilderInterface]] = []
 
     @transaction.atomic
     def build(self) -> NoReturn:
@@ -58,7 +61,7 @@ class PrescriptionDirector:
 
 
 class BuilderInterface(metaclass=ABCMeta):
-    prescription: Prescription or None
+    prescription: Optional[Prescription]
     director: PrescriptionDirector
     is_update: bool
     status: bool
@@ -78,10 +81,10 @@ class BuilderInterface(metaclass=ABCMeta):
 
 class FileBuilder(BuilderInterface):
     def __init__(self, director):
-        self.director = director
-        self.doctor_upload_files = None
-        self.is_update = False
-        self.status = False
+        self.director: PrescriptionDirector = director
+        self.doctor_upload_files: Optional[Type[UploadedFile]] = None
+        self.is_update: bool = False
+        self.status: bool = False
 
         self.initialize_attributes()
         self.validate_builder()
@@ -116,10 +119,10 @@ class FileBuilder(BuilderInterface):
 
 class PrescriptionBuilder(BuilderInterface):
     def __init__(self, director: PrescriptionDirector):
-        self.director = director
-        self.writer = None
-        self.is_update = False
-        self.status = False
+        self.director: PrescriptionDirector = director
+        self.writer: Optional['User'] = None
+        self.is_update: bool = False
+        self.status: bool = False
         self.initialize_attributes()
         self.validate_builder()
 
@@ -158,11 +161,11 @@ class PrescriptionBuilder(BuilderInterface):
 
 class FilePrescriptionBuilder(BuilderInterface):
     def __init__(self, director):
-        self.director = director
-        self.start_date = None
-        self.end_date = None
-        self.is_update = False
-        self.status = False
+        self.director: PrescriptionDirector = director
+        self.start_date: datetime = None
+        self.end_date: datetime = None
+        self.is_update: bool = False
+        self.status: bool = False
         self.initialize_attributes()
         self.validate_builder()
 

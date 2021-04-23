@@ -59,7 +59,7 @@ class FilePrescriptionModelSerializer(serializers.ModelSerializer):
 class FilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def __init__(self, target_field: str = None, **kwargs):
         super().__init__(**kwargs)
-        self.target_field = target_field
+        self.target_field: str = target_field
 
     def get_queryset(self) -> Optional[Type['QuerySet']]:
         request = self.context.get('request', None)

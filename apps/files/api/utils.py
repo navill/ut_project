@@ -1,7 +1,7 @@
 import datetime
 import mimetypes
 import os
-from typing import Union, TYPE_CHECKING
+from typing import Union, TYPE_CHECKING, NoReturn
 
 from django.db.models import F
 from django.db.models.functions import Concat
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class Downloader:
     def __init__(self, instance: Union['DoctorFile', 'PatientFile']):
-        self.field_file = instance.file
+        self.field_file: 'FieldFile' = instance.file
 
     def response(self) -> FileResponse:
         filename = self._get_filename(self.field_file)
@@ -27,7 +27,7 @@ class Downloader:
         return filename
 
 
-def delete_file(path):
+def delete_file(path: str) -> NoReturn:
     if os.path.isfile(path):
         os.remove(path)
 

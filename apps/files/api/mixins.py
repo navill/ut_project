@@ -22,12 +22,12 @@ class CommonUploaderCheckMixin:
 
 
 class CommonFileQuerysetMixin:
-    def shallow_delete(self: Type['FileQuerySetMixin']) -> str:
+    def shallow_delete(self) -> str:
         obj_name_list = [str(obj_name) for obj_name in self]
         self.update(deleted=True)
         return f'finish shallow delete [{obj_name_list}]'
 
-    def hard_delete(self: Type['FileQuerySetMixin']) -> str:
+    def hard_delete(self) -> str:
         obj_name_list = []
         for doctor_file in self:
             obj_name_list.append(str(self))

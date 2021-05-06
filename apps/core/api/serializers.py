@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
@@ -11,7 +12,7 @@ from core.api.core_serializers import (CoreFilePrescriptionSerializer,
                                        CorePrescriptionDetailSerializer,
                                        CorePatientListSerializer)
 from core.api.fields import FilePrescriptionFields, PrescriptionFields, PatientFields, DoctorFields
-from prescriptions.models import FilePrescription
+from prescriptions.models import FilePrescription, Prescription
 
 """
 Doctor Serializer
@@ -106,11 +107,18 @@ class PatientMainSerializer(PatientWithDoctorSerializer):
     """
     환자 계정으로 로그인 시 첫 로딩될 데이터를 포함한 serializer
     """
-    prescriptions = PrescriptionListForPatientSerializer(many=True)
+    # prescriptions = PrescriptionListForPatientSerializer(many=True)
+    prescriptions = serializers.SerializerMethodField()
     upload_schedules = serializers.SerializerMethodField()
 
     class Meta(PatientWithDoctorSerializer.Meta):
         fields = PatientFields.detail_field + ['prescriptions', 'upload_schedules']
+
+    def get_prescriptions(self, instance):
+        queryset = Prescription.objects.select_all().filter(patient_id=instance.user_id)[:10]
+        serializer_context = {'request': self.context['request']}
+        prescription_serializer = PrescriptionListForPatientSerializer(queryset, many=True, context=serializer_context)
+        return prescription_serializer.data
 
     @swagger_serializer_method(serializer_or_field=FilePrescriptionsForPatientSerializer)
     def get_upload_schedules(self, instance: 'Patient'):

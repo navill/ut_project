@@ -1,4 +1,4 @@
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Subquery, OuterRef
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import RetrieveAPIView, ListAPIView
@@ -98,7 +98,7 @@ class ExpiredFilePrescriptionHistory(HistoryMixin, ListAPIView):
 # todo: 아래 환자 부분 문서 -> docs로 변환
 class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의사 정보 포함
     """
-    [DETAIL] 담당 의사 정보를 환자의 정보 페이지
+    [DETAIL][Patient] 담당 의사 정보를 환자의 정보 페이지
 
     ---
     - 기능: 환자의 정보와 담당 의사 정보를 표시
@@ -116,7 +116,7 @@ class PatientWithDoctor(RetrieveAPIView):  # 환자 첫 페이지 - 담당 의�
 
 class PrescriptionListForPatient(ListAPIView):  # 환자와 관련된 소견서 + 의사 파일 + FilePrescriptionList
     """
-    [LIST] 해당 환자에 대해 작성된 소견서 리스트
+    [LIST][Patient] 해당 환자에 대해 작성된 소견서 리스트
 
     ---
     - 기능: 로그인한 환자의 소견서 리스트 표시
@@ -137,7 +137,7 @@ class PrescriptionListForPatient(ListAPIView):  # 환자와 관련된 소견서 
 
 class PrescriptionDetailForPatient(RetrieveAPIView):
     """
-    [DETAIL] 환자가 접근할 수 있는 소견서의 세부 정보
+    [DETAIL][Patient] 환자가 접근할 수 있는 소견서의 세부 정보
 
     ---
     - 기능: 소견서 리스트에서 특정 소견서를 선택할 경우 해당 소견서의 세부 내용 출력
@@ -155,7 +155,7 @@ class PrescriptionDetailForPatient(RetrieveAPIView):
 
 class FilePrescriptionListForPatient(RetrieveAPIView):  # Detail FilePrescription + PatietFile
     """
-    [LIST] 환자가 접근할 수 있는 파일 업로드 일정 리스트
+    [LIST][Patient] 환자가 접근할 수 있는 파일 업로드 일정 리스트
 
     ---
     - 기능: 의사가 생성한 스케줄(파일 업로드 일정)을 확인할 때 사용
@@ -174,7 +174,7 @@ class FilePrescriptionListForPatient(RetrieveAPIView):  # Detail FilePrescriptio
 
 class FilePrescriptionDetailForPatient(RetrieveAPIView):
     """
-    [DETAIL] 환자가 접근할 수 있는 파일 업로드 일정의 세부 정보
+    [DETAIL][Patient] 환자가 접근할 수 있는 파일 업로드 일정의 세부 정보
 
     ---
     - 기능: 업로드 일정의 세부 정보 표시
@@ -194,7 +194,7 @@ class FilePrescriptionDetailForPatient(RetrieveAPIView):
 
 class PatientMain(RetrieveAPIView):
     """
-    [DETAIL] 환자용 메인 페이지
+    [DETAIL][Patient] 환자용 메인 페이지
 
     ---
     - 기능: 환자 계정으로 로그인 시 처음 보여질 내용 표시
@@ -205,11 +205,9 @@ class PatientMain(RetrieveAPIView):
         - prescriptions: 환자의 소견서 리스트
         - upload_schedules: 업로드 일정
     """
-    queryset = Patient.objects.select_all(). \
-        prefetch_prescription(Prefetch('prescriptions', queryset=Prescription.objects.select_all().only_list())). \
-        with_latest_prescription(). \
-        only_detail('updated_at')
-    permission_classes = []
+
+    queryset = Patient.objects.select_all().with_latest_prescription()
+    permission_classes = [IsOwner]
     serializer_class = PatientMainSerializer
     lookup_field = 'pk'
     path_type_user = openapi.TYPE_INTEGER
@@ -218,6 +216,6 @@ class PatientMain(RetrieveAPIView):
 # patient - history
 class ChecekdFilePrescription(ListAPIView):  # 환자가 올린 파일을 의사가 확인(checked=True)한 리스트
     """
-    [LIST] 환자가 업로드한 파일을 의사가 확인했을 경우 표시될 리스트 -> 개발 예정
+    [LIST][Patient] 환자가 업로드한 파일을 의사가 확인했을 경우 표시될 리스트 -> 개발 예정
     """
     pass

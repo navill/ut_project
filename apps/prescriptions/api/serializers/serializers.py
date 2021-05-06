@@ -91,9 +91,9 @@ class PrescriptionDetailSerializer(PrescriptionModelSerializer):
     def get_fields(self):
         ret = super().get_fields()
         request = self.context['request']
-
-        if request.user.user_type.patient or request.user.groups.filter(name='patient').exists():
-            ret.pop('url')
+        if request.user.is_authenticated:
+            if request.user.user_type.patient or request.user.groups.filter(name='patient').exists():
+                ret.pop('url')
         return ret
 
 

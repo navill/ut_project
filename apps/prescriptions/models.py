@@ -20,8 +20,10 @@ class HealthStatus(models.TextChoices):
 
 class BasePrescription(models.Model):
     description = models.TextField()
+    description_for_patient = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=10, choices=HealthStatus.choices, default=HealthStatus.UNKNOWN)
     checked = models.BooleanField(default=False)
+    checked_by_patient = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
@@ -154,7 +156,7 @@ class FilePrescriptionQuerySet(models.QuerySet):
     def nested_all(self) -> 'FilePrescriptionQuerySet':
         return self.select_all().prefetch_all()
 
-    def only_list(self, *others: List[str]):
+    def only_list(self, *others: List[str]) -> 'FilePrescriptionQuerySet':
         fields = FilePrescriptionFields.list_field + list(others)
         return self.only(*fields)
 
@@ -165,7 +167,7 @@ class FilePrescriptionQuerySet(models.QuerySet):
     def choice_fields(self) -> 'FilePrescriptionQuerySet':
         return self.only('id', 'status', 'created_at', 'date', 'day_number', 'active', 'uploaded', 'checked')
 
-    def annotate_user(self):
+    def annotate_user(self) -> 'FilePrescriptionQuerySet':
         return self.annotate(user=F('prescription__writer_id'))
 
 
@@ -196,6 +198,10 @@ class FilePrescriptionManager(ParentFilePrescriptionManager):
                                                            writer_name=concatenate_name('prescription__writer'),
                                                            patient_name=concatenate_name('prescription__patient'))
 
+    def unchecked_by(self, prescription_id) -> FilePrescriptionQuerySet:
+        return FilePrescriptionQuerySet(self.model, using=self._db).filter(prescription_id=prescription_id).filter(
+            checked=False)
+
 
 class FilePrescription(BasePrescription):
     prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='file_prescriptions')
@@ -214,26 +220,41 @@ class FilePrescription(BasePrescription):
         return f'prescription_id:{self.prescription.id}-{self.date}: {self.day_number}일'
 
 
-def set_prescription_checked(instance: FilePrescription) -> NoReturn:
-    not_checked_queryset = FilePrescription.objects.filter(prescription_id=instance.prescription_id).filter(
-        checked=False)
-    parent_prescription = instance.prescription
-    check_value = False
+class ParentCheckHandler:
+    def __init__(self, instance):
+        self.prescription = instance.prescription
+        self.file_prescription = instance
 
-    if not not_checked_queryset.exists() and parent_prescription.checked is False:
-        check_value = True
-    elif parent_prescription.checked:
-        check_value = False
+    def update_prescription(self):
+        check_flag = self.convert_checked_flag()
+        self.update_prescription_checked(check_flag)
 
-    parent_prescription.checked = check_value
-    parent_prescription.save()
+    def convert_checked_flag(self) -> bool:
+        check_flag = False
+
+        if self.has_all_checked(self.file_prescription) and self.is_checked(self.prescription) is False:
+            check_flag = True
+        elif self.is_checked(self.prescription):
+            check_flag = False
+        return check_flag
+
+    def update_prescription_checked(self, check_value: bool) -> NoReturn:
+        self.prescription.checked = check_value
+        self.prescription.save()
+
+    def has_all_checked(self, file_prescription: FilePrescription) -> bool:
+        file_prescriptions = FilePrescription.objects.unchecked_by(file_prescription.prescription_id)
+        return not file_prescriptions.exists()
+
+    def is_checked(self, prescription: Prescription) -> bool:
+        return prescription.checked
 
 
 # 단일 FilePrescription 업데이트 시
 @receiver(post_save, sender=FilePrescription)
 def post_save_file_prescription(sender, **kwargs: Dict[str, Any]):
-    instance = kwargs['instance']
-    set_prescription_checked(instance)
+    handler = ParentCheckHandler(kwargs['instance'])
+    handler.update_prescription()
 
 
 # TextField Lookup - Full-text search

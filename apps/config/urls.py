@@ -21,7 +21,7 @@ urlpatterns = [
 
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api-auth/logout', session_logout_view, name='session_logout'),
-    path('admin/', admin.site.urls),
+    path('ut-admin/', admin.site.urls),
     path('', include('django.contrib.auth.urls')),
 ]
 

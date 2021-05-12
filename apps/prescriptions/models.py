@@ -221,20 +221,20 @@ class FilePrescription(BasePrescription):
 
 
 class ParentCheckHandler:
-    def __init__(self, instance):
+    def __init__(self, instance: FilePrescription):
         self.prescription = instance.prescription
         self.file_prescription = instance
 
-    def update_prescription(self):
+    def update_prescription(self) -> NoReturn:
         check_flag = self.convert_checked_flag()
         self.update_prescription_checked(check_flag)
 
-    def convert_checked_flag(self) -> bool:
+    def convert_checked_flag(self) -> bool:  # change? convert? get?
         check_flag = False
 
-        if self.has_all_checked(self.file_prescription) and self.is_checked(self.prescription) is False:
+        if self.has_all_checked(self.file_prescription) and not self.is_checked(self.prescription):
             check_flag = True
-        elif self.is_checked(self.prescription):
+        elif not self.is_checked(self.prescription):
             check_flag = False
         return check_flag
 
@@ -247,7 +247,7 @@ class ParentCheckHandler:
         return not file_prescriptions.exists()
 
     def is_checked(self, prescription: Prescription) -> bool:
-        return prescription.checked
+        return not prescription.checked
 
 
 # 단일 FilePrescription 업데이트 시

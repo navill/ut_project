@@ -168,20 +168,20 @@ class BaseUser(AbstractBaseUser, PermissionsMixin):
 
 
 class DoctorQuerySet(CommonUserQuerySet):
-    def prefetch_all(self):
+    def prefetch_all(self) -> 'DoctorQuerySet':
         return self.prefetch_related('patients')
 
-    def select_all(self):
+    def select_all(self) -> 'DoctorQuerySet':
         return self.select_related('user').select_related('major')
 
-    def nested_all(self):
+    def nested_all(self) -> 'DoctorQuerySet':
         return self.select_all().prefetch_all()
 
-    def only_list(self, *others: Tuple[str]):
+    def only_list(self, *others: Tuple[str]) -> 'DoctorQuerySet':
         fields = DoctorFields.list_field + others
         return self.only(*fields)
 
-    def only_detail(self, *others: Tuple[str]):
+    def only_detail(self, *others: Tuple[str]) -> 'DoctorQuerySet':
         fields = DoctorFields.detail_field + others
         return self.only(*fields)
 

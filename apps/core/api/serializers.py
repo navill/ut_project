@@ -1,4 +1,5 @@
-from django.db.models import Prefetch
+from typing import Dict
+
 from drf_yasg.utils import swagger_serializer_method
 from rest_framework import serializers
 
@@ -107,23 +108,25 @@ class PatientMainSerializer(PatientWithDoctorSerializer):
     """
     환자 계정으로 로그인 시 첫 로딩될 데이터를 포함한 serializer
     """
-    # prescriptions = PrescriptionListForPatientSerializer(many=True)
     prescriptions = serializers.SerializerMethodField()
     upload_schedules = serializers.SerializerMethodField()
 
     class Meta(PatientWithDoctorSerializer.Meta):
         fields = PatientFields.detail_field + ['prescriptions', 'upload_schedules']
 
-    def get_prescriptions(self, instance):
+    @swagger_serializer_method(serializer_or_field=PrescriptionListForPatientSerializer)
+    def get_prescriptions(self, instance: 'Patient') -> Dict[str, str]:
         queryset = Prescription.objects.select_all().filter(patient_id=instance.user_id)[:10]
         serializer_context = {'request': self.context['request']}
-        prescription_serializer = PrescriptionListForPatientSerializer(queryset, many=True, context=serializer_context)
+        prescription_serializer = PrescriptionListForPatientSerializer(instance=queryset, many=True,
+                                                                       context=serializer_context)
         return prescription_serializer.data
 
     @swagger_serializer_method(serializer_or_field=FilePrescriptionsForPatientSerializer)
-    def get_upload_schedules(self, instance: 'Patient'):
-        queryset = FilePrescription.objects. \
-            filter(prescription_id=instance.latest_prescription_id).only_list()
+    def get_upload_schedules(self, instance: 'Patient') -> Dict[str, str]:
+        queryset = FilePrescription.objects.filter(
+            prescription_id=instance.latest_prescription_id).filter_not_uploaded().only_list().order_by('date')[:10]
         serializer_context = {'request': self.context['request']}
-        file_prescriptions = FilePrescriptionsForPatientSerializer(queryset, many=True, context=serializer_context)
+        file_prescriptions = FilePrescriptionsForPatientSerializer(instance=queryset, many=True,
+                                                                   context=serializer_context)
         return file_prescriptions.data

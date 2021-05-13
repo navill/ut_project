@@ -32,29 +32,39 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third party
+    'django_extensions',
+    'django_filters',
+    'djcelery',
+    'django_celery_beat',
+    'django_celery_results',
+    'crispy_forms',
+    'corsheaders',
+    'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',
+    'drf_yasg',
+
     # apps
     'accounts',
     'hospitals',
     'prescriptions',
     'core',
     'files',
-    # third party
-    'django_extensions',
-    'rest_framework',
-    'crispy_forms',
-    'rest_framework_simplejwt.token_blacklist',
-    'django_filters',
-    'djcelery',
-    'django_celery_beat',
-    'django_celery_results',
-    'drf_yasg',
+
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -147,6 +157,8 @@ SWAGGER_SETTINGS = {
     'DEFAULT_GENERATOR_CLASS': 'config.utils.doc_utils.CustomOpenAPISchemaGenerator',
 }
 
+# CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
 # https://github.com/nextghost/sciswarm/blob/e835c2e1ed331a1e436214c7fbd82849b3c37f52/sciswarm/settings_private_example.py
 # logging 샘플 코드
 # LOGGING = {

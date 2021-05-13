@@ -250,6 +250,7 @@ class AccountsTokenSerializer(TokenObtainPairSerializer):
 class AccountsTokenRefreshSerializer(RefreshBlacklistMixin, TokenRefreshSerializer):
     @transaction.atomic
     def validate(self, attrs: Dict[str, Union[AnyStr, int]]) -> Dict[str, Union[AnyStr, int]]:
+
         refresh_obj = CustomRefreshToken(attrs['refresh'])
         data = {'access': str(refresh_obj.access_token)}
         access_token_exp = refresh_obj.access_token.payload['exp']

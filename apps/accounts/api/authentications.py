@@ -1,9 +1,11 @@
-from typing import Dict, AnyStr, Tuple, Union
+from typing import Dict, AnyStr, Tuple, Union, NoReturn
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.middleware.csrf import CsrfViewMiddleware
 from django.utils import timezone
 from rest_framework.authentication import BasicAuthentication, SessionAuthentication
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.request import Request
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, AuthenticationFailed
@@ -13,6 +15,11 @@ from rest_framework_simplejwt.tokens import Token, BlacklistMixin, AccessToken
 from accounts.api.mixins import UserTypeForAuthMixin
 
 User = get_user_model()
+
+
+class CSRFCheck(CsrfViewMiddleware):
+    def _reject(self, request, reason):
+        return reason
 
 
 class CustomJWTTokenUserAuthentication(UserTypeForAuthMixin, JWTAuthentication):
@@ -25,6 +32,7 @@ class CustomJWTTokenUserAuthentication(UserTypeForAuthMixin, JWTAuthentication):
             raise AuthenticationFailed("User don't have valid token", code='invalid_token')
 
         user = self.get_typed_user(user)
+        self.enforce_csrf(request)
         return user, validated_token
 
     def get_user(self, validated_token: Dict[str, AnyStr]) -> User:
@@ -40,8 +48,15 @@ class CustomJWTTokenUserAuthentication(UserTypeForAuthMixin, JWTAuthentication):
 
         if not user.is_active:
             raise AuthenticationFailed('User is inactive', code='user_inactive')
-
         return user
+
+    def enforce_csrf(self, request: Request) -> NoReturn:
+        check = CSRFCheck()
+        check.process_request(request)
+        reason = check.process_view(request, None, (), {})
+
+        if reason:
+            raise PermissionDenied(f'CSRF Failed: {reason}')
 
 
 class CustomBasicAuthentication(UserTypeForAuthMixin, BasicAuthentication):

@@ -1,15 +1,16 @@
-from typing import Type, NoReturn
+from typing import Type, NoReturn, Dict, Any, Optional
 
 from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.exceptions import ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -28,14 +29,32 @@ class AccountsTokenPairView(TokenObtainPairView):
     serializer_class = AccountsTokenSerializer
 
     @swagger_auto_schema(**docs.login_with_token)
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def post(self, request, *args, **kwargs) -> Response:
+        serialized_data = self.get_serializer_data(request_data=request.data)
+        refresh_token = self.get_refresh_token_from(serialized_data)
+        response = self.create_response(serialized_data, refresh_token)
+        return response
+
+    def get_refresh_token_from(self, data: Dict[str, Any]) -> Optional[str]:
+        return data.pop('refresh', None)
+
+    def get_serializer_data(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+        serializer = self.get_serializer(data=request_data)
         try:
             serializer.is_valid(raise_exception=True)
-        except TokenError as e:
-            raise InvalidToken(e.args[0])
+        except Exception as e:
+            raise ValidationError(detail=e)
+        return serializer.validated_data
 
-        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+    def create_response(self, serialized_data, refresh_token):
+        if refresh_token:
+            response_data, response_status = serialized_data, status.HTTP_200_OK
+        else:
+            response_data, response_status = {'error': 'can not create refresh token'}, status.HTTP_400_BAD_REQUEST
+
+        response = Response(data=response_data, status=response_status)
+        response.set_cookie(key='refresh_token', value=refresh_token, httponly=True)  # ssl 적용시 secure=True
+        return response
 
 
 class AccountsTokenRefreshView(TokenRefreshView):

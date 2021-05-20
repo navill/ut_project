@@ -36,8 +36,8 @@ INSTALLED_APPS = [
     'django_extensions',
     'django_filters',
     'djcelery',
-    'django_celery_beat',
-    'django_celery_results',
+    # 'django_celery_beat',
+    # 'django_celery_results',
     'crispy_forms',
     'corsheaders',
     'rest_framework',
@@ -159,6 +159,7 @@ SWAGGER_SETTINGS = {
 
 # CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
+CSRF_HEADER_NAME = 'HTTP_X_CSRF_HEADER'
 # https://github.com/nextghost/sciswarm/blob/e835c2e1ed331a1e436214c7fbd82849b3c37f52/sciswarm/settings_private_example.py
 # logging 샘플 코드
 # LOGGING = {

@@ -9,6 +9,7 @@
 ### TIL
 
 -   Django & DRF
+    -   210520: [django admin의 list에서 선택된 파일객체를 zip 파일로 다운받기](docs/210520.md)
     -   210421: [중복값 출력 문제 해결 & 추가내용: Model Manager](docs/210421.md)
     -   210407: [MySQL Full-Text Search(n-gram) 적용](docs/210407.md)
     -   210406: [request.user의 permission 검사 최적화](docs/210406.md)

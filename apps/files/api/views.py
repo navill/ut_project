@@ -2,7 +2,9 @@ from typing import TYPE_CHECKING, Union
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.api.permissions import IsDoctor, IsPatient, IsOwner, CareDoctorReadOnly
 from files import docs
@@ -15,9 +17,10 @@ from files.api.serializers import (PatientFileUploadSerializer,
                                    PatientFlieRetrieveSerializer,
                                    PatientFlieUpdateSerializer,
                                    DoctorFileDownloadSerializer,
-                                   PatientFileDownloadSerializer)
+                                   PatientFileDownloadSerializer, TempFileSerializer)
 from files.api.utils import Downloader
 from files.models import DoctorFile, PatientFile
+from files.temp_models import TempHospitalFiles
 
 if TYPE_CHECKING:
     from django.http import FileResponse
@@ -153,3 +156,33 @@ class PatientFileDownloadAPIView(RetrieveAPIView):
         file_object = self.get_object()
         downloader = Downloader(instance=file_object)
         return downloader.response()
+
+
+class TempFiles(ListAPIView):
+    queryset = TempHospitalFiles.objects.all()
+    serializer_class = TempFileSerializer
+    permission_classes = [CareDoctorReadOnly]
+
+
+class TempFilesUpload(CreateAPIView):
+    queryset = TempHospitalFiles.objects.all()
+    serializer_class = TempFileSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class TempFilesDownload(RetrieveAPIView):
+    queryset = TempHospitalFiles.objects.all()
+    serializer_class = TempFileSerializer
+    permission_classes = [CareDoctorReadOnly]
+    lookup_field = 'id'
+
+    def get(self, request, *args, **kwargs):
+        file_object = self.get_object()
+        if file_object.deleted:
+            return Response({"error": "this file was deleted"})
+        downloader = Downloader(instance=file_object)
+        return downloader.response()
+
+
+class TempFilesBulkDownload(APIView):
+    pass

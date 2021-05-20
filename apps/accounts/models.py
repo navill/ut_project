@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Tuple, Dict, List, Type, NoReturn
 
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
-from django.contrib.auth.models import PermissionsMixin, AbstractUser
+from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.db.models import Prefetch, Max, F
 from django.urls import reverse

@@ -4,7 +4,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
+from files.temp_models import TempHospitalFiles
 from files.models import DoctorFile, PatientFile
+
 from prescriptions.models import Prescription, FilePrescription, PrescriptionQuerySet, FilePrescriptionQuerySet
 
 if TYPE_CHECKING:
@@ -209,3 +211,14 @@ class PatientFileListSerializer(PatientFileSerializer):
 class PatientUploadedFileListSerializer(PatientFileSerializer):
     class Meta(PatientFileSerializer.Meta):
         fields = PatientFileSerializer.Meta.fields
+
+
+class TempFileSerializer(serializers.ModelSerializer):
+    file = serializers.FileField(use_url=False, write_only=True)
+    file_type = serializers.CharField(read_only=True)
+    file_name = serializers.CharField(read_only=True)
+    extension = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = TempHospitalFiles
+        fields = '__all__'
